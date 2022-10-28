@@ -68,18 +68,13 @@ def run():
 
         # start_player = 0 → 사람 선공 / 1 → AI 선공
         game.board.init_board(start_player=order)
-        if is_gui_mode:
-            gui_board = gui_ai_vs_player.Gui(game, board_arr, human, mcts_player)
-            gui_board.run()
-            gui_board.update_game_view()
-        else:
-            game.init_play(None, human, mcts_player, is_shown=1)
-            while True:
-                num = game.do_next(-1, -1)
-                if num == -20:
-                    continue
-                else:
-                    print("게임 종료")
+        game.init_play(None, human, mcts_player, is_shown=1)
+        while True:
+            num = game.do_next(-1, -1)
+            if num == -20:
+                continue
+            else:
+                print("게임 종료")
 
 
 

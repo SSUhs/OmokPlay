@@ -10,9 +10,9 @@ import sys
 sys.setrecursionlimit(10**8)
 
 class TrainPipeline():
-    def __init__(self):
+    def __init__(self, board_width, board_height):
         # 게임(오목)에 대한 변수들
-        self.board_width, self.board_height = 9, 9
+        self.board_width, self.board_height = board_width, board_height
         self.n_in_row = 5
         self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
         self.game = Game(self.board,is_gui_mode = False)
@@ -30,7 +30,7 @@ class TrainPipeline():
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
-        self.check_freq = 500  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음.
+        self.check_freq = 500  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음 (예를 들어 500이면 self_play 500번마다 파일 한번씩 저장)
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
         self.train_num = 0 # 현재 학습 횟수
         
@@ -109,17 +109,30 @@ class TrainPipeline():
             if (i+1) % self.check_freq == 0:
                 print(f"★ {self.train_num}번째 batch에서 모델 저장 : {datetime.now()}")
                 # code20221004131321
+                # .model 파일은 플레이할 때 사용할 모델 파일이고, pickle 파일은 학습 데이터? (실제 게임에서는 .model, 학습 과정에서는 .pickle을 불러 와야한다)
                 self.policy_value_net.save_model(f'{model_path}/policy_9_{self.train_num}.model')
                 pickle.dump(self, open(f'{train_path}/train_9_{self.train_num}.pickle', 'wb'), protocol=2)
 
 if __name__ == '__main__':
-    print("9x9 환경에서 학습을 진행합니다.")
-    train_path = f"./save/train_9"
-    model_path = f"./save/model_9"
-    
-    init_num = int(input('현재까지 저장된 모델의 학습 수 : '))
-    if init_num == 0 or init_num == None : training_pipeline = TrainPipeline()
-    else : training_pipeline = pickle.load(open(f'{train_path}/train_9_{init_num}.pickle', 'rb'))
+    print("학습할 사이즈를 입력해주세요 (ex : 9x9면 9 입력)")
+    size = int(input())
+    if size < 5 or size > 15:
+        print("오목 판의 크기는 5이상 15이하여야 합니다")
+        quit()
+
+    print(f"{size}x{size} 환경에서 학습을 진행합니다.")
+    train_path = f"./save/train_{size}"
+    model_path = f"./save/model_{size}"
+
+    print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
+    print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력")
+    init_num = int(input())
+
+    # 이미 학습된 모델이 없는 경우 새로운 파이프 라인을 생성한다
+    if init_num == 0 or init_num == None :
+        training_pipeline = TrainPipeline(size,size)
+    else: # 이미 일부 학습된 모델이 있는 경우 기존 파이프라인을 불러온다
+        training_pipeline = pickle.load(open(f'{train_path}/train_{size}_{init_num}.pickle', 'rb'))
 
     print(f"★ 학습시작 : {datetime.now()}")
     training_pipeline.run()

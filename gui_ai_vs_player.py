@@ -102,7 +102,10 @@ class Gui:
         done = False
         self.game.init_play(self, self.player1, self.player2, is_shown=1)
         self.resize_view()
-
+        self.update_game_view()
+        current_player = self.game.board.get_current_player() # 1은 사람, 2는 컴퓨터
+        if current_player == 2: # 사용자가 "백"이고 컴퓨터가 "흑"이면 컴퓨터가 먼저 놓기
+            self.game.do_next(-1,-1)  # 컴퓨터 차례이므로 row, col 대입 X
         while not done:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -394,9 +397,15 @@ class Gui:
             row = self.board_arr.last_loc[0]
             col = self.board_arr.last_loc[1]
             if self.board_arr.current_player == 1:
-                color = (0,0,0)
+                if self.game.board.order == 0:  # order = 0이면 사람이 먼저 시작 (사람이 흑)
+                    color = (0,0,0)
+                else:
+                    color = (255,255,255)
             else:
-                color = (255,255,255)
+                if self.game.board.order == 0:
+                    color = (255,255,255)
+                else:
+                    color = (0,0,0)
             pg.draw.rect(screen, color, [round(self.width / 2 - (7 - col) * 51 * self.width / 800 - 20 / 2),
                                                        round(self.height / 2 - (7 - row) * 51 * self.height / 800 - 21 / 2),
                                                        21,

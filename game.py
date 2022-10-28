@@ -236,8 +236,9 @@ class Game(object):
         self.is_initiated_play = True
         print("init play() 수행")
 
-
-    def do_next(self, row, col):  # console 모드의 경우 row, col을 -1을 대입하면 됨
+    # console 모드의 경우 row, col을 -1을 대입하면 됨
+    # 또한 do_next를 실행하는 차례가 컴퓨터일 경우에도 row,col 사용 X
+    def do_next(self, row, col):
         gui_board = self.gui_board
         # 흑돌일 때, 금수 위치를 넣어두기
         # gui로 플레이할 때와 콘솔로 플레이할 때는 do_next를 호출하는 선후가 다르기 때문에 따로 설정
