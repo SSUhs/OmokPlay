@@ -13,6 +13,7 @@ from mcts_alphaZero import MCTSPlayer
 from policy_value_net_numpy import PolicyValueNetNumpy
 
 from constant import error_const
+from policy_value_net_tensorflow import PolicyValueNetTensorflow
 
 ctypes.windll.user32.SetProcessDPIAware()
 
@@ -36,9 +37,10 @@ clock = pg.time.Clock()
 pg.display.set_caption("오목")
 
 class Gui:
-    def __init__(self):
+    def __init__(self, ai_library):
         # self.game_org = game.Game()
         self.game = game
+        self.ai_library = ai_library
         self.width, self.height = 800, 800
         self.diameter = diameter
         self.button_size = button_size
@@ -73,35 +75,67 @@ class Gui:
 
 
     def load_game(self, black_white):
-        print(black_white)
-        hard = 15000 # 임시 15000
+        # print(black_white)
+        hard_theano = 15000 # 임시 15000
+        hard_tensorflow = 50
         num = 5
         width, height = 9, 9
-        model_file = './model/policy_9_' + str(hard) + ".model"
-        gui_board = None
-        board_arr = Board(width=width, height=height, n_in_row=num)
-        game = Game(board_arr, is_gui_mode=True)
-        if black_white == 'black':
-            order = 0
-        elif black_white == 'white':
-            order = 1
+
+        if self.ai_library == 'theano':
+            model_file = './model/policy_9_' + str(hard_theano) + ".model"
+            gui_board = None
+            board_arr = Board(width=width, height=height, n_in_row=num)
+            game = Game(board_arr, is_gui_mode=True)
+            if black_white == 'black':
+                order = 0
+            elif black_white == 'white':
+                order = 1
+            else:
+                print("없는 모드입니다")
+                pg.quit()  # 종료
+
+            # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
+            policy_param = pickle.load(open(model_file, 'rb'), encoding='bytes')
+            best_policy = PolicyValueNetNumpy(width, height, policy_param)
+
+            # n_playout값 : 성능
+            mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
+            human = Human()
+
+            game.board.init_board(start_player=order)
+            gui_board = gui_ai_vs_player.Gui(game, board_arr, human, mcts_player)
+            gui_board.run()
+            gui_board.update_game_view()
+            pg.quit()
+        elif self.ai_library == 'tensorflow':  # 텐서플로우 학습 모델 기반으로 게임 시작
+            model_file =  f'./model/tf_policy_{width}_{str(hard_tensorflow)}_model'
+            gui_board = None
+            board_arr = Board(width=width, height=height, n_in_row=num)
+            game = Game(board_arr, is_gui_mode=True)
+            if black_white == 'black':
+                order = 0
+            elif black_white == 'white':
+                order = 1
+            else:
+                print("없는 모드입니다")
+                pg.quit()  # 종료
+            # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
+            best_policy = PolicyValueNetTensorflow(width, height,model_file,compile_env='local')  # 코랩에서는 start_game.py 수행 안하기 때문에 compile_env는 local로 고정
+            mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5,
+                                     n_playout=400)  # set larger n_playout for better performance
+            human = Human()
+
+            game.board.init_board(start_player=order)
+            gui_board = gui_ai_vs_player.Gui(game, board_arr, human, mcts_player)
+            gui_board.run()
+            gui_board.update_game_view()
+            pg.quit()
+
         else:
-            print("없는 모드입니다")
-            pg.quit() # 종료
-            
-        # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
-        policy_param = pickle.load(open(model_file, 'rb'), encoding='bytes')
-        best_policy = PolicyValueNetNumpy(width, height, policy_param)
+            print("지원 되지 않는 라이브러리입니다")
+            quit()
 
-        # n_playout값 : 성능
-        mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
-        human = Human()
 
-        game.board.init_board(start_player=order)
-        gui_board = gui_ai_vs_player.Gui(game, board_arr, human, mcts_player)
-        gui_board.run()
-        gui_board.update_game_view()
-        pg.quit()
 
 
     def run(self):
@@ -154,6 +188,7 @@ class Gui:
         pg.display.flip()
 
 
-# if __name__ == '__main__':
-#     gui = Gui()
+if __name__ == '__main__':
+    print("start_game.py로 실행해주세요")
+    quit()
 #     gui.run()

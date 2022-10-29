@@ -1,0 +1,2 @@
+model_checkpoint_path: "/content/drive/MyDrive/policy_9_50.model"
+all_model_checkpoint_paths: "/content/drive/MyDrive/policy_9_50.model"

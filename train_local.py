@@ -3,16 +3,20 @@ import numpy as np
 from collections import defaultdict, deque
 from game import Board, Game
 from mcts_alphaZero import MCTSPlayer
-from policy_value_net import PolicyValueNet  # Theano and Lasagne
+from policy_value_net_tensorflow import PolicyValueNetTensorflow  # Theano and Lasagne
+from policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
 from datetime import datetime
 import pickle
 import sys
 sys.setrecursionlimit(10**8)
 
 class TrainPipeline():
-    def __init__(self, board_width, board_height, train_environment):
+    def __init__(self, board_width, board_height, train_environment,ai_lib,tf_model_file=None): # tf_model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
+
+        # 학습 라이브러리
+        self.ai_lib = ai_lib # tensorflow 또는 theano
 
         # 게임(오목)에 대한 변수들
         self.board_width, self.board_height = board_width, board_height
@@ -38,7 +42,13 @@ class TrainPipeline():
         self.train_num = 0 # 현재 학습 횟수
         
         # policy-value net에서 학습 시작
-        self.policy_value_net = PolicyValueNet(self.board_width, self.board_height)
+        if ai_lib == 'theano':
+            self.policy_value_net = PolicyValueNetTheano(self.board_width, self.board_height)
+        elif ai_lib == 'tensorflow':
+            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file)
+        else:
+            print("존재하지 않는 라이브러리입니다")
+            quit()
 
         # 훈련할 떄 사용할 플레이어 생성
         self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn, c_puct=self.c_puct, n_playout=self.n_playout, is_selfplay=1)
@@ -112,15 +122,20 @@ class TrainPipeline():
             # check_freq 횟수 마다 저장 (check_freq가 50이면 50번 훈련마다 한번씩 저장)
             if (i+1) % self.check_freq == 0:
                 print(f"★ {self.train_num}번째 batch에서 모델 저장 : {datetime.now()}")
-                # code20221004131321
                 # .model 파일은 플레이할 때 사용할 모델 파일이고, pickle 파일은 학습 데이터? (실제 게임에서는 .model, 학습 과정에서는 .pickle을 불러 와야한다)
                 if self.train_environment == 1: # 코랩 (구글 드라이브 연동)
-                    self.policy_value_net.save_model(f'/content/drive/MyDrive/policy_{self.board_width}_{self.train_num}.model')
-                    pickle.dump(self, open(f'/content/drive/MyDrive/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
-                    print("구글 드라이브에 학습 파일을 저장하였습니다")
+                    if self.ai_lib == 'theano':
+                        self.policy_value_net.save_model(f'/content/drive/MyDrive/policy_{self.board_width}_{self.train_num}.model')
+                        pickle.dump(self, open(f'/content/drive/MyDrive/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2) # theano만 pickle로 저장
+                    elif self.ai_lib == 'tensorflow':
+                        self.policy_value_net.save_model(f'/content/drive/MyDrive/tf_policy_{self.board_width}_{self.train_num}_model')
+                    else:
+                        print("사용할 수 없는 라이브러리입니다")
+                        quit()
+                    print("학습 파일을 저장하였습니다")
                 elif self.train_environment == 2: # 로컬
-                    self.policy_value_net.save_model(f'{model_path}/policy_{self.board_width}_{self.train_num}.model')
-                    pickle.dump(self, open(f'{train_path}/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
+                    self.policy_value_net.save_model(f'{model_path_theano}/policy_{self.board_width}_{self.train_num}.model')
+                    pickle.dump(self, open(f'{train_path_theano}/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
                 else:
                     print("존재하지 않는 환경입니다")
                     quit()
@@ -134,8 +149,8 @@ if __name__ == '__main__':
         quit()
 
     print(f"{size}x{size} 환경에서 학습을 진행합니다.")
-    train_path = f"./save/train_{size}"
-    model_path = f"./save/model_{size}"
+    train_path_theano = f"./save/train_{size}"
+    model_path_theano = f"./save/model_{size}"
 
 
     print("실행 환경을 입력해주세요\n1: Colab\n2: Local")
@@ -145,25 +160,62 @@ if __name__ == '__main__':
         quit()
 
 
+    print("학습에 이용할 라이브러리를 선택해주세요 : \'tensorflow\' 또는 \'theano\'")
+    ai_lib = input()
 
     print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
-    print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력")
+    print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력  (2500회 학습한 파일)")
     init_num = int(input())
 
-    # 이미 학습된 모델이 없는 경우 새로운 파이프 라인을 생성한다
-    if init_num == 0 or init_num == None :
-        training_pipeline = TrainPipeline(size,size,train_environment)
-    else: # 이미 일부 학습된 모델이 있는 경우 기존 파이프라인을 불러온다
-        if train_environment == 1:
-            print("아직 코랩에서 pickle 파일로 학습 데이터 불러오는 것 구현 X")
-            quit()
-            # training_pipeline = pickle.load(open(f'{}'))
-        elif train_environment == 2:
-            training_pipeline = pickle.load(open(f'{train_path}/train_{size}_{init_num}.pickle', 'rb'))
+    if ai_lib == 'theano':
+        if train_environment == 1: # colab + google drive
+            if init_num == 0 or init_num == None:
+                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib)
+            else:
+                training_pipeline = pickle.load(open(f'/content/drive/MyDrive/train_{size}_{init_num}.pickle'), 'rb')
         else:
-            print("존재하지 않는 train_environment 입니다")
-            quit()
-
+            if init_num == 0 or init_num == None:
+                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib)
+            else:
+                training_pipeline = pickle.load(open(f'{train_path_theano}/train_{size}_{init_num}.pickle', 'rb'))
+    elif ai_lib == 'tensorflow':
+        if init_num == 0 or init_num == None:
+            tf_model_file = None
+        elif train_environment == 1: # colab + google drive
+            model_path_tensorflow = f'/content/drive/MyDrive/tf_policy_{size}_{init_num}_model'
+        else: # 로컬
+            model_path_tensorflow = f'./model/tf_policy_{size}_{init_num}_model'
+        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,tf_model_file=tf_model_file)
+    else:
+        print("없는 경우")
+        quit()
     print(f"★ 학습시작 : {datetime.now()}")
     training_pipeline.run()
+    #
+    # # 이미 학습된 모델이 없는 경우 새로운 파이프 라인을 생성한다
+    # if init_num == 0 or init_num == None :
+    #     training_pipeline = TrainPipeline(size,size,train_environment,ai_lib)
+    # else: # 이미 일부 학습된 모델이 있는 경우 기존 파이프라인을 불러온다
+    #     if train_environment == 1: # Colab - 구글 드라이브
+    #         if ai_lib == 'tensorflow':
+    #
+    #         elif ai_lib == 'theano':
+    #             training_pipeline = pickle.load(open(f'/content/drive/MyDrive/train_{size}_{init_num}.pickle'), 'rb')
+    #         else:
+    #             print("없는 경우")
+    #             quit()
+    #     elif train_environment == 2: # 로컬
+    #         if ai_lib == 'tensorflow':
+    #             print("로컬 환경에서 학습시, CUDA가 지원되지 않는 PC에서 텐서플로우 라이브러리를 사용하면 학습 속도가 매우 저하될 수 있습니다")
+    #             training_pipeline
+    #         elif ai_lib == 'theano':
+    #             training_pipeline = pickle.load(open(f'{train_path_theano}/train_{size}_{init_num}.pickle', 'rb'))
+    #         else:
+    #             print("없는 경우")
+    #             quit()
+    #     else:
+    #         print("존재하지 않는 train_environment 입니다")
+    #         quit()
+
+
     

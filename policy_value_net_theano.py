@@ -4,7 +4,7 @@ import theano.tensor as T
 import lasagne
 import pickle
 
-class PolicyValueNet():
+class PolicyValueNetTheano():
     def __init__(self, board_width, board_height, model_file=None):
         self.board_width = board_width
         self.board_height = board_height
