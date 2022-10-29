@@ -10,7 +10,10 @@ import sys
 sys.setrecursionlimit(10**8)
 
 class TrainPipeline():
-    def __init__(self, board_width, board_height):
+    def __init__(self, board_width, board_height, train_environment):
+        # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
+        self.train_environment = train_environment
+
         # 게임(오목)에 대한 변수들
         self.board_width, self.board_height = board_width, board_height
         self.n_in_row = 5
@@ -30,7 +33,7 @@ class TrainPipeline():
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
-        self.check_freq = 500  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음 (예를 들어 500이면 self_play 500번마다 파일 한번씩 저장)
+        self.check_freq = 50  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음 (예를 들어 500이면 self_play 500번마다 파일 한번씩 저장)
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
         self.train_num = 0 # 현재 학습 횟수
         
@@ -124,13 +127,22 @@ if __name__ == '__main__':
     train_path = f"./save/train_{size}"
     model_path = f"./save/model_{size}"
 
+
+    print("실행 환경을 입력해주세요\n1: Colab\n2: Local")
+    train_environment = int(input())
+    if not train_environment == 1 or train_environment == 2:
+        print("존재하지 않는 환경입니다")
+        quit()
+
+
+
     print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
     print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력")
     init_num = int(input())
 
     # 이미 학습된 모델이 없는 경우 새로운 파이프 라인을 생성한다
     if init_num == 0 or init_num == None :
-        training_pipeline = TrainPipeline(size,size)
+        training_pipeline = TrainPipeline(size,size,train_environment)
     else: # 이미 일부 학습된 모델이 있는 경우 기존 파이프라인을 불러온다
         training_pipeline = pickle.load(open(f'{train_path}/train_{size}_{init_num}.pickle', 'rb'))
 
