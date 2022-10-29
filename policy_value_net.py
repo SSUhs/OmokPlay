@@ -123,7 +123,8 @@ class PolicyValueNet():
         output: a list of (action, probability) tuples for each available
         action and the score of the board state
         """
-        legal_positions = board.availables
+        # legal_positions = board.availables
+        legal_positions = list(set(range(board.width*board.height)) - set(board.states.keys()))
         current_state = np.ascontiguousarray(board.current_state().reshape(
                 -1, 4, self.board_width, self.board_height))
         act_probs, value = self.policy_value(current_state)
