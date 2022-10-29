@@ -182,9 +182,9 @@ if __name__ == '__main__':
         if init_num == 0 or init_num == None:
             tf_model_file = None
         elif train_environment == 1: # colab + google drive
-            model_path_tensorflow = f'/content/drive/MyDrive/tf_policy_{size}_{init_num}_model'
+            tf_model_file = f'/content/drive/MyDrive/tf_policy_{size}_{init_num}_model'
         else: # 로컬
-            model_path_tensorflow = f'./model/tf_policy_{size}_{init_num}_model'
+            tf_model_file = f'./model/tf_policy_{size}_{init_num}_model'
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,tf_model_file=tf_model_file)
     else:
         print("없는 경우")
