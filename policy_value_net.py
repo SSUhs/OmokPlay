@@ -17,8 +17,10 @@ class PolicyValueNet():
 
         # Define the tensorflow neural network
         # 1. Input:
-        self.input_states = tf.placeholder(
-                tf.float32, shape=[None, 4, board_height, board_width])
+        # 22-10-29 : 텐서플로우 버전이 2.x로 업그레이드 되면서 placeholder 대신에 Variable를 사용해야함
+        # self.input_states = tf.placeholder(tf.float32, shape=[None, 4, board_height, board_width])
+        self.input_states = tf.Variable(tf.ones(shape=[None, self._num_states]), dtype=tf.float32)
+
         self.input_state = tf.transpose(self.input_states, [0, 2, 3, 1])
         # 2. Common Networks Layers
         self.conv1 = tf.layers.conv2d(inputs=self.input_state,
