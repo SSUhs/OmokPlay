@@ -9,7 +9,7 @@ import sys
 sys.setrecursionlimit(10**8)
 
 class TrainPipeline():
-    def __init__(self, board_width, board_height, train_environment,ai_lib,tf_model_file=None): # tf_model_file : 텐서플로우 모델 파일
+    def __init__(self, board_width, board_height, train_environment,ai_lib,tf_model_file=None,tf_init_num=0): # tf_model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
 
@@ -37,13 +37,14 @@ class TrainPipeline():
         self.kl_targ = 0.02
         self.check_freq = 50  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음 (예를 들어 500이면 self_play 500번마다 파일 한번씩 저장)
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
-        self.train_num = 0 # 현재 학습 횟수
-        
+
         # policy-value net에서 학습 시작
         if ai_lib == 'theano':
+            self.train_num = 0  # 현재 학습 횟수
             from policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
             self.policy_value_net = PolicyValueNetTheano(self.board_width, self.board_height)
         elif ai_lib == 'tensorflow':
+            self.train_num = tf_init_num
             from policy_value_net_tensorflow import PolicyValueNetTensorflow
             self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file)
         else:
@@ -185,7 +186,7 @@ if __name__ == '__main__':
             tf_model_file = f'/content/drive/MyDrive/tf_policy_{size}_{init_num}_model'
         else: # 로컬
             tf_model_file = f'./model/tf_policy_{size}_{init_num}_model'
-        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,tf_model_file=tf_model_file)
+        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,tf_model_file=tf_model_file,tf_init_num=init_num)
     else:
         print("없는 경우")
         quit()
