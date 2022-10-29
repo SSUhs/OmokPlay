@@ -109,6 +109,7 @@ class TrainPipeline():
             if len(self.data_buffer) > self.batch_size : loss, entropy = self.policy_update()
 
             # 현재 model의 성능을 체크, 모델 속성을 저장
+            # check_freq 횟수 마다 저장 (check_freq가 50이면 50번 훈련마다 한번씩 저장)
             if (i+1) % self.check_freq == 0:
                 print(f"★ {self.train_num}번째 batch에서 모델 저장 : {datetime.now()}")
                 # code20221004131321
@@ -116,6 +117,7 @@ class TrainPipeline():
                 if self.train_environment == 1: # 코랩 (구글 드라이브 연동)
                     self.policy_value_net.save_model(f'/content/drive/MyDrive/policy_{self.board_width}_{self.train_num}.model')
                     pickle.dump(self, open(f'/content/drive/MyDrive/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
+                    print("구글 드라이브에 학습 파일을 저장하였습니다")
                 elif self.train_environment == 2: # 로컬
                     self.policy_value_net.save_model(f'{model_path}/policy_{self.board_width}_{self.train_num}.model')
                     pickle.dump(self, open(f'{train_path}/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
@@ -152,7 +154,15 @@ if __name__ == '__main__':
     if init_num == 0 or init_num == None :
         training_pipeline = TrainPipeline(size,size,train_environment)
     else: # 이미 일부 학습된 모델이 있는 경우 기존 파이프라인을 불러온다
-        training_pipeline = pickle.load(open(f'{train_path}/train_{size}_{init_num}.pickle', 'rb'))
+        if train_environment == 1:
+            print("아직 코랩에서 pickle 파일로 학습 데이터 불러오는 것 구현 X")
+            quit()
+            # training_pipeline = pickle.load(open(f'{}'))
+        elif train_environment == 2:
+            training_pipeline = pickle.load(open(f'{train_path}/train_{size}_{init_num}.pickle', 'rb'))
+        else:
+            print("존재하지 않는 train_environment 입니다")
+            quit()
 
     print(f"★ 학습시작 : {datetime.now()}")
     training_pipeline.run()
