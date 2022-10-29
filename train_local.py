@@ -113,8 +113,16 @@ class TrainPipeline():
                 print(f"★ {self.train_num}번째 batch에서 모델 저장 : {datetime.now()}")
                 # code20221004131321
                 # .model 파일은 플레이할 때 사용할 모델 파일이고, pickle 파일은 학습 데이터? (실제 게임에서는 .model, 학습 과정에서는 .pickle을 불러 와야한다)
-                self.policy_value_net.save_model(f'{model_path}/policy_9_{self.train_num}.model')
-                pickle.dump(self, open(f'{train_path}/train_9_{self.train_num}.pickle', 'wb'), protocol=2)
+                if self.train_environment == 1: # 코랩 (구글 드라이브 연동)
+                    self.policy_value_net.save_model(f'/content/drive/MyDrive/policy_{self.board_width}_{self.train_num}.model')
+                    pickle.dump(self, open(f'/content/drive/MyDrive/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
+                elif self.train_environment == 2: # 로컬
+                    self.policy_value_net.save_model(f'{model_path}/policy_{self.board_width}_{self.train_num}.model')
+                    pickle.dump(self, open(f'{train_path}/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
+                else:
+                    print("존재하지 않는 환경입니다")
+                    quit()
+
 
 if __name__ == '__main__':
     print("학습할 사이즈를 입력해주세요 (ex : 9x9면 9 입력)")
