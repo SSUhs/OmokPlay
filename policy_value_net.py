@@ -7,8 +7,8 @@ Tested in Tensorflow 1.4 and 1.5
 """
 
 import numpy as np
-import tensorflow as tf
-
+# import tensorflow as tf
+import tensorflow.compat.v1 as tf # 코랩에서 쓰는 경우, 버전 2로 하면 placeholder이 작동 안하므로 변경해줘야함
 
 class PolicyValueNet():
     def __init__(self, board_width, board_height, model_file=None):
@@ -17,10 +17,11 @@ class PolicyValueNet():
 
         # Define the tensorflow neural network
         # 1. Input:
-        # 22-10-29 : 텐서플로우 버전이 2.x로 업그레이드 되면서 placeholder 대신에 Variable를 사용해야함
-        # self.input_states = tf.placeholder(tf.float32, shape=[None, 4, board_height, board_width])
+        # 22-10-29 : 텐서플로우 버전이 2.x로 업그레이드 되면서 placeholder 대신에 Variable를 사용해야함 or 버전 2를 비활성화
         # self.input_states = tf.Variable(tf.ones(shape=[None, 4, board_height, board_width]), dtype=tf.float32)
-        self.input_states = tf.Variable(tf.ones(shape=[None, 4, board_height, board_width]))
+        # self.input_states = tf.Variable(tf.ones(shape=[None, 4, board_height, board_width]))
+        tf.disable_v2_behavior()
+        self.input_states = tf.placeholder(tf.float32, shape=[None, 4, board_height, board_width])
 
         self.input_state = tf.transpose(self.input_states, [0, 2, 3, 1])
         # 2. Common Networks Layers
