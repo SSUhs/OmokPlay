@@ -3,8 +3,6 @@ import numpy as np
 from collections import defaultdict, deque
 from game import Board, Game
 from mcts_alphaZero import MCTSPlayer
-from policy_value_net_tensorflow import PolicyValueNetTensorflow  # Theano and Lasagne
-from policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
 from datetime import datetime
 import pickle
 import sys
@@ -43,8 +41,10 @@ class TrainPipeline():
         
         # policy-value net에서 학습 시작
         if ai_lib == 'theano':
+            from policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
             self.policy_value_net = PolicyValueNetTheano(self.board_width, self.board_height)
         elif ai_lib == 'tensorflow':
+            from policy_value_net_tensorflow import PolicyValueNetTensorflow
             self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file)
         else:
             print("존재하지 않는 라이브러리입니다")
