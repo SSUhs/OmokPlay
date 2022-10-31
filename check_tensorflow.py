@@ -22,18 +22,6 @@ def check_tf(compile_env):
                 quit()
         else:
             print('Found GPU at: {}'.format(device_name))
-        # TPU 사용하게 되면 TPU도 예외 처리
-        # https://colab.research.google.com/notebooks/tpu.ipynb#scrollTo=FpvUOuC3j27n
-        # else:
-        #     try:
-        #         tpu = tf.distribute.cluster_resolver.TPUClusterResolver()  # TPU detection
-        #         print('Running on TPU ', tpu.cluster_spec().as_dict()['worker'])
-        #     except ValueError:
-        #         raise BaseException(
-        #             'TPU 연결 오류 발생\nERROR: Not connected to a TPU runtime; please see the previous cell in this notebook for instructions!')
-        #     tf.config.experimental_connect_to_cluster(tpu)
-        #     tf.tpu.experimental.initialize_tpu_system(tpu)
-        #     tpu_strategy = tf.distribute.experimental.TPUStrategy(tpu)
     else:
         print("잘못된 파라미터")
         quit()
