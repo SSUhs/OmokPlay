@@ -56,7 +56,7 @@ class TrainPipeline():
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
-        self.check_freq = 5  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음 (예를 들어 500이면 self_play 500번마다 파일 한번씩 저장)
+        self.check_freq = 30  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음 (예를 들어 500이면 self_play 500번마다 파일 한번씩 저장)
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
 
         # policy-value net에서 학습 시작
@@ -142,7 +142,7 @@ class TrainPipeline():
 
             if len(self.data_buffer) > self.batch_size:
                 loss, entropy = self.policy_update()
-                add_csv_data(train_num=i,loss=loss,entropy=entropy)
+                add_csv_data(train_num=self.train_num,loss=loss,entropy=entropy)
 
             # 현재 model의 성능을 체크, 모델 속성을 저장
             # check_freq 횟수 마다 저장 (check_freq가 50이면 50번 훈련마다 한번씩 저장)
