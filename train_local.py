@@ -23,6 +23,7 @@ def add_csv_data(train_num,loss, entropy):
 def make_csv_file(board_size,last_train_num):
     df = DataFrame({'train_num':Series(list_train_num),'time':Series(list_time),'loss':Series(list_loss),'entropy':Series(list_entropy)})
     df.to_csv(f'/content/drive/MyDrive/{board_size}x{board_size}_{last_train_num}.csv', header=False, index=False)
+    list_train_num.clear() # 초기화
     list_time.clear()  # 초기화
     list_loss.clear()  # 초기화
     list_entropy.clear()  # 초기화
