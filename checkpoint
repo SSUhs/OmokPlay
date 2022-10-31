@@ -1,0 +1,2 @@
+model_checkpoint_path: "/content/drive/MyDrive/tf_policy_15_30_model"
+all_model_checkpoint_paths: "/content/drive/MyDrive/tf_policy_15_30_model"

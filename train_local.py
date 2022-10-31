@@ -57,6 +57,15 @@ class TrainPipeline():
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
+        # 판 크기가 커질 수록 학습 속도가 느려지므로 백업 주기를 낮춤
+        if 5 <= board_width < 9:
+            self.check_freq = 50
+        elif 9 <= board_width < 11:
+            self.check_freq = 40
+        elif 11 <= board_width < 14:
+            self.check_freq = 30
+        else:
+            self.check_freq = 20
         self.check_freq = 30  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음 (예를 들어 500이면 self_play 500번마다 파일 한번씩 저장)
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
 
@@ -68,7 +77,7 @@ class TrainPipeline():
         elif ai_lib == 'tensorflow':
             self.train_num = tf_init_num
             from policy_value_net_tensorflow import PolicyValueNetTensorflow
-            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file)
+            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab')
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
@@ -135,6 +144,7 @@ class TrainPipeline():
         return loss, entropy
 
     def run(self):
+        print(f'\n\n{self.board_width}x{self.board_width} 사이즈는 구글 드라이브 자동 백업이 {self.check_freq}마다 수행됩니다')
         for i in range(self.game_batch_num):
             self.collect_selfplay_data(self.play_batch_size)
             self.train_num += 1
@@ -174,7 +184,7 @@ class TrainPipeline():
 
 
 if __name__ == '__main__':
-    print("학습할 사이즈를 입력해주세요 (ex : 9x9면 9 입력)")
+    print("학습할 사이즈를 입력해주세요 (ex : 9x9면 9 입력)\n")
     size = int(input())
     if size < 5 or size > 15:
         print("오목 판의 크기는 5이상 15이하여야 합니다")
@@ -185,20 +195,20 @@ if __name__ == '__main__':
     model_path_theano = f"./save/model_{size}"
 
 
-    print("실행 환경을 입력해주세요\n1: Colab\n2: Local")
+    print("실행 환경을 입력해주세요\n1: Colab\n2: Local\n")
     train_environment = int(input())
     if not train_environment == 1 or train_environment == 2:
         print("존재하지 않는 환경입니다")
         quit()
 
 
-    print("학습에 이용할 라이브러리를 선택해주세요 : \'tensorflow\' 또는 \'theano\'")
+    print("학습에 이용할 라이브러리를 선택해주세요 : \'tensorflow\' 또는 \'theano\'\n")
     ai_lib = input()
     if ai_lib == 'tf':
         ai_lib = 'tensorflow'
 
     print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
-    print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력  (2500회 학습한 파일)")
+    print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력  (2500회 학습한 파일)\n")
     init_num = int(input())
 
     if ai_lib == 'theano':
