@@ -4,9 +4,28 @@ from collections import defaultdict, deque
 from game import Board, Game
 from mcts_alphaZero import MCTSPlayer
 from datetime import datetime
+from pandas import DataFrame, Series
 import pickle
 import sys
 sys.setrecursionlimit(10**8)
+
+
+list_loss = []
+list_entropy = []
+list_time = []
+def add_csv_data(loss, entropy):
+    list_time.append(datetime.now())
+    list_loss.append(loss)
+    list_entropy.append(entropy)
+
+def make_csv_file(board_size,train_num):
+    df = DataFrame({'time':Series(list_time),'loss':Series(list_loss),'entropy':Series(list_entropy)})
+    df.to_csv(f'/content/drive/MyDrive/{board_size}x{board_size}_{train_num}.csv', header=False, index=False)
+    list_time.clear()  # 초기화
+    list_loss.clear()  # 초기화
+    list_entropy.clear()  # 초기화
+
+
 
 class TrainPipeline():
     def __init__(self, board_width, board_height, train_environment,ai_lib,tf_model_file=None,tf_init_num=0): # tf_model_file : 텐서플로우 모델 파일
@@ -109,15 +128,18 @@ class TrainPipeline():
 
         print(f"kl:{kl:5f}, lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, entropy:{entropy}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
 
+
         return loss, entropy
 
     def run(self):
         for i in range(self.game_batch_num):
             self.collect_selfplay_data(self.play_batch_size)
             self.train_num += 1
-            print(f"batch i:{self.train_num}, episode_len:{self.episode_len}")
+            print(f"\n게임 플레이 횟수 :{self.train_num}, episode_len:{self.episode_len}")
+
 
             if len(self.data_buffer) > self.batch_size : loss, entropy = self.policy_update()
+            add_csv_data(loss,entropy)
 
             # 현재 model의 성능을 체크, 모델 속성을 저장
             # check_freq 횟수 마다 저장 (check_freq가 50이면 50번 훈련마다 한번씩 저장)
@@ -128,8 +150,10 @@ class TrainPipeline():
                     if self.ai_lib == 'theano':
                         self.policy_value_net.save_model(f'/content/drive/MyDrive/policy_{self.board_width}_{self.train_num}.model')
                         pickle.dump(self, open(f'/content/drive/MyDrive/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2) # theano만 pickle로 저장
+                        make_csv_file(self.board_width,self.train_num)
                     elif self.ai_lib == 'tensorflow':
                         self.policy_value_net.save_model(f'/content/drive/MyDrive/tf_policy_{self.board_width}_{self.train_num}_model')
+                        make_csv_file(self.board_width,self.train_num)
                     else:
                         print("사용할 수 없는 라이브러리입니다")
                         quit()
@@ -140,6 +164,9 @@ class TrainPipeline():
                 else:
                     print("존재하지 않는 환경입니다")
                     quit()
+
+
+
 
 
 if __name__ == '__main__':
@@ -163,6 +190,8 @@ if __name__ == '__main__':
 
     print("학습에 이용할 라이브러리를 선택해주세요 : \'tensorflow\' 또는 \'theano\'")
     ai_lib = input()
+    if ai_lib == 'tf':
+        ai_lib = 'tensorflow'
 
     print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
     print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력  (2500회 학습한 파일)")

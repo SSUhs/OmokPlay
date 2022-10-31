@@ -37,7 +37,7 @@ clock = pg.time.Clock()
 pg.display.set_caption("오목")
 
 class Gui:
-    def __init__(self, ai_library):
+    def __init__(self, ai_library, hard_gui):
         # self.game_org = game.Game()
         self.game = game
         self.ai_library = ai_library
@@ -54,8 +54,8 @@ class Gui:
         self.y_bt_newgame_white = 0
         self.bs = 0
         self.ws = 0
+        self.hard_gui = hard_gui
         self.update_game_view('main')
-        #
         # self.model = load_model('./model/policy_black.h5', compile=False)
         # self.model2 = load_model('./model/policy_white.h5', compile=False)
         # self.model3 = load_model('./model/value_black_t3.h5', compile=False)
@@ -76,13 +76,12 @@ class Gui:
 
     def load_game(self, black_white):
         # print(black_white)
-        hard_theano = 15000 # 임시 15000
-        hard_tensorflow = 50
+        hard_gui = self.hard_gui
         num = 5
         width, height = 9, 9
 
         if self.ai_library == 'theano':
-            model_file = './model/policy_9_' + str(hard_theano) + ".model"
+            model_file = './model/policy_9_' + str(hard_gui) + ".model"
             gui_board = None
             board_arr = Board(width=width, height=height, n_in_row=num)
             game = Game(board_arr, is_gui_mode=True)
@@ -108,7 +107,7 @@ class Gui:
             gui_board.update_game_view()
             pg.quit()
         elif self.ai_library == 'tensorflow':  # 텐서플로우 학습 모델 기반으로 게임 시작
-            model_file =  f'./model/tf_policy_{width}_{str(hard_tensorflow)}_model'
+            model_file =  f'./model/tf_policy_{width}_{str(hard_gui)}_model'
             gui_board = None
             board_arr = Board(width=width, height=height, n_in_row=num)
             game = Game(board_arr, is_gui_mode=True)

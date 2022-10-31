@@ -12,7 +12,10 @@ def check_tf(compile_env):
         print(tf.__version__)
         devices = tf.config.list_physical_devices()
         print(devices)
-        print(f'디바이스 : {devices[0]}')
+        print("\n\n")
+        if len(devices) == 1:
+            print("Colab에서 학습시 GPU 가속 환경을 켜주세요")
+            quit()
     else:
         print("잘못된 파라미터")
         quit()

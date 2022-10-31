@@ -25,6 +25,7 @@ def run():
     num_console = 5
     width_console, height_console = 9, 9
     is_gui_mode = False
+    print("\n")
     if execution_environment == 1:
         print("실행 환경 : 로컬 + GUI")
         is_gui_mode = True
@@ -39,6 +40,7 @@ def run():
         return
 
     print("사용 모델 라이브러리 :",ai_library)
+    hard_gui = int(input("\n난이도를 입력해주세요 (난이도 = 학습 횟수) : "))
 
     model_file = None
     if execution_environment == 1 or execution_environment == 3:
@@ -50,11 +52,11 @@ def run():
         return
 
     if is_gui_mode:
-        gui = gui_main.Gui(ai_library=ai_library)
+        gui = gui_main.Gui(ai_library=ai_library,hard_gui=hard_gui)
         gui.run()
     else:
         if not ai_library == 'theano':
-            print("현재 콘솔 모드는 theano 라이브러리로 학습된 모델만 사용 가능합니다")
+            print("현재 콘솔 모드 플레이는 theano 라이브러리로 학습된 모델만 사용 가능합니다")
             quit()
         gui_board = None
         board_arr = Board(width=width_console, height=height_console, n_in_row=num_console)

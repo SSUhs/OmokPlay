@@ -288,10 +288,10 @@ class Game(object):
                 print("Game end. Winner is", self.players[winner])
                 if self.players[winner] == 1:
                     Tk().wm_withdraw()  # to hide the main window
-                    messagebox.showinfo('게임 종료', '당신이 이겼습니다')
+                    messagebox.showinfo('게임 종료', '컴퓨터가 이겼습니다')
                 else:
                     Tk().wm_withdraw()  # to hide the main window
-                    messagebox.showinfo('게임 종료', '컴퓨터가 이겼습니다')
+                    messagebox.showinfo('게임 종료', '당신이 이겼습니다')
             else:  # end 값이 -1인 경우, 무승부 ( game_end() 함수에서, 오목 판에 수들이 꽉차면 -1 리턴해줌)
                 Tk().wm_withdraw()  # to hide the main window
                 messagebox.showinfo('게임 종료', '무승부 입니다')
