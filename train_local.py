@@ -76,7 +76,7 @@ class TrainPipeline():
         elif ai_lib == 'tensorflow':
             self.train_num = tf_init_num
             from policy_value_net_tensorflow import PolicyValueNetTensorflow
-            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab',start_train_num=tf_init_num)
+            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab',init_num=tf_init_num)
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
