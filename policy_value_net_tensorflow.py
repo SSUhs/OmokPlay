@@ -27,6 +27,8 @@ class PolicyValueNetTensorflow():
         elif self.compile_env == 'colab': # 코랩
             import tensorflow.compat.v1 as tf
             tf.disable_v2_behavior()
+        elif self.compile_env == 'colab-1.15gpu':  # 코랩 테스트용
+            import tensorflow as tf
         else:
             print("잘못된 환경")
             quit()

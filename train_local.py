@@ -80,6 +80,11 @@ class TrainPipeline():
             from policy_value_net_tensorflow import PolicyValueNetTensorflow
             self.make_tensorflow_checkpoint_auto(tf_init_num)
             self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab',init_num=tf_init_num)
+        elif ai_lib == 'tensorflow-1.15gpu':
+            self.train_num = tf_init_num
+            from policy_value_net_tensorflow import PolicyValueNetTensorflow
+            self.make_tensorflow_checkpoint_auto(tf_init_num)
+            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab-1.15gpu',init_num=tf_init_num)
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
@@ -210,7 +215,7 @@ if __name__ == '__main__':
 
     print("실행 환경을 입력해주세요\n1: Colab\n2: Local\n")
     train_environment = int(input())
-    if not train_environment == 1 or train_environment == 2:
+    if not (train_environment == 1 or train_environment == 2):
         print("존재하지 않는 환경입니다")
         quit()
 
