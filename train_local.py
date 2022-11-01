@@ -66,7 +66,6 @@ class TrainPipeline():
             self.check_freq = 30
         else:
             self.check_freq = 20
-        self.check_freq = 30  # 지정 횟수마다 모델을 체크하고 저장. 원래는 100이었음 (예를 들어 500이면 self_play 500번마다 파일 한번씩 저장)
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
 
         # policy-value net에서 학습 시작
@@ -77,7 +76,7 @@ class TrainPipeline():
         elif ai_lib == 'tensorflow':
             self.train_num = tf_init_num
             from policy_value_net_tensorflow import PolicyValueNetTensorflow
-            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab')
+            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab',start_train_num=tf_init_num)
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()

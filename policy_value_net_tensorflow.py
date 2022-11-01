@@ -14,7 +14,7 @@ import check_tensorflow
 
 
 class PolicyValueNetTensorflow():
-    def __init__(self, board_width, board_height, model_file=None,compile_env='local'):
+    def __init__(self, board_width, board_height, model_file=None,compile_env='local', init_num=0):
 
         self.compile_env=compile_env  # local  / colab
         check_tensorflow.check_tf(compile_env) # 적합한 텐서플로우 버전인지 확인
@@ -120,7 +120,7 @@ class PolicyValueNetTensorflow():
         # For saving and restoring
         self.saver = tf.train.Saver()
         if model_file is not None:
-            self.restore_model(model_file)
+            self.restore_model(model_file,init_num)
 
     def policy_value(self, state_batch):
         """
@@ -162,5 +162,15 @@ class PolicyValueNetTensorflow():
     def save_model(self, model_path):
         self.saver.save(self.session, model_path)
 
-    def restore_model(self, model_path):
+    def restore_model(self, model_path,init_num):
+        self.make_checkpoint_auto(init_num)
         self.saver.restore(self.session, model_path)
+
+    def make_checkpoint_auto(self,init_num):  # 구글 드라이브 체크포인트 자동 생성
+        save_path = '/content/drive/MyDrive/checkpoint'
+        model_name = f'tf_policy_{self.board_width}_{init_num}_model'
+        str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\nall_model_checkpoint_paths: "/content/drive/MyDrive/{model_name}\"\n'
+        with open(save_path,"w") as f:
+            f.write(str)
+
+
