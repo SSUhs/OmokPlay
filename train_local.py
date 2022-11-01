@@ -240,7 +240,7 @@ if __name__ == '__main__':
                 training_pipeline = TrainPipeline(size, size, train_environment, ai_lib)
             else:
                 training_pipeline = pickle.load(open(f'{train_path_theano}/train_{size}_{init_num}.pickle', 'rb'))
-    elif ai_lib == 'tensorflow':
+    elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
         if init_num == 0 or init_num == None:
             tf_model_file = None
         elif train_environment == 1: # colab + google drive
