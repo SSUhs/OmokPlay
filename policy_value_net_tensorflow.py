@@ -163,14 +163,8 @@ class PolicyValueNetTensorflow():
         self.saver.save(self.session, model_path)
 
     def restore_model(self, model_path,init_num):
-        self.make_checkpoint_auto(init_num)
         self.saver.restore(self.session, model_path)
 
-    def make_checkpoint_auto(self,init_num):  # 구글 드라이브 체크포인트 자동 생성
-        save_path = '/content/drive/MyDrive/checkpoint'
-        model_name = f'tf_policy_{self.board_width}_{init_num}_model'
-        str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\nall_model_checkpoint_paths: "/content/drive/MyDrive/{model_name}\"\n'
-        with open(save_path,"w") as f:
-            f.write(str)
+
 
 

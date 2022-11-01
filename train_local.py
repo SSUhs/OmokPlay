@@ -76,6 +76,7 @@ class TrainPipeline():
         elif ai_lib == 'tensorflow':
             self.train_num = tf_init_num
             from policy_value_net_tensorflow import PolicyValueNetTensorflow
+            self.make_tensorflow_checkpoint_auto(tf_init_num)
             self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab',init_num=tf_init_num)
         else:
             print("존재하지 않는 라이브러리입니다")
@@ -83,6 +84,17 @@ class TrainPipeline():
 
         # 훈련할 떄 사용할 플레이어 생성
         self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn, c_puct=self.c_puct, n_playout=self.n_playout, is_selfplay=1)
+
+
+    def make_tensorflow_checkpoint_auto(self,init_num):  # 구글 드라이브 체크포인트 자동 생성
+        if init_num ==0:
+            return
+        save_path = '/content/drive/MyDrive/checkpoint'
+        model_name = f'tf_policy_{self.board_width}_{init_num}_model'
+        str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\nall_model_checkpoint_paths: "/content/drive/MyDrive/{model_name}\"\n'
+        with open(save_path,"w") as f:
+            f.write(str)
+            print("체크 포인트 자동 생성")
 
     def get_equi_data(self, play_data):
         """
