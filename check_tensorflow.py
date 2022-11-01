@@ -6,7 +6,7 @@ def check_tf(compile_env):
         print(f'텐서플로우 버전 : {tf.__version__}')
         devices = tf.config.list_physical_devices()
         print(devices)
-    elif compile_env == 'colab':
+    elif compile_env == 'colab' or compile_env == 'colab-1.15gpu':
         import tensorflow as tf
         print("\n\n---------------------------------------------------")
         print(f'텐서 플로우 버전 : {tf.__version__}\n')
