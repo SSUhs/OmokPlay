@@ -62,10 +62,12 @@ class TrainPipeline():
             self.check_freq = 50
         elif 9 <= board_width < 11:
             self.check_freq = 40
-        elif 11 <= board_width < 14:
+        elif 11 <= board_width < 12:
             self.check_freq = 30
-        else:
+        elif 13 <= board_width < 15:
             self.check_freq = 20
+        else:
+            self.check_freq = 10
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
 
         # policy-value net에서 학습 시작
