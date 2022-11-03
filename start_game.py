@@ -23,7 +23,10 @@ model_file_local = './model/policy_9_' + str(hard_console) + ".model"
 
 def run():
     num_console = 5
-    width_console, height_console = 9, 9
+    # s = int(input("오목 판 크기를 입력하세요 : "))
+    # if not 5 < s < 16:
+    #     print("오목 판 크기는 6부터 15입니다")
+    width_console, height_console = 9, 9 # 콘솔 게임 화면 크기
     is_gui_mode = False
     print("\n")
     if execution_environment == 1:

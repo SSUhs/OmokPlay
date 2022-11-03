@@ -44,7 +44,7 @@ class TrainPipeline():
         self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
         self.game = Game(self.board,is_gui_mode = False)
         
-        # 학습에 대한 변수들
+        # 학습에 대한 변수들 # code20221102130401
         self.learn_rate = 2e-3
         self.lr_multiplier = 1.0  # KL에 기반하여 학습 계수를 적응적으로 조정
         self.temp = 1.0  # the temperature param
@@ -183,7 +183,7 @@ class TrainPipeline():
                         self.policy_value_net.save_model(f'/content/drive/MyDrive/policy_{self.board_width}_{self.train_num}.model')
                         pickle.dump(self, open(f'/content/drive/MyDrive/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2) # theano만 pickle로 저장
                         make_csv_file(self.board_width,self.train_num)
-                    elif self.ai_lib == 'tensorflow':
+                    elif self.ai_lib == 'tensorflow' or self.ai_lib == 'tensorflow-1.15gpu':
                         self.policy_value_net.save_model(f'/content/drive/MyDrive/tf_policy_{self.board_width}_{self.train_num}_model')
                         make_csv_file(self.board_width,self.train_num)
                     else:

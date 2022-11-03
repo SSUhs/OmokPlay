@@ -7,6 +7,7 @@ from tkinter import *
 
 from constant import error_const
 
+
 ctypes.windll.user32.SetProcessDPIAware()
 
 BLACK = (0, 0, 0)

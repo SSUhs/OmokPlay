@@ -39,6 +39,7 @@ pg.display.set_caption("오목")
 class Gui:
     def __init__(self, ai_library, hard_gui):
         # self.game_org = game.Game()
+        self.width_height = 15
         self.game = game
         self.ai_library = ai_library
         self.width, self.height = 800, 800
@@ -78,12 +79,11 @@ class Gui:
         # print(black_white)
         hard_gui = self.hard_gui
         num = 5
-        width, height = 9, 9
 
         if self.ai_library == 'theano':
             model_file = './model/policy_9_' + str(hard_gui) + ".model"
             gui_board = None
-            board_arr = Board(width=width, height=height, n_in_row=num)
+            board_arr = Board(width=self.width_height, height=self.width_height, n_in_row=num)
             game = Game(board_arr, is_gui_mode=True)
             if black_white == 'black':
                 order = 0
@@ -95,7 +95,7 @@ class Gui:
 
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
             policy_param = pickle.load(open(model_file, 'rb'), encoding='bytes')
-            best_policy = PolicyValueNetNumpy(width, height, policy_param)
+            best_policy = PolicyValueNetNumpy(self.width_height, self.width_height, policy_param)
 
             # n_playout값 : 성능
             mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
@@ -107,9 +107,9 @@ class Gui:
             gui_board.update_game_view()
             pg.quit()
         elif self.ai_library == 'tensorflow':  # 텐서플로우 학습 모델 기반으로 게임 시작
-            model_file =  f'./model/tf_policy_{width}_{str(hard_gui)}_model'
+            model_file =  f'./model/tf_policy_{self.width_height}_{str(hard_gui)}_model'
             gui_board = None
-            board_arr = Board(width=width, height=height, n_in_row=num)
+            board_arr = Board(width=self.width_height, height=self.width_height, n_in_row=num)
             game = Game(board_arr, is_gui_mode=True)
             if black_white == 'black':
                 order = 0
@@ -119,7 +119,7 @@ class Gui:
                 print("없는 모드입니다")
                 pg.quit()  # 종료
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
-            best_policy = PolicyValueNetTensorflow(width, height,model_file,compile_env='local')  # 코랩에서는 start_game.py 수행 안하기 때문에 compile_env는 local로 고정
+            best_policy = PolicyValueNetTensorflow(self.width_height, self.width_height,model_file,compile_env='local')  # 코랩에서는 start_game.py 수행 안하기 때문에 compile_env는 local로 고정
             mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5,
                                      n_playout=400)  # set larger n_playout for better performance
             human = Human()
