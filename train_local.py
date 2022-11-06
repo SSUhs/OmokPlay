@@ -142,7 +142,6 @@ class TrainPipeline():
         winner_batch = [data[2] for data in mini_batch]
         old_probs, old_v = self.policy_value_net.policy_value(state_batch)
         for i in range(self.epochs):
-            print("train_local의 learn_rate :",self.learn_rate)
             loss, entropy = self.policy_value_net.train_step(state_batch, mcts_probs_batch, winner_batch, self.learn_rate*self.lr_multiplier)
             new_probs, new_v = self.policy_value_net.policy_value(state_batch)
             kl = np.mean(np.sum(old_probs * (np.log(old_probs + 1e-10) - np.log(new_probs + 1e-10)), axis=1))
@@ -158,7 +157,7 @@ class TrainPipeline():
         explained_var_new = (1 - np.var(np.array(winner_batch) - new_v.flatten()) / np.var(np.array(winner_batch)))
 
 
-        print(f"kl:{kl:5f}, learn_rate : {self.learn_rate}lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, entropy:{entropy}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
+        print(f"kl:{kl:5f}, learn_rate : {self.learn_rate} lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, entropy:{entropy}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
 
 
         return loss, entropy
@@ -187,6 +186,7 @@ class TrainPipeline():
                     elif self.ai_lib == 'tensorflow' or self.ai_lib == 'tensorflow-1.15gpu':
                         self.policy_value_net.save_model(f'/content/drive/MyDrive/tf_policy_{self.board_width}_{self.train_num}_model')
                         make_csv_file(self.board_width,self.train_num)
+                        pickle.dump(self, open(f'/content/drive/MyDrive/tf_train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
                     else:
                         print("사용할 수 없는 라이브러리입니다")
                         quit()
