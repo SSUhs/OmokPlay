@@ -91,7 +91,7 @@ class PolicyValueNetTensorflow():
         # self.learning_rate = tf.compat.v1.placeholder(tf.float32)
         self.learning_rate = K.placeholder(dtype=tf.float32)
         # self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate).minimize(self.loss,var_list=None)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate).minimize(self.loss,var_list=None,tape=tf.GradientTape())
 
         # calc policy entropy, for monitoring only
         self.entropy = tf.negative(tf.reduce_mean(input_tensor=tf.reduce_sum(input_tensor=tf.exp(self.action_fc) * self.action_fc, axis=1)))
