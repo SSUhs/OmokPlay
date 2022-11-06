@@ -27,6 +27,7 @@ class PolicyValueNetTensorflow():
         elif self.compile_env == 'colab':  # 코랩
             print("")
             import tensorflow as tf
+            from keras import backend as K
             # import tensorflow.compat.v1 as tf
             # tf.disable_v2_behavior()
         elif self.compile_env == 'colab-1.15gpu':  # 코랩 테스트용
@@ -42,24 +43,26 @@ class PolicyValueNetTensorflow():
         # 22-10-29 : 텐서플로우 버전이 2.x로 업그레이드 되면서 placeholder 대신에 Variable를 사용해야함 or 버전 2를 비활성화
         # self.input_states = tf.Variable(tf.ones(shape=[None, 4, board_height, board_width]), dtype=tf.float32)
         # 작동 잘하는 것 (V1기준) : self.input_states = tf.placeholder(dtype=tf.float32, shape=[None, 4, board_height, board_width])
-        self.input_states = tf.Variable(tf.ones(shape=[None, 4, board_height, board_width]), dtype=tf.float32)
+        # self.input_states = tf.keras.Variable(tf.ones(shape=[None, 4, board_height, board_width]), dtype=tf.float32)
+        self.input_states = K.variable(shape=[None, 4, board_height, board_width], dtype=tf.float32)
 
-        self.input_state = tf.transpose(self.input_states, [0, 2, 3, 1])
+        # 원본 : self.input_state = tf.transpose(self.input_states, [0, 2, 3, 1])
+        self.input_state = K.transpose(self.input_states, [0, 2, 3, 1])
         # 2. Common Networks Layers
-        self.conv1 = tf.keras.layers.conv2d(inputs=self.input_state,
+        self.conv1 = tf.keras.layers.Conv2D(inputs=self.input_state,
                                             filters=32, kernel_size=[3, 3],
                                             padding="same", data_format="channels_last",
                                             activation=tf.nn.relu)
-        self.conv2 = tf.keras.layers.conv2d(inputs=self.conv1, filters=64,
+        self.conv2 = tf.keras.layers.Conv2D(inputs=self.conv1, filters=64,
                                             kernel_size=[3, 3], padding="same",
                                             data_format="channels_last",
                                             activation=tf.nn.relu)
-        self.conv3 = tf.keras.layers.conv2d(inputs=self.conv2, filters=128,
+        self.conv3 = tf.keras.layers.Conv2D(inputs=self.conv2, filters=128,
                                             kernel_size=[3, 3], padding="same",
                                             data_format="channels_last",
                                             activation=tf.nn.relu)
         # 3-1 Action Networks
-        self.action_conv = tf.keras.layers.conv2d(inputs=self.conv3, filters=4,
+        self.action_conv = tf.keras.layers.Conv2D(inputs=self.conv3, filters=4,
                                                   kernel_size=[1, 1], padding="same",
                                                   data_format="channels_last",
                                                   activation=tf.nn.relu)
@@ -68,36 +71,36 @@ class PolicyValueNetTensorflow():
             self.action_conv, [-1, 4 * board_height * board_width])
         # 3-2 Full connected layer, the output is the log probability of moves
         # on each slot on the board
-        self.action_fc = tf.layers.dense(inputs=self.action_conv_flat,
-                                         units=board_height * board_width,
-                                         activation=tf.nn.log_softmax)
+        self.action_fc = tf.keras.layers.Dense(inputs=self.action_conv_flat,
+                                               units=board_height * board_width,
+                                               activation=tf.nn.log_softmax)
         # 4 Evaluation Networks
-        self.evaluation_conv = tf.layers.conv2d(inputs=self.conv3, filters=2,
-                                                kernel_size=[1, 1],
-                                                padding="same",
-                                                data_format="channels_last",
-                                                activation=tf.nn.relu)
-        self.evaluation_conv_flat = tf.reshape(
-            self.evaluation_conv, [-1, 2 * board_height * board_width])
-        self.evaluation_fc1 = tf.layers.dense(inputs=self.evaluation_conv_flat,
-                                              units=64, activation=tf.nn.relu)
+        self.evaluation_conv = tf.keras.layers.Conv2D(inputs=self.conv3, filters=2,
+                                                      kernel_size=[1, 1],
+                                                      padding="same",
+                                                      data_format="channels_last",
+                                                      activation=tf.nn.relu)
+        self.evaluation_conv_flat = tf.reshape(self.evaluation_conv, [-1, 2 * board_height * board_width])
+        self.evaluation_fc1 = tf.keras.layers.Dense(inputs=self.evaluation_conv_flat,
+                                                    units=64, activation=tf.nn.relu)
         # output the score of evaluation on current state
-        self.evaluation_fc2 = tf.layers.dense(inputs=self.evaluation_fc1,
-                                              units=1, activation=tf.nn.tanh)
+        self.evaluation_fc2 = tf.keras.layers.Dense(inputs=self.evaluation_fc1,
+                                                    units=1, activation=tf.nn.tanh)
 
         # Define the Loss function
         # 1. Label: the array containing if the game wins or not for each state
-        self.labels = tf.placeholder(tf.float32, shape=[None, 1])
+        # 원본 self.labels = tf.placeholder(tf.float32, shape=[None, 1])
+        self.labels = K.variable(dtype=tf.float32, shape=[None, 1])
         # 2. Predictions: the array containing the evaluation score of each state
         # which is self.evaluation_fc2
         # 3-1. Value Loss function
-        self.value_loss = tf.losses.mean_squared_error(self.labels,
-                                                       self.evaluation_fc2)
+        # 원본 : self.value_loss = tf.losses.mean_squared_error(self.labels,self.evaluation_fc2)
+        self.value_loss = tf.keras.losses.MeanSquaredError(self.labels,self.evaluation_fc2)
         # 3-2. Policy Loss function
-        self.mcts_probs = tf.placeholder(
-            tf.float32, shape=[None, board_height * board_width])
-        self.policy_loss = tf.negative(tf.reduce_mean(
-            tf.reduce_sum(tf.multiply(self.mcts_probs, self.action_fc), 1)))
+        # 원본 : self.mcts_probs = tf.placeholder(tf.float32, shape=[None, board_height * board_width])
+        self.mcts_probs = K.variable(shape=[None, board_height * board_width],dtype=tf.float32)
+
+        self.policy_loss = tf.math.negative(tf.math.reduce_mean(tf.math.reduce_sum(tf.math.multiply(self.mcts_probs, self.action_fc), 1)))
         # 3-3. L2 penalty (regularization)
         l2_penalty_beta = 1e-4
         vars = tf.trainable_variables()
@@ -107,9 +110,10 @@ class PolicyValueNetTensorflow():
         self.loss = self.value_loss + self.policy_loss + l2_penalty
 
         # Define the optimizer we use for training
-        self.learning_rate = tf.placeholder(tf.float32)
-        self.optimizer = tf.train.AdamOptimizer(
-            learning_rate=self.learning_rate).minimize(self.loss)
+        # 원본 : self.learning_rate = tf.placeholder(tf.float32)
+        self.learning_rate = K.variable(dtype=tf.float32)
+        # 원본 : self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate).minimize(self.loss)
 
         # Make a session
         self.session = tf.Session()
