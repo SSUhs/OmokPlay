@@ -34,10 +34,9 @@ class PolicyValueNetTensorflow():
         self.input_states = K.placeholder(dtype=tf.float32, shape=[None, 4, board_height, board_width])
         self.input_state = tf.transpose(a=self.input_states, perm=[0, 2, 3, 1])
         # 2. Common Networks Layers
-        self.conv1 = tf.keras.layers.Conv2D(input_shape=self.input_state,
-                                            filters=32, kernel_size=[3, 3],
+        self.conv1 = tf.keras.layers.Conv2D(filters=32, kernel_size=[3, 3],
                                             padding="same", data_format="channels_last",
-                                            activation=tf.nn.relu)
+                                            activation=tf.nn.relu)(self.input_state)
         self.conv2 = tf.keras.layers.Conv2D(inputs=self.conv1, filters=64,
                                             kernel_size=[3, 3], padding="same",
                                             data_format="channels_last",
