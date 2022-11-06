@@ -159,6 +159,7 @@ class PolicyValueNetTensorflow():
                            self.mcts_probs: mcts_probs,
                            self.labels: winner_batch,
                            self.learning_rate: lr})
+        print("policy_value_net_tf의 learning_rate : ",self.learning_rate)
         return loss, entropy
 
     def save_model(self, model_path):

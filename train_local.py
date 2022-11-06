@@ -142,6 +142,7 @@ class TrainPipeline():
         winner_batch = [data[2] for data in mini_batch]
         old_probs, old_v = self.policy_value_net.policy_value(state_batch)
         for i in range(self.epochs):
+            print("train_local의 learn_rate :",self.learn_rate)
             loss, entropy = self.policy_value_net.train_step(state_batch, mcts_probs_batch, winner_batch, self.learn_rate*self.lr_multiplier)
             new_probs, new_v = self.policy_value_net.policy_value(state_batch)
             kl = np.mean(np.sum(old_probs * (np.log(old_probs + 1e-10) - np.log(new_probs + 1e-10)), axis=1))
@@ -156,7 +157,8 @@ class TrainPipeline():
         explained_var_old = (1 - np.var(np.array(winner_batch) - old_v.flatten()) / np.var(np.array(winner_batch)))
         explained_var_new = (1 - np.var(np.array(winner_batch) - new_v.flatten()) / np.var(np.array(winner_batch)))
 
-        print(f"kl:{kl:5f}, lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, entropy:{entropy}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
+
+        print(f"kl:{kl:5f}, learn_rate : {self.learn_rate}lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, entropy:{entropy}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
 
 
         return loss, entropy
@@ -167,7 +169,6 @@ class TrainPipeline():
             self.collect_selfplay_data(self.play_batch_size)
             self.train_num += 1
             print(f"\n게임 플레이 횟수 :{self.train_num}, episode_len:{self.episode_len}")
-
 
             if len(self.data_buffer) > self.batch_size:
                 loss, entropy = self.policy_update()
