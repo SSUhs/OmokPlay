@@ -80,8 +80,8 @@ class PolicyValueNetTensorflow():
         self.policy_loss = tf.negative(tf.reduce_mean(input_tensor=tf.reduce_sum(input_tensor=tf.multiply(self.mcts_probs, self.action_fc), axis=1)))
         # 3-3. L2 penalty (regularization)
         l2_penalty_beta = 1e-4
-        # vars = tf.compat.v1.trainable_variables()
-        vars = tf.Module.trainable_variables
+        vars = tf.compat.v1.trainable_variables()
+        # 이건 굳이 tf2쓸 필요 없을듯 vars = tf.Module.trainable_variables
         l2_penalty = l2_penalty_beta * tf.add_n([tf.nn.l2_loss(v) for v in vars if 'bias' not in v.name.lower()])
         # 3-4 Add up to be the Loss function
         self.loss = self.value_loss + self.policy_loss + l2_penalty
