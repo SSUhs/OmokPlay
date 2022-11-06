@@ -65,6 +65,7 @@ class PolicyValueNetTensorflow():
         self.evaluation_fc1 = tf.keras.layers.Dense(units=64, activation=tf.nn.relu)(self.evaluation_conv_flat)
         # output the score of evaluation on current state
         self.evaluation_fc2 = tf.keras.layers.Dense(units=1, activation=tf.nn.tanh)(self.evaluation_fc1)
+        self.flatten = tf.keras.layers.Flatten() #  code20221107025333
 
         # Define the Loss function
         # 1. Label: the array containing if the game wins or not for each state
