@@ -31,7 +31,7 @@ class PolicyValueNetTensorflow():
         self.board_height = board_height
 
         # self.input_states = tf.compat.v1.placeholder(dtype=tf.float32, shape=[None, 4, board_height, board_width])
-        self.input_states = K.variable(dtype=tf.float32, shape=[None, 4, board_height, board_width])
+        self.input_states = K.placeholder(dtype=tf.float32, shape=[None, 4, board_height, board_width])
         self.input_state = tf.transpose(a=self.input_states, perm=[0, 2, 3, 1])
         # 2. Common Networks Layers
         self.conv1 = tf.keras.layers.Conv2D(inputs=self.input_state,
@@ -74,14 +74,14 @@ class PolicyValueNetTensorflow():
         # Define the Loss function
         # 1. Label: the array containing if the game wins or not for each state
         # self.labels = tf.compat.v1.placeholder(tf.float32, shape=[None, 1])
-        self.labels = K.variable(dtype=tf.float32,shape=[None,1])
+        self.labels = K.placeholder(dtype=tf.float32,shape=[None,1])
         # 2. Predictions: the array containing the evaluation score of each state
         # which is self.evaluation_fc2
         # 3-1. Value Loss function
         self.value_loss = tf.keras.losses.mean_squared_error(self.labels,self.evaluation_fc2)
         # 3-2. Policy Loss function
         # self.mcts_probs = tf.compat.v1.placeholder(tf.float32, shape=[None, board_height * board_width])
-        self.mcts_probs = K.variable(dtype=tf.float32,shape=[None, board_height * board_width])
+        self.mcts_probs = K.placeholder(dtype=tf.float32,shape=[None, board_height * board_width])
         self.policy_loss = tf.negative(tf.reduce_mean(input_tensor=tf.reduce_sum(input_tensor=tf.multiply(self.mcts_probs, self.action_fc), axis=1)))
         # 3-3. L2 penalty (regularization)
         l2_penalty_beta = 1e-4
