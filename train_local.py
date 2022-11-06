@@ -47,7 +47,8 @@ class TrainPipeline():
         self.n_in_row = 5
         self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
         self.game = Game(self.board,is_gui_mode = False)
-        
+
+
         # 학습에 대한 변수들 # code20221102130401
         self.learn_rate = 2e-3
         self.lr_multiplier = 1.0  # KL에 기반하여 학습 계수를 적응적으로 조정
@@ -88,12 +89,13 @@ class TrainPipeline():
             else:  # tensorflow-1.15gpu
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab-1.15gpu',init_num=tf_init_num)
             if not self.tf_lr_data is None:
-                try:
-                    saved_data = pickle.load(self.tf_lr_data)
-                    self.learn_rate = saved_data.learn_rate
-                    self.lr_multiplier = saved_data.lr_multiplier
-                    self.data_buffer = saved_data.data_buffer
-                except:print("train_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
+                with open(tf_lr_data,'rb') as file:
+                    try:
+                        saved_data = pickle.load(file)
+                        self.learn_rate = saved_data.learn_rate
+                        self.lr_multiplier = saved_data.lr_multiplier
+                        self.data_buffer = saved_data.data_buffer
+                    except: print("train_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
@@ -128,7 +130,7 @@ class TrainPipeline():
                 equi_state = np.array([np.fliplr(s) for s in equi_state])
                 equi_mcts_prob = np.fliplr(equi_mcts_prob)
                 extend_data.append((equi_state, np.flipud(equi_mcts_prob).flatten(), winner))
-                
+
         return extend_data
 
     def collect_selfplay_data(self, n_games=1):
@@ -154,10 +156,10 @@ class TrainPipeline():
             loss, entropy = self.policy_value_net.train_step(state_batch, mcts_probs_batch, winner_batch, self.learn_rate*self.lr_multiplier)
             new_probs, new_v = self.policy_value_net.policy_value(state_batch)
             kl = np.mean(np.sum(old_probs * (np.log(old_probs + 1e-10) - np.log(new_probs + 1e-10)), axis=1))
-            
+
             # D_KL diverges 가 나쁘면 빠른 중지
             if kl > self.kl_targ * 4 : break
-                
+
         # learning rate를 적응적으로 조절
         if kl > self.kl_targ * 2 and self.lr_multiplier > 0.1 : self.lr_multiplier /= 1.5
         elif kl < self.kl_targ / 2 and self.lr_multiplier < 10 : self.lr_multiplier *= 1.5
@@ -292,4 +294,3 @@ if __name__ == '__main__':
     #         quit()
 
 
-    

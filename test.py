@@ -1,19 +1,16 @@
 # # 프로젝트랑 관련 X
 #
 #
-#
-#
-import csv
 
-import tensorflow as tf
-import pandas as pd
+import pickle
+
 from pandas import DataFrame
 
 if __name__ == '__main__':
-    arr = []
-    arr.append(1)
-    arr.append(2)
-    arr.append(3)
-    df = DataFrame()
-    df.to_csv()
+    with open('C:\\Users\\vvpas\\Desktop\\기본\\대학\\오픈소스기반기초설계\\프로젝트\\코랩가능\\tf_train_9_2590.pickle', 'rb') as file:
+        try:
+            data = pickle.load(file)
+        except: print("zz")
+    print("asdf")
+
 
