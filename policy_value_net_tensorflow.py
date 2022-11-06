@@ -90,7 +90,7 @@ class PolicyValueNetTensorflow():
         # Define the optimizer we use for training
         # self.learning_rate = tf.compat.v1.placeholder(tf.float32)
         # self.learning_rate = K.placeholder(dtype=tf.float32)
-        self.learning_rate = K.variable(None,dtype=tf.float32)
+        self.learning_rate = 0.01
         # self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate).minimize(self.loss)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate).minimize(self.loss,var_list=None,tape=tf.GradientTape())
 
