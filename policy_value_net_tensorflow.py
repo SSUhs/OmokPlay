@@ -34,7 +34,7 @@ class PolicyValueNetTensorflow():
         self.input_states = K.placeholder(dtype=tf.float32, shape=[None, 4, board_height, board_width])
         self.input_state = tf.transpose(a=self.input_states, perm=[0, 2, 3, 1])
         # 2. Common Networks Layers
-        self.conv1 = tf.keras.layers.Conv2D(inputs=self.input_state,
+        self.conv1 = tf.keras.layers.Conv2D(input_shape=self.input_state,
                                             filters=32, kernel_size=[3, 3],
                                             padding="same", data_format="channels_last",
                                             activation=tf.nn.relu)
@@ -103,6 +103,7 @@ class PolicyValueNetTensorflow():
         # Make a session
         self.model = keras.Model(self.input_state,self.evaluation_fc2)
         self.model.compile(optimizer=self.optimizer,loss=self.loss)
+        self.model.summary() # 모델 정보 출력
         # self.session = tf.compat.v1.Session()
 
         # Initialize variables
