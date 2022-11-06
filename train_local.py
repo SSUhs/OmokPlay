@@ -61,7 +61,7 @@ class TrainPipeline():
         if 5 <= board_width < 9:
             self.check_freq = 50
         elif 9 <= board_width < 11:
-            self.check_freq = 40
+            self.check_freq = 5
         elif 11 <= board_width < 12:
             self.check_freq = 30
         elif 13 <= board_width < 15:
