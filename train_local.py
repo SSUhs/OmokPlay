@@ -258,11 +258,13 @@ if __name__ == '__main__':
     elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
         if init_num == 0 or init_num == None:
             tf_model_file = None
+            tf_lr_data = None
         elif train_environment == 1: # colab + google drive
             tf_model_file = f'/content/drive/MyDrive/tf_policy_{size}_{init_num}_model'
             tf_lr_data = f'/content/drive/MyDrive/tf_train_{size}_{init_num}.pickle'
         else: # 로컬
             tf_model_file = f'./model/tf_policy_{size}_{init_num}_model'
+            tf_lr_data = f'./model/tf_train_{size}_{init_num}.pickle'
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,tf_model_file=tf_model_file,tf_init_num=init_num,tf_lr_data=tf_lr_data)
     else:
         print("없는 경우")
