@@ -82,7 +82,8 @@ class PolicyValueNetTensorflow():
         l2_penalty_beta = 1e-4
         vars = tf.compat.v1.trainable_variables()
         # 이건 굳이 tf2쓸 필요 없을듯 vars = tf.Module.trainable_variables
-        l2_penalty = l2_penalty_beta * tf.compat.v1.add_n([tf.compat.v1.nn.l2_loss(v) for v in vars if 'bias' not in v.name.lower()])
+        # l2_penalty = l2_penalty_beta * tf.compat.v1.add_n([tf.compat.v1.nn.l2_loss(v) for v in vars if 'bias' not in v.name.lower()])
+        l2_penalty = l2_penalty_beta # 임시로 베타버전
         # 3-4 Add up to be the Loss function
         self.loss = self.value_loss + self.policy_loss + l2_penalty
 
