@@ -197,7 +197,7 @@ class TrainPipeline():
                         pickle.dump(self, open(f'/content/drive/MyDrive/train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2) # theano만 pickle로 저장
                         make_csv_file(self.board_width,self.train_num)
                     elif self.ai_lib == 'tensorflow' or self.ai_lib == 'tensorflow-1.15gpu':
-                        self.policy_value_net.save_model(f'/content/drive/MyDrive/tf_policy_{self.board_width}_{self.train_num}_model')
+                        self.policy_value_net.save_model(f'/content/drive/MyDrive/tf2_policy_{self.board_width}_{self.train_num}_model')
                         make_csv_file(self.board_width,self.train_num)
                         data_helper = save_data_helper(self.train_num,self.board_width,self.learn_rate,self.lr_multiplier,self.data_buffer)
                         data_helper.save_model_data()  # lr_multiplier 저장
