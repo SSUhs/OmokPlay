@@ -49,7 +49,7 @@ class TrainPipeline():
         self.game = Game(self.board,is_gui_mode = False)
 
 
-        # 학습에 대한 변수들 # code20221102130401
+        # 학습에 대한 변수들
         self.learn_rate = 2e-3
         self.lr_multiplier = 1.0  # KL에 기반하여 학습 계수를 적응적으로 조정
         self.temp = 1.0  # the temperature param
@@ -66,7 +66,7 @@ class TrainPipeline():
         if 5 <= board_width < 9:
             self.check_freq = 50
         elif 9 <= board_width < 11:
-            self.check_freq = 5
+            self.check_freq = 40
         elif 11 <= board_width < 12:
             self.check_freq = 30
         elif 13 <= board_width < 15:
@@ -95,7 +95,9 @@ class TrainPipeline():
                         self.learn_rate = saved_data.learn_rate
                         self.lr_multiplier = saved_data.lr_multiplier
                         self.data_buffer = saved_data.data_buffer
-                    except: print("train_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
+                        print("\nTrainPipeLine 데이터를 로딩했습니다")
+                        print(f'learning_rate : {self.learn_rate} lr_multiplier : {self.lr_multiplier}')
+                    except: print("\ntrain_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
@@ -168,7 +170,7 @@ class TrainPipeline():
         explained_var_new = (1 - np.var(np.array(winner_batch) - new_v.flatten()) / np.var(np.array(winner_batch)))
 
 
-        print(f"kl:{kl:5f}, learn_rate : {self.learn_rate} lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, entropy:{entropy}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
+        print(f"kl:{kl:5f}, lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, entropy:{entropy}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
 
 
         return loss, entropy
