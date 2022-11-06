@@ -37,38 +37,34 @@ class PolicyValueNetTensorflow():
         self.conv1 = tf.keras.layers.Conv2D(filters=32, kernel_size=[3, 3],
                                             padding="same", data_format="channels_last",
                                             activation=tf.nn.relu)(self.input_state)
-        self.conv2 = tf.keras.layers.Conv2D(inputs=self.conv1, filters=64,
+        self.conv2 = tf.keras.layers.Conv2D(filters=64,
                                             kernel_size=[3, 3], padding="same",
                                             data_format="channels_last",
-                                            activation=tf.nn.relu)
-        self.conv3 = tf.keras.layers.Conv2D(inputs=self.conv2, filters=128,
+                                            activation=tf.nn.relu)(self.conv1)
+        self.conv3 = tf.keras.layers.Conv2D(filters=128,
                                             kernel_size=[3, 3], padding="same",
                                             data_format="channels_last",
-                                            activation=tf.nn.relu)
+                                            activation=tf.nn.relu)(self.conv2)
         # 3-1 Action Networks
-        self.action_conv = tf.keras.layers.Conv2D(inputs=self.conv3, filters=4,
+        self.action_conv = tf.keras.layers.Conv2D(filters=4,
                                                   kernel_size=[1, 1], padding="same",
                                                   data_format="channels_last",
-                                                  activation=tf.nn.relu)
+                                                  activation=tf.nn.relu)(self.conv3)
         # Flatten the tensor
         self.action_conv_flat = tf.reshape(self.action_conv, [-1, 4 * board_height * board_width])
         # 3-2 Full connected layer, the output is the log probability of moves
         # on each slot on the board
-        self.action_fc = tf.keras.layers.Dense(inputs=self.action_conv_flat,
-                                               units=board_height * board_width,
-                                               activation=tf.nn.log_softmax)
+        self.action_fc = tf.keras.layers.Dense(units=board_height * board_width,
+                                               activation=tf.nn.log_softmax)(self.action_conv_flat)
         # 4 Evaluation Networks
-        self.evaluation_conv = tf.keras.layers.Conv2D(inputs=self.conv3, filters=2,
-                                                      kernel_size=[1, 1],
+        self.evaluation_conv = tf.keras.layers.Conv2D(filters=2,kernel_size=[1, 1],
                                                       padding="same",
                                                       data_format="channels_last",
-                                                      activation=tf.nn.relu)
+                                                      activation=tf.nn.relu)(self.conv3)
         self.evaluation_conv_flat = tf.reshape(self.evaluation_conv, [-1, 2 * board_height * board_width])
-        self.evaluation_fc1 = tf.keras.layers.Dense(inputs=self.evaluation_conv_flat,
-                                                    units=64, activation=tf.nn.relu)
+        self.evaluation_fc1 = tf.keras.layers.Dense(units=64, activation=tf.nn.relu)(self.evaluation_conv_flat)
         # output the score of evaluation on current state
-        self.evaluation_fc2 = tf.keras.layers.Dense(inputs=self.evaluation_fc1,
-                                                    units=1, activation=tf.nn.tanh)
+        self.evaluation_fc2 = tf.keras.layers.Dense(units=1, activation=tf.nn.tanh)(self.evaluation_fc1)
 
         # Define the Loss function
         # 1. Label: the array containing if the game wins or not for each state
