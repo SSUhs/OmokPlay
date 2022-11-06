@@ -7,6 +7,9 @@ from datetime import datetime
 from pandas import DataFrame, Series
 import pickle
 import sys
+
+from save_data_helper import save_data_helper
+
 sys.setrecursionlimit(10**8)
 
 
@@ -31,9 +34,10 @@ def make_csv_file(board_size,last_train_num):
 
 
 class TrainPipeline():
-    def __init__(self, board_width, board_height, train_environment,ai_lib,tf_model_file=None,tf_init_num=0): # tf_model_file : 텐서플로우 모델 파일
+    def __init__(self, board_width, board_height, train_environment,ai_lib,tf_model_file=None,tf_init_num=0,tf_lr_data=None): # tf_model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
+        self.tf_lr_data = tf_lr_data
 
         # 학습 라이브러리
         self.ai_lib = ai_lib # tensorflow 또는 theano
@@ -75,16 +79,21 @@ class TrainPipeline():
             self.train_num = 0  # 현재 학습 횟수
             from policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
             self.policy_value_net = PolicyValueNetTheano(self.board_width, self.board_height)
-        elif ai_lib == 'tensorflow':
+        elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
             self.train_num = tf_init_num
             from policy_value_net_tensorflow import PolicyValueNetTensorflow
             self.make_tensorflow_checkpoint_auto(tf_init_num)
-            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab',init_num=tf_init_num)
-        elif ai_lib == 'tensorflow-1.15gpu':
-            self.train_num = tf_init_num
-            from policy_value_net_tensorflow import PolicyValueNetTensorflow
-            self.make_tensorflow_checkpoint_auto(tf_init_num)
-            self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab-1.15gpu',init_num=tf_init_num)
+            if ai_lib == 'tensorflow':
+                self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file, compile_env='colab',init_num=tf_init_num)
+            else:  # tensorflow-1.15gpu
+                self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab-1.15gpu',init_num=tf_init_num)
+            if not self.tf_lr_data is None:
+                try:
+                    saved_data = pickle.load(self.tf_lr_data)
+                    self.learn_rate = saved_data.learn_rate
+                    self.lr_multiplier = saved_data.lr_multiplier
+                    self.data_buffer = saved_data.data_buffer
+                except:print("train_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
@@ -186,7 +195,8 @@ class TrainPipeline():
                     elif self.ai_lib == 'tensorflow' or self.ai_lib == 'tensorflow-1.15gpu':
                         self.policy_value_net.save_model(f'/content/drive/MyDrive/tf_policy_{self.board_width}_{self.train_num}_model')
                         make_csv_file(self.board_width,self.train_num)
-                        pickle.dump(self, open(f'/content/drive/MyDrive/tf_train_{self.board_width}_{self.train_num}.pickle', 'wb'), protocol=2)
+                        data_helper = save_data_helper(self.train_num,self.board_width,self.learn_rate,self.lr_multiplier,self.data_buffer)
+                        data_helper.save_model_data()  # lr_multiplier 저장
                     else:
                         print("사용할 수 없는 라이브러리입니다")
                         quit()
@@ -246,9 +256,10 @@ if __name__ == '__main__':
             tf_model_file = None
         elif train_environment == 1: # colab + google drive
             tf_model_file = f'/content/drive/MyDrive/tf_policy_{size}_{init_num}_model'
+            tf_lr_data = f'/content/drive/MyDrive/tf_train_{size}_{init_num}.pickle'
         else: # 로컬
             tf_model_file = f'./model/tf_policy_{size}_{init_num}_model'
-        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,tf_model_file=tf_model_file,tf_init_num=init_num)
+        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,tf_model_file=tf_model_file,tf_init_num=init_num,tf_lr_data=tf_lr_data)
     else:
         print("없는 경우")
         quit()
