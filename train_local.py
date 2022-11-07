@@ -178,12 +178,13 @@ class TrainPipeline():
     def run(self):
         print(f'\n\n{self.board_width}x{self.board_width} 사이즈는 구글 드라이브 자동 백업이 {self.check_freq}마다 수행됩니다')
 
-        before_time_gap = time()  # 한번 훈련당 걸린시간
+        before_time = time()
         for i in range(self.game_batch_num):
             self.collect_selfplay_data(self.play_batch_size)
             self.train_num += 1
-            before_time_gap = time()-before_time_gap
-            print(f"\n소요시간 : {before_time_gap}, 게임 플레이 횟수 :{self.train_num}, episode_len:{self.episode_len}")
+            before_time_gap = time()-before_time
+            print(f"\n소요시간 : {before_time_gap}초, 게임 플레이 횟수 :{self.train_num}, episode_len:{self.episode_len}")
+            before_time = time()
 
             if len(self.data_buffer) > self.batch_size:
                 loss = self.policy_update()

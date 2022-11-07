@@ -12,7 +12,7 @@ from tkinter import *
 from tkinter import messagebox
 
 execution_environment = 1  # 1 : 로컬 + GUI / 2 : 깃허브 원본 / 3 : 로컬 + 콘솔
-# ai_library = 'tensorflow' # 사용할 모델이 어떤 라이브러리 학습 되었는지 :  tensorflow 또는 theano
+ai_library = 'tensorflow' # 사용할 모델이 어떤 라이브러리 학습 되었는지 :  tensorflow 또는 theano
 
 # 콘솔 모드에서 난이도
 hard_console = 15000  # [ 2500, 5000, 7500, 10000, 12500, 15000, 17500, 20000 ] 학습 수가 많아질 수록 AI의 난이도가 올라간다
@@ -54,10 +54,8 @@ def run():
         return
 
     if is_gui_mode:
-        gui = gui_select_hard.Gui()
+        gui = gui_main.Gui(ai_library,int(input('난이도를 입력하세요 : ')))
         gui.run()
-        # gui = gui_main.Gui()
-        # gui.run()
     else:
         if not ai_library == 'theano':
             print("현재 콘솔 모드 플레이는 theano 라이브러리로 학습된 모델만 사용 가능합니다")

@@ -114,8 +114,6 @@ class Gui:
                 elif event.type == pg.VIDEORESIZE:
                     print("resize event")
                     self.resize_view(event)
-                elif event.type == pg.quit():
-                    quit()
                 elif event.type == pg.MOUSEBUTTONDOWN:
                     x,y = event.pos
                     row = round((y - 43 * self.width / 800) / (51 * self.width / 800))

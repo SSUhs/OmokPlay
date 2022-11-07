@@ -1,4 +1,5 @@
 
-import pygame
+from time import time
 
-print(pygame.font.get_fonts())
+t = time()
+print(t)
