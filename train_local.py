@@ -170,7 +170,7 @@ class TrainPipeline():
         explained_var_new = (1 - np.var(np.array(winner_batch) - new_v.flatten()) / np.var(np.array(winner_batch)))
 
 
-        print(f"kl:{kl:5f}, lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
+        print(f"kl:{kl:5f}, lr_multiplier:{self.lr_multiplier:3f}, loss:{loss}, data_buffer size() : {len(self.data_buffer)}, explained_var_old:{explained_var_old:3f}, explained_var_new:{explained_var_new:3f}")
 
 
         return loss

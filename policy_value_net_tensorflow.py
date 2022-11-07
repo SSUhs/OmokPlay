@@ -86,8 +86,6 @@ class PolicyValueNetTensorflow():
         # 2. Predictions: the array containing the evaluation score of each state
         # which is self.evaluation_fc2
         # 3-1. Value Loss function
-        # mse = tf.keras.losses.MeanSquaredError();
-        # mse()
         self.value_loss = tf.losses.mean_squared_error(self.labels,self.evaluation_fc2)
         # 3-2. Policy Loss function
         self.mcts_probs = tf.placeholder(
