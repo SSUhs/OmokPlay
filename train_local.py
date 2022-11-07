@@ -18,18 +18,20 @@ sys.setrecursionlimit(10**8)
 list_train_num = []
 list_loss = []
 list_time = []
+list_batch_size = [] # 22.11.08 오전 1시 새로 추가
 def add_csv_data(train_num,loss):
     list_train_num.append(train_num)
     list_time.append(datetime.now())
     list_loss.append(loss)
+    list_batch_size.append()
 
 def make_csv_file(board_size,last_train_num):
-    df = DataFrame({'train_num':Series(list_train_num),'time':Series(list_time),'loss':Series(list_loss)})
+    df = DataFrame({'train_num':Series(list_train_num),'time':Series(list_time),'loss':Series(list_loss), 'batch_size':Series(list_batch_size)})
     df.to_csv(f'/content/drive/MyDrive/{board_size}x{board_size}_{last_train_num}.csv', header=False, index=False)
     list_train_num.clear() # 초기화
     list_time.clear()  # 초기화
     list_loss.clear()  # 초기화
-
+    list_batch_size.clear()
 
 
 class TrainPipeline():
@@ -57,7 +59,7 @@ class TrainPipeline():
         self.c_puct = 5
         self.buffer_size = 10000
         self.data_buffer = deque(maxlen=self.buffer_size)
-        self.batch_size = 512  # mini-batch size : 버퍼 안의 데이터 중 512개를 추출
+        self.batch_size = 128  # mini-batch size : 버퍼 안의 데이터 중 512개를 추출 #
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
@@ -140,14 +142,14 @@ class TrainPipeline():
             winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
-            # 데이터를 확대
-            play_data = self.get_equi_data(play_data)
+            play_data = self.get_equi_data(play_data)  # 데이터를 뒤집어서 경우의 수를 더 확대
             self.data_buffer.extend(play_data) # deque의 오른쪽(마지막)에 삽입
 
     # 자가 훈련을 통해 정책 업데이트 하는 부분
     # 플레이어와 대결 할 때는 이 함수가 호출 되지 않는다 >> 따라서 플레이어와 AI가 대결할 때는 정책 업데이트 X
     def policy_update(self):
         """update the policy-value net"""
+        # data_buffer에 들어 있는
         mini_batch = random.sample(self.data_buffer, self.batch_size)
         state_batch = [data[0] for data in mini_batch]
         mcts_probs_batch = [data[1] for data in mini_batch]

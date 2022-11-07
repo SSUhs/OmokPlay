@@ -1,5 +1,7 @@
 
-from time import time
+from collections import defaultdict, deque
 
-t = time()
-print(t)
+dq = deque(maxlen=5)
+for i in range (40):
+    dq.extend(str(i))
+    print()
