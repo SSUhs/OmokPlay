@@ -16,7 +16,7 @@ sys.setrecursionlimit(10**8)
 list_train_num = []
 list_loss = []
 list_time = []
-def add_csv_data(train_num,loss, entropy):
+def add_csv_data(train_num,loss):
     list_train_num.append(train_num)
     list_time.append(datetime.now())
     list_loss.append(loss)
