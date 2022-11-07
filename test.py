@@ -2,15 +2,14 @@
 #
 #
 
-import pickle
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # GPU 사용 X
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'  # GPU 경고 제거
+import tensorflow as tf
 
-from pandas import DataFrame
+input_states = tf.placeholder(dtype=tf.float32, shape=[None, 4, 9, 9])
+arr2 = tf(a=input_states, perm=[0, 2, 3, 1])
+print()
 
-if __name__ == '__main__':
-    with open('C:\\Users\\vvpas\\Desktop\\기본\\대학\\오픈소스기반기초설계\\프로젝트\\코랩가능\\tf_train_9_2590.pickle', 'rb') as file:
-        try:
-            data = pickle.load(file)
-        except: print("zz")
-    print("asdf")
 
 
