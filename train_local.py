@@ -15,21 +15,18 @@ sys.setrecursionlimit(10**8)
 
 list_train_num = []
 list_loss = []
-list_entropy = []
 list_time = []
 def add_csv_data(train_num,loss, entropy):
     list_train_num.append(train_num)
     list_time.append(datetime.now())
     list_loss.append(loss)
-    list_entropy.append(entropy)
 
 def make_csv_file(board_size,last_train_num):
-    df = DataFrame({'train_num':Series(list_train_num),'time':Series(list_time),'loss':Series(list_loss),'entropy':Series(list_entropy)})
+    df = DataFrame({'train_num':Series(list_train_num),'time':Series(list_time),'loss':Series(list_loss)})
     df.to_csv(f'/content/drive/MyDrive/{board_size}x{board_size}_{last_train_num}.csv', header=False, index=False)
     list_train_num.clear() # 초기화
     list_time.clear()  # 초기화
     list_loss.clear()  # 초기화
-    list_entropy.clear()  # 초기화
 
 
 
@@ -184,8 +181,8 @@ class TrainPipeline():
             print(f"\n게임 플레이 횟수 :{self.train_num}, episode_len:{self.episode_len}")
 
             if len(self.data_buffer) > self.batch_size:
-                loss, entropy = self.policy_update()
-                add_csv_data(train_num=self.train_num,loss=loss,entropy=entropy)
+                loss = self.policy_update()
+                add_csv_data(train_num=self.train_num,loss=loss)
 
             # 현재 model의 성능을 체크, 모델 속성을 저장
             # check_freq 횟수 마다 저장 (check_freq가 50이면 50번 훈련마다 한번씩 저장)
