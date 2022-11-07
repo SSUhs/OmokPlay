@@ -86,15 +86,15 @@ class TrainPipeline():
             else:  # tensorflow-1.15gpu
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab-1.15gpu',init_num=tf_init_num)
             if not self.tf_lr_data is None:
-                with open(tf_lr_data,'rb') as file:
-                    try:
+                try:
+                    with open(tf_lr_data, 'rb') as file:
                         saved_data = pickle.load(file)
                         self.learn_rate = saved_data.learn_rate
                         self.lr_multiplier = saved_data.lr_multiplier
                         self.data_buffer = saved_data.data_buffer
                         print("\nTrainPipeLine 데이터를 로딩했습니다")
                         print(f'learning_rate : {self.learn_rate} lr_multiplier : {self.lr_multiplier}')
-                    except: print("\ntrain_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
+                except: print("\ntrain_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()

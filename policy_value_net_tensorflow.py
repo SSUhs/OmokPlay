@@ -59,11 +59,11 @@ class PolicyValueNetTensorflow():
                                             kernel_size=[1, 1], padding="same",
                                             data_format="channels_last",
                                             activation=tf.nn.relu)
+
         # Flatten the tensor
-        self.action_conv_flat = tf.reshape(
-                self.action_conv, [-1, 4 * board_height * board_width])
+        self.action_conv_flat = tf.reshape(self.action_conv, [-1, 4 * board_height * board_width])
         # 3-2 Full connected layer, the output is the log probability of moves
-        # on each slot on the board
+        # on each slot on the board;
         self.action_fc = tf.layers.dense(inputs=self.action_conv_flat,
                                          units=board_height * board_width,
                                          activation=tf.nn.log_softmax)
@@ -73,8 +73,7 @@ class PolicyValueNetTensorflow():
                                                 padding="same",
                                                 data_format="channels_last",
                                                 activation=tf.nn.relu)
-        self.evaluation_conv_flat = tf.reshape(
-                self.evaluation_conv, [-1, 2 * board_height * board_width])
+        self.evaluation_conv_flat = tf.reshape(self.evaluation_conv, [-1, 2 * board_height * board_width])
         self.evaluation_fc1 = tf.layers.dense(inputs=self.evaluation_conv_flat,
                                               units=64, activation=tf.nn.relu)
         # output the score of evaluation on current state
@@ -87,13 +86,13 @@ class PolicyValueNetTensorflow():
         # 2. Predictions: the array containing the evaluation score of each state
         # which is self.evaluation_fc2
         # 3-1. Value Loss function
-        self.value_loss = tf.losses.mean_squared_error(self.labels,
-                                                       self.evaluation_fc2)
+        # mse = tf.keras.losses.MeanSquaredError();
+        # mse()
+        self.value_loss = tf.losses.mean_squared_error(self.labels,self.evaluation_fc2)
         # 3-2. Policy Loss function
         self.mcts_probs = tf.placeholder(
                 tf.float32, shape=[None, board_height * board_width])
-        self.policy_loss = tf.negative(tf.reduce_mean(
-                tf.reduce_sum(tf.multiply(self.mcts_probs, self.action_fc), 1)))
+        self.policy_loss = tf.negative(tf.reduce_mean(tf.reduce_sum(tf.multiply(self.mcts_probs, self.action_fc), 1)))
         # 3-3. L2 penalty (regularization)
         l2_penalty_beta = 1e-4
         vars = tf.trainable_variables()
