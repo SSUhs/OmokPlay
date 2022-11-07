@@ -111,9 +111,9 @@ class TrainPipeline():
         save_path = '/content/drive/MyDrive/checkpoint'
         model_name = f'tf_policy_{self.board_width}_{init_num}_model'
         # str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\nall_model_checkpoint_paths: "/content/drive/MyDrive/{model_name}\"\n'
-        str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\n'
+        str2 = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\n'
         with open(save_path,"w") as f:
-            f.write(str)
+            f.write(str2)
             print("체크 포인트 자동 생성")
 
     def get_equi_data(self, play_data):
