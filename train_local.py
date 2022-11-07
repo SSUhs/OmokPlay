@@ -19,11 +19,11 @@ list_train_num = []
 list_loss = []
 list_time = []
 list_batch_size = [] # 22.11.08 오전 1시 새로 추가
-def add_csv_data(train_num,loss):
+def add_csv_data(train_num,loss,batch_size):
     list_train_num.append(train_num)
     list_time.append(datetime.now())
     list_loss.append(loss)
-    list_batch_size.append()
+    list_batch_size.append(batch_size)
 
 def make_csv_file(board_size,last_train_num):
     df = DataFrame({'train_num':Series(list_train_num),'time':Series(list_time),'loss':Series(list_loss), 'batch_size':Series(list_batch_size)})
@@ -190,7 +190,7 @@ class TrainPipeline():
 
             if len(self.data_buffer) > self.batch_size:
                 loss = self.policy_update()
-                add_csv_data(train_num=self.train_num,loss=loss)
+                add_csv_data(train_num=self.train_num,loss=loss,batch_size=self.batch_size)
 
             # 현재 model의 성능을 체크, 모델 속성을 저장
             # check_freq 횟수 마다 저장 (check_freq가 50이면 50번 훈련마다 한번씩 저장)
