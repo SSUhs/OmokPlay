@@ -2,6 +2,7 @@ import pickle
 
 import gui_ai_vs_player
 import gui_main
+import gui_select_hard
 from Human import Human
 from constant import error_const
 from game import Board, Game
@@ -11,7 +12,7 @@ from tkinter import *
 from tkinter import messagebox
 
 execution_environment = 1  # 1 : 로컬 + GUI / 2 : 깃허브 원본 / 3 : 로컬 + 콘솔
-ai_library = 'tensorflow' # 사용할 모델이 어떤 라이브러리 학습 되었는지 :  tensorflow 또는 theano
+# ai_library = 'tensorflow' # 사용할 모델이 어떤 라이브러리 학습 되었는지 :  tensorflow 또는 theano
 
 # 콘솔 모드에서 난이도
 hard_console = 15000  # [ 2500, 5000, 7500, 10000, 12500, 15000, 17500, 20000 ] 학습 수가 많아질 수록 AI의 난이도가 올라간다
@@ -42,8 +43,6 @@ def run():
         print("존재하지 않는 환경입니다")
         return
 
-    print("사용 모델 라이브러리 :",ai_library)
-    hard_gui = int(input("\n난이도를 입력해주세요 (난이도 = 학습 횟수) : "))
 
     model_file = None
     if execution_environment == 1 or execution_environment == 3:
@@ -55,8 +54,10 @@ def run():
         return
 
     if is_gui_mode:
-        gui = gui_main.Gui(ai_library=ai_library,hard_gui=hard_gui)
+        gui = gui_select_hard.Gui()
         gui.run()
+        # gui = gui_main.Gui()
+        # gui.run()
     else:
         if not ai_library == 'theano':
             print("현재 콘솔 모드 플레이는 theano 라이브러리로 학습된 모델만 사용 가능합니다")

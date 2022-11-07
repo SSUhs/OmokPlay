@@ -12,7 +12,6 @@ class save_data_helper():
 
     def save_model_data(self):
         if not self.is_loaded:
-            print("save_data_helper 생성자를 먼저 실행해야합니다")
             print("learning_rate_multiplier 저장에 실패하였습니다")
             return
         pickle.dump(self, open(f'/content/drive/MyDrive/tf_train_{self.board_width}_{self.train_num}.pickle', 'wb'),

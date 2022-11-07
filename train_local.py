@@ -7,6 +7,8 @@ from datetime import datetime
 from pandas import DataFrame, Series
 import pickle
 import sys
+from time import time
+from time import gmtime
 
 from save_data_helper import save_data_helper
 
@@ -108,7 +110,8 @@ class TrainPipeline():
             return
         save_path = '/content/drive/MyDrive/checkpoint'
         model_name = f'tf_policy_{self.board_width}_{init_num}_model'
-        str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\nall_model_checkpoint_paths: "/content/drive/MyDrive/{model_name}\"\n'
+        # str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\nall_model_checkpoint_paths: "/content/drive/MyDrive/{model_name}\"\n'
+        str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\n'
         with open(save_path,"w") as f:
             f.write(str)
             print("체크 포인트 자동 생성")
@@ -129,7 +132,6 @@ class TrainPipeline():
                 equi_state = np.array([np.fliplr(s) for s in equi_state])
                 equi_mcts_prob = np.fliplr(equi_mcts_prob)
                 extend_data.append((equi_state, np.flipud(equi_mcts_prob).flatten(), winner))
-
         return extend_data
 
     def collect_selfplay_data(self, n_games=1):
@@ -175,10 +177,13 @@ class TrainPipeline():
 
     def run(self):
         print(f'\n\n{self.board_width}x{self.board_width} 사이즈는 구글 드라이브 자동 백업이 {self.check_freq}마다 수행됩니다')
+
+        before_time_gap = time()  # 한번 훈련당 걸린시간
         for i in range(self.game_batch_num):
             self.collect_selfplay_data(self.play_batch_size)
             self.train_num += 1
-            print(f"\n게임 플레이 횟수 :{self.train_num}, episode_len:{self.episode_len}")
+            before_time_gap = time()-before_time_gap
+            print(f"\n소요시간 : {before_time_gap}, 게임 플레이 횟수 :{self.train_num}, episode_len:{self.episode_len}")
 
             if len(self.data_buffer) > self.batch_size:
                 loss = self.policy_update()
