@@ -65,7 +65,7 @@ def test_keras_environment():
     print('GPU speedup over CPU: {}x'.format(int(cpu_time / gpu_time)))
     print("위 테스트에서 GPU 결과가 0.1초 아래면 GPU가 미작동 중입니다")
     ok = int(input("정상적으로 작동 중이면 0, 아니면 1을 입력해주세요"))
-    if ok == 0:
+    if ok == 1:
         quit()
 
 
