@@ -59,7 +59,7 @@ class TrainPipeline():
         self.c_puct = 5
         self.buffer_size = 10000
         self.data_buffer = deque(maxlen=self.buffer_size)
-        self.batch_size = 256  # mini-batch size : 버퍼 안의 데이터 중 512개를 추출 #
+        self.batch_size = 512  # mini-batch size : 버퍼 안의 데이터 중 512개를 추출 #
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
