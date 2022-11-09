@@ -19,12 +19,14 @@ class PolicyValueNetTensorflow():
         self.compile_env=compile_env  # local  / colab
         check_tensorflow.check_tf(compile_env) # 적합한 텐서플로우 버전인지 확인
         if self.compile_env == 'local':  # GPU가 사용 안되는 컴퓨터
+            print("환경 : local")
             import os
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # GPU 사용 X
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'  # GPU 경고 제거
             import tensorflow.compat.v1 as tf
             tf.disable_v2_behavior()
         elif self.compile_env == 'colab': # 코랩
+            print("환경 : colab")
             import tensorflow.compat.v1 as tf
             tf.disable_v2_behavior()
         elif self.compile_env == 'colab-1.15gpu':  # 코랩 테스트용
@@ -35,6 +37,7 @@ class PolicyValueNetTensorflow():
 
         self.board_width = board_width
         self.board_height = board_height
+        # tf.keras.layers.Conv2D(32,7)
         # Define the tensorflow neural network
         # 1. Input:
         # 22-10-29 : 텐서플로우 버전이 2.x로 업그레이드 되면서 placeholder 대신에 Variable를 사용해야함 or 버전 2를 비활성화

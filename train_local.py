@@ -35,7 +35,7 @@ def make_csv_file(board_size,last_train_num):
 
 
 class TrainPipeline():
-    def __init__(self, board_width, board_height, train_environment,ai_lib,tf_model_file=None,tf_init_num=0,tf_lr_data=None): # tf_model_file : 텐서플로우 모델 파일
+    def __init__(self, board_width, board_height, train_environment,ai_lib,tf_model_file=None,keras_model_file=None,tf_init_num=0,tf_lr_data=None,keras_lr_data=None,keras_init_num=0): # tf_model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
         self.tf_lr_data = tf_lr_data
@@ -87,7 +87,7 @@ class TrainPipeline():
             self.make_tensorflow_checkpoint_auto(tf_init_num)
             if ai_lib == 'tensorflow':
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file, compile_env='colab',init_num=tf_init_num)
-            else:  # tensorflow-1.15gpu
+            elif ai_lib == 'tensorflow-1.15gpu':  # tensorflow-1.15gpu
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,model_file=tf_model_file,compile_env='colab-1.15gpu',init_num=tf_init_num)
             if not self.tf_lr_data is None:
                 try:
@@ -99,6 +99,9 @@ class TrainPipeline():
                         print("\nTrainPipeLine 데이터를 로딩했습니다")
                         print(f'learning_rate : {self.learn_rate} lr_multiplier : {self.lr_multiplier}')
                 except: print("\ntrain_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
+        elif ai_lib == 'keras':
+            from policy_value_net_keras import PolicyValueNetKeras
+            self.policy_value_net = PolicyValueNetKeras(self.board_width,self.board_height,compile_env='colab',model_file=keras_model_file,init_num=keras_init_num,keras_lr_data=keras_lr_data)
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
@@ -272,6 +275,18 @@ if __name__ == '__main__':
             tf_model_file = f'./model/tf_policy_{size}_{init_num}_model'
             tf_lr_data = f'./model/tf_train_{size}_{init_num}.pickle'
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,tf_model_file=tf_model_file,tf_init_num=init_num,tf_lr_data=tf_lr_data)
+    elif ai_lib == 'keras':
+        if init_num == 0 or init_num == None:
+            keras_model_file = None
+            keras_lr_data = None
+        elif train_environment == 1:
+            keras_model_file = f'/content/drive/MyDrive/keras_policy_{size}_{init_num}_model'
+            keras_lr_data = f'/content/drive/MyDrive/keras_train_{size}_{init_num}.pickle'
+        else:
+            print("학습이 불가능한 환경입니다")
+            quit()
+        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, keras_model_file=keras_model_file,
+                                              tf_init_num=init_num, tf_lr_data=tf_lr_data,keras_lr_data=keras_lr_data)
     else:
         print("없는 경우")
         quit()
