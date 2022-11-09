@@ -5,6 +5,7 @@ from keras.models import Model
 from keras.utils.layer_utils import get_source_inputs
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.optimizers import Adam
+from keras.layers import Input
 # from tensorflow.keras import regularizers
 
 # from keras.engine.topology import Input
@@ -22,10 +23,11 @@ import numpy as np
 import pickle
 import check_tensorflow
 
+
 class PolicyValueNetKeras():
     """policy-value network """
 
-    def __init__(self, board_width, board_height, compile_env,model_file=None, keras_lr_data=None,keras_init_num=0):
+    def __init__(self, board_width, board_height, compile_env, model_file=None, keras_lr_data=None, keras_init_num=0):
         # check_tensorflow(compile_env)
         self.board_width = board_width
         self.board_height = board_height
@@ -40,25 +42,27 @@ class PolicyValueNetKeras():
     def create_policy_value_net(self):
         """create the policy value network """
 
-        # in_x = network = Input((4, self.board_width, self.board_height))
-        in_x = network = get_source_inputs((4, self.board_width, self.board_height))
+        in_x = network = Input((4, self.board_width, self.board_height))
+        # in_x = network = get_source_inputs((4, self.board_width, self.board_height))
 
         # conv layers
         network = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same", data_format="channels_first",
-                         activation="relu", kernel_regularizer=l2(self.l2_const))(network)
+                                         activation="relu", kernel_regularizer=l2(self.l2_const))(network)
         network = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", data_format="channels_first",
-                         activation="relu", kernel_regularizer=l2(self.l2_const))(network)
+                                         activation="relu", kernel_regularizer=l2(self.l2_const))(network)
         network = tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", data_format="channels_first",
-                         activation="relu", kernel_regularizer=l2(self.l2_const))(network)
+                                         activation="relu", kernel_regularizer=l2(self.l2_const))(network)
         # action policy layers
-        policy_net = tf.keras.layers.Conv2D(filters=4, kernel_size=(1, 1), data_format="channels_first", activation="relu",
-                            kernel_regularizer=l2(self.l2_const))(network)
+        policy_net = tf.keras.layers.Conv2D(filters=4, kernel_size=(1, 1), data_format="channels_first",
+                                            activation="relu",
+                                            kernel_regularizer=l2(self.l2_const))(network)
         policy_net = tf.keras.layers.Flatten()(policy_net)
         self.policy_net = tf.keras.layers.Dense(self.board_width * self.board_height, activation="softmax",
-                                kernel_regularizer=l2(self.l2_const))(policy_net)
+                                                kernel_regularizer=l2(self.l2_const))(policy_net)
         # state value layers
-        value_net = tf.keras.layers.Conv2D(filters=2, kernel_size=(1, 1), data_format="channels_first", activation="relu",
-                           kernel_regularizer=l2(self.l2_const))(network)
+        value_net = tf.keras.layers.Conv2D(filters=2, kernel_size=(1, 1), data_format="channels_first",
+                                           activation="relu",
+                                           kernel_regularizer=l2(self.l2_const))(network)
         value_net = tf.keras.layers.Flatten()(value_net)
         value_net = tf.keras.layers.Dense(64, kernel_regularizer=l2(self.l2_const))(value_net)
         self.value_net = tf.keras.layers.Dense(1, activation="tanh", kernel_regularizer=l2(self.l2_const))(value_net)
