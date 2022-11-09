@@ -26,7 +26,7 @@ class PolicyValueNetKeras():
     """policy-value network """
 
     def __init__(self, board_width, board_height, compile_env,model_file=None, keras_lr_data=None,keras_init_num=0):
-        check_tensorflow(compile_env)
+        # check_tensorflow(compile_env)
         self.board_width = board_width
         self.board_height = board_height
         self.l2_const = 1e-4  # coef of l2 penalty
