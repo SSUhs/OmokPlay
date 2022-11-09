@@ -17,11 +17,9 @@ from tensorflow.keras.optimizers import Adam
 # from keras.optimizers import Adam
 # import keras.backend as K
 
-from keras.utils import np_utils
 
 import numpy as np
 import pickle
-import check_tensorflow
 
 
 class PolicyValueNetKeras():
@@ -53,6 +51,7 @@ class PolicyValueNetKeras():
         self.create_policy_value_net()
         self._loss_train_op()
 
+        self.test_keras_environment()
         if model_file:
             net_params = pickle.load(open(model_file, 'rb'))
             self.model.set_weights(net_params)
@@ -60,7 +59,6 @@ class PolicyValueNetKeras():
     def create_policy_value_net(self):
         """create the policy value network """
 
-        print("policy_value_net : 11091143")
         # in_x = network = get_source_inputs((4, self.board_width, self.board_height))
 
         # conv layers
@@ -87,6 +85,8 @@ class PolicyValueNetKeras():
         self.value_net = tf.keras.layers.Dense(1, activation="tanh", kernel_regularizer=l2(self.l2_const))(value_net)
 
         self.model = Model(in_x, [self.policy_net, self.value_net])
+
+        self.model.summary()
 
         def policy_value(state_input):
             state_input_union = np.array(state_input)
@@ -139,7 +139,50 @@ class PolicyValueNetKeras():
         net_params = self.model.get_weights()
         return net_params
 
+    def test_keras_environment(self):
+        import timeit
+
+        device_name = tf.test.gpu_device_name()
+        if device_name != '/device:GPU:0':
+          print(
+              '\n\nThis error most likely means that this notebook is not '
+              'configured to use a GPU.  Change this in Notebook Settings via the '
+              'command palette (cmd/ctrl-shift-P) or the Edit menu.\n\n')
+          raise SystemError('GPU device not found')
+
+        def cpu():
+            with tf.device('/cpu:0'):
+                random_image_cpu = tf.random.normal((100, 100, 100, 3))
+                net_cpu = tf.keras.layers.Conv2D(32, 7)(random_image_cpu)
+                return tf.math.reduce_sum(net_cpu)
+
+        def gpu():
+            with tf.device('/device:GPU:0'):
+                random_image_gpu = tf.random.normal((100, 100, 100, 3))
+                net_gpu = tf.keras.layers.Conv2D(32, 7)(random_image_gpu)
+                return tf.math.reduce_sum(net_gpu)
+
+        # We run each op once to warm up; see: https://stackoverflow.com/a/45067900
+        print(tf.__version__, tf.test.is_gpu_available())
+        cpu()
+        gpu()
+        # Run the op several times.
+        print('Time (s) to convolve 32x7x7x3 filter over random 100x100x100x3 images '
+              '(batch x height x width x channel). Sum of ten runs.')
+        print('CPU (s):')
+        cpu_time = timeit.timeit('cpu()', number=10, setup="from __main__ import cpu")
+        print(cpu_time)
+        print('GPU (s):')
+        gpu_time = timeit.timeit('gpu()', number=10, setup="from __main__ import gpu")
+        print(gpu_time)
+        print('GPU speedup over CPU: {}x'.format(int(cpu_time / gpu_time)))
+        print("위 테스트에서 GPU 결과가 0.1초 아래면 GPU가 미작동 중입니다")
+        ok = int(input("정상적으로 작동 중이면 0, 아니면 1을 입력해주세요"))
+        if ok == 0:
+            quit()
+
     def save_model(self, model_file):
         """ save model params to file """
         net_params = self.get_policy_param()
         pickle.dump(net_params, open(model_file, 'wb'), protocol=2)
+
