@@ -244,7 +244,7 @@ if __name__ == '__main__':
         quit()
 
 
-    print("학습에 이용할 라이브러리를 선택해주세요 : \'tensorflow\' 또는 \'theano\'\n")
+    print("학습에 이용할 라이브러리를 선택해주세요 : \'keras\' 또는 \'tensorflow\' 또는 \'theano\'\n")
     ai_lib = input()
     if ai_lib == 'tf':
         ai_lib = 'tensorflow'
@@ -286,7 +286,7 @@ if __name__ == '__main__':
             print("학습이 불가능한 환경입니다")
             quit()
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, keras_model_file=keras_model_file,
-                                              tf_init_num=init_num, tf_lr_data=tf_lr_data,keras_lr_data=keras_lr_data)
+                                              keras_init_num=init_num, keras_lr_data=keras_lr_data)
     else:
         print("없는 경우")
         quit()
