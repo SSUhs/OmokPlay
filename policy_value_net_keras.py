@@ -36,6 +36,39 @@ def gpu():
         return tf.math.reduce_sum(net_gpu)
 
 
+def test_keras_environment():
+    import timeit
+
+    device_name = tf.test.gpu_device_name()
+    if device_name != '/device:GPU:0':
+      print(
+          '\n\nThis error most likely means that this notebook is not '
+          'configured to use a GPU.  Change this in Notebook Settings via the '
+          'command palette (cmd/ctrl-shift-P) or the Edit menu.\n\n')
+      raise SystemError('GPU device not found')
+
+
+
+    # We run each op once to warm up; see: https://stackoverflow.com/a/45067900
+    print(tf.__version__, tf.test.is_gpu_available())
+    cpu()
+    gpu()
+    # Run the op several times.
+    print('Time (s) to convolve 32x7x7x3 filter over random 100x100x100x3 images '
+          '(batch x height x width x channel). Sum of ten runs.')
+    print('CPU (s):')
+    cpu_time = timeit.timeit('cpu()', number=10, setup="from __main__ import cpu")
+    print(cpu_time)
+    print('GPU (s):')
+    gpu_time = timeit.timeit('gpu()', number=10, setup="from __main__ import gpu")
+    print(gpu_time)
+    print('GPU speedup over CPU: {}x'.format(int(cpu_time / gpu_time)))
+    print("위 테스트에서 GPU 결과가 0.1초 아래면 GPU가 미작동 중입니다")
+    ok = int(input("정상적으로 작동 중이면 0, 아니면 1을 입력해주세요"))
+    if ok == 0:
+        quit()
+
+
 class PolicyValueNetKeras():
     """policy-value network """
 
@@ -65,7 +98,7 @@ class PolicyValueNetKeras():
         self.create_policy_value_net()
         self._loss_train_op()
 
-        self.test_keras_environment()
+        test_keras_environment()
         if model_file:
             net_params = pickle.load(open(model_file, 'rb'))
             self.model.set_weights(net_params)
@@ -152,41 +185,6 @@ class PolicyValueNetKeras():
     def get_policy_param(self):
         net_params = self.model.get_weights()
         return net_params
-
-
-
-
-    def test_keras_environment(self):
-        import timeit
-
-        device_name = tf.test.gpu_device_name()
-        if device_name != '/device:GPU:0':
-          print(
-              '\n\nThis error most likely means that this notebook is not '
-              'configured to use a GPU.  Change this in Notebook Settings via the '
-              'command palette (cmd/ctrl-shift-P) or the Edit menu.\n\n')
-          raise SystemError('GPU device not found')
-
-
-
-        # We run each op once to warm up; see: https://stackoverflow.com/a/45067900
-        print(tf.__version__, tf.test.is_gpu_available())
-        cpu()
-        gpu()
-        # Run the op several times.
-        print('Time (s) to convolve 32x7x7x3 filter over random 100x100x100x3 images '
-              '(batch x height x width x channel). Sum of ten runs.')
-        print('CPU (s):')
-        cpu_time = timeit.timeit('cpu()', number=10, setup="from __main__ import cpu")
-        print(cpu_time)
-        print('GPU (s):')
-        gpu_time = timeit.timeit('gpu()', number=10, setup="from __main__ import gpu")
-        print(gpu_time)
-        print('GPU speedup over CPU: {}x'.format(int(cpu_time / gpu_time)))
-        print("위 테스트에서 GPU 결과가 0.1초 아래면 GPU가 미작동 중입니다")
-        ok = int(input("정상적으로 작동 중이면 0, 아니면 1을 입력해주세요"))
-        if ok == 0:
-            quit()
 
     def save_model(self, model_file):
         """ save model params to file """
