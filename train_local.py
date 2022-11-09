@@ -79,6 +79,7 @@ class TrainPipeline():
             self.check_freq = 10
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
 
+        is_test_mode = False
         # policy-value net에서 학습 시작
         if ai_lib == 'theano':
             self.train_num = 0  # 현재 학습 횟수
@@ -113,6 +114,7 @@ class TrainPipeline():
             self.policy_value_net = PolicyValueNetKeras(self.board_width, self.board_height, compile_env='colab',
                                                         model_file=keras_model_file, keras_init_num=keras_init_num,
                                                         keras_lr_data=keras_lr_data)
+            is_test_mode = True  # Keras는 테스트 값 출력하도록 설정
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()

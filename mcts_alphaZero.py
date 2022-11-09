@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+from time import time
 
 
 def softmax(x):
@@ -86,7 +87,7 @@ class TreeNode(object):
 class MCTS(object):
     """An implementation of Monte Carlo Tree Search."""
 
-    def __init__(self, policy_value_fn, c_puct=5, n_playout=10000):
+    def __init__(self, policy_value_fn, c_puct=5, n_playout=10000,is_test_mode=False):
         """
         policy_value_fn: a function that takes in a board_img state and outputs
             a list of (action, probability) tuples and also a score in [-1, 1]
@@ -100,6 +101,8 @@ class MCTS(object):
         self._policy = policy_value_fn
         self._c_puct = c_puct
         self._n_playout = n_playout
+        self.is_test_mode=is_test_mode
+
 
     # state : 현재 상태에서 deepcopy 된 state
     # 이 함수는 사용자와의 대결에도 사용 된다
@@ -145,11 +148,15 @@ class MCTS(object):
         # 이 for 문은 AI가 돌리는 for문
         # _n_playout 횟수가 찰 때까지 playout 수행
         # 따라서, _n_playout가 높을 수록 수행 횟수가 많아 지므로, 소요 시간이 늘어나고 성능은 늘어남
+        start_playout_time = time()
         for n in range(self._n_playout):
             # print("n값 : "+str(n))
             state_copy = copy.deepcopy(state)
             # state를 완전히 복사해서 play
             self._playout(state_copy)
+        if self.is_test_mode:
+            time_gap = time()-start_playout_time
+            print(f'{self._n_playout}번 playout하는데 소요된 시간 : {time_gap}')
 
         act_visits = [(act, node._n_visits) for act, node in self._root._children.items()]
         # print([(state.move_to_location(m),v) for m,v in act_visits])
@@ -174,8 +181,8 @@ class MCTS(object):
 
 class MCTSPlayer(object):
     def __init__(self, policy_value_function,
-                 c_puct=5, n_playout=2000, is_selfplay=0):
-        self.mcts = MCTS(policy_value_function, c_puct, n_playout)
+                 c_puct=5, n_playout=2000, is_selfplay=0, is_test_mode=False):
+        self.mcts = MCTS(policy_value_function, c_puct, n_playout,is_test_mode=is_test_mode)
         self._is_selfplay = is_selfplay
 
     def set_player_ind(self, p):

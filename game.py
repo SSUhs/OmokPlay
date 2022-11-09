@@ -342,6 +342,7 @@ class Game(object):
             if is_shown:
                 self.graphic_console(self.board, p1, p2)
 
+
             move, move_probs = player.get_action(self.board, temp=temp, return_prob=1)
             # store the data
             states.append(self.board.current_state())
