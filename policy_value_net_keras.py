@@ -5,7 +5,7 @@ from keras.models import Model
 from keras.utils.layer_utils import get_source_inputs
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.optimizers import Adam
-from keras.layers import Input
+# from keras.layers import Input
 # from tensorflow.keras import regularizers
 
 # from keras.engine.topology import Input
@@ -42,7 +42,7 @@ class PolicyValueNetKeras():
     def create_policy_value_net(self):
         """create the policy value network """
 
-        in_x = network = Input((4, self.board_width, self.board_height))
+        in_x = network = tf.keras.Input((4, self.board_width, self.board_height))
         # in_x = network = get_source_inputs((4, self.board_width, self.board_height))
 
         # conv layers
