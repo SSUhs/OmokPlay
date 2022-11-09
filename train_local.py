@@ -108,6 +108,7 @@ class TrainPipeline():
                 except:
                     print("\ntrain_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
         elif ai_lib == 'keras':
+            self.train_num = keras_init_num
             from policy_value_net_keras import PolicyValueNetKeras
             self.policy_value_net = PolicyValueNetKeras(self.board_width, self.board_height, compile_env='colab',
                                                         model_file=keras_model_file, keras_init_num=init_num,
