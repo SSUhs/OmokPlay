@@ -21,12 +21,14 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 size = [800, 800]
 diameter = 45
-button_size = 240
+button_size = 169
 dot_size = 12
 
 img_main = pg.image.load('images/main_page.png')
-img_newgame_black = pg.image.load('images/게임시작_흑.png')
-img_newgame_white = pg.image.load('images/게임시작_백.png')
+img_newgame_black = pg.image.load('images/시작(흑).png')
+img_newgame_white = pg.image.load('images/시작(백).png')
+img_replay = pg.image.load('images/리플레이.png')
+
 #icon = pg.image.load('images/icon5.png')
 s = pg.Surface((12,12))
 s.fill((255,0,0))
@@ -37,9 +39,9 @@ clock = pg.time.Clock()
 pg.display.set_caption("오목")
 
 class Gui:
-    def __init__(self, ai_library, hard_gui):
+    def __init__(self, board_size,ai_library, hard_gui):
         # self.game_org = game.Game()
-        self.width_height = 15
+        self.width_height = board_size
         self.game = game
         self.ai_library = ai_library
         self.width, self.height = 800, 800
@@ -49,10 +51,14 @@ class Gui:
         self.main_image = img_main
         self.img_newgame_black = img_newgame_black
         self.img_newgame_white = img_newgame_white
+        self.img_replay = img_replay
         self.x_bt_newgame_black = 0
         self.y_bt_newgame_black = 0
         self.x_bt_newgame_white = 0
         self.y_bt_newgame_white = 0
+        self.x_bt_replay = 0
+        self.y_bt_replay = 0
+
         self.bs = 0
         self.ws = 0
         self.hard_gui = hard_gui
@@ -74,8 +80,9 @@ class Gui:
         self.button_size = int(self.width / 800 * button_size)
         self.dot_size = int(self.width / 800 * dot_size)
         self.main_image = pg.transform.smoothscale(img_main, (self.width, self.height))
-        self.img_newgame_black = pg.transform.smoothscale(img_newgame_black,(240,240))
-        self.img_newgame_white = pg.transform.smoothscale(img_newgame_white,(240,240))
+        self.img_newgame_black = pg.transform.smoothscale(img_newgame_black,(169,87))
+        self.img_newgame_white = pg.transform.smoothscale(img_newgame_white,(169,87))
+        self.img_replay = pg.transform.smoothscale(img_replay,(169,87))
         # self.img_newgame = pg.transform.smoothscale(img_newgame, (self.button_size, self.button_size))
         self.update_game_view(mode)
 
@@ -152,16 +159,23 @@ class Gui:
                 elif event.type == pg.VIDEORESIZE:
                     self.resize_view(event,'main')
                 elif event.type == pg.MOUSEBUTTONDOWN:
-                    rect_black = self.img_newgame_black.get_rect()
-                    rect_white = self.img_newgame_white.get_rect()
                     x,y = event.pos
-                    # print("x2 : ",x2)
-                    # print("y2 : ",y2)
                     # new_game 버튼 내부에 있을 경우
-                    if x > self.x_bt_newgame_black + 51 and x < self.x_bt_newgame_black + rect_black.width - 51 and y > self.y_bt_newgame_black + 82 and y < self.y_bt_newgame_black + rect_black.height -82:
-                        self.load_game('black')
-                    elif x > self.x_bt_newgame_white + 51 and x < self.x_bt_newgame_white + rect_white.width - 51 and y > self.y_bt_newgame_white + 82 and y < self.y_bt_newgame_white + rect_white.height -82:
-                        self.load_game('white')
+                    print(f'x : {x} y : {y}')
+                    start_x = 318
+                    end_x = 480
+                    if start_x <= x <= end_x:
+                        if 103 <= y <= 183:
+                            self.load_game('black')
+                        elif 203 <= y <= 283:
+                            self.load_game('white')
+                        elif 303 <= y <= 383:
+                            self.replay_mode()
+
+                    # if x > self.x_bt_newgame_black + 51 and x < self.x_bt_newgame_black + rect_black.width - 51 and y > self.y_bt_newgame_black + 82 and y < self.y_bt_newgame_black + rect_black.height -82:
+                    #     self.load_game('black')
+                    # elif x > self.x_bt_newgame_white + 51 and x < self.x_bt_newgame_white + rect_white.width - 51 and y > self.y_bt_newgame_white + 82 and y < self.y_bt_newgame_white + rect_white.height -82:
+                    #     self.load_game('white')
 
 
 
@@ -175,15 +189,19 @@ class Gui:
         if mode == 'main':
             # x = (self.width-self.button_size)/2
             # y = 100
-            self.x_bt_newgame_black = (self.width-self.button_size)/2
-            self.x_bt_newgame_white = (self.width-self.button_size)/2
-            self.y_bt_newgame_black = 0
-            self.y_bt_newgame_white = 100
+            start = (self.width-self.button_size)/2
+            self.x_bt_newgame_black = start
+            self.x_bt_newgame_white = start
+            self.x_bt_replay = start
+            self.y_bt_newgame_black = 100
+            self.y_bt_newgame_white = 200
+            self.y_bt_replay = 300
             # x = 680 * self.width / 800
             # y = -37 * self.width / 800
             # print("놓은 자리 :",x,y)
             screen.blit(self.img_newgame_black,(self.x_bt_newgame_black,self.y_bt_newgame_black))
             screen.blit(self.img_newgame_white,(self.x_bt_newgame_white,self.y_bt_newgame_white))
+            screen.blit(self.img_replay,(self.x_bt_replay,self.y_bt_replay))
             # screen.blit(self.img_newgame, (x,y))
             # screen.blit(self.img_newgame, (680 * self.width / 800, -37 * self.width / 800))
 

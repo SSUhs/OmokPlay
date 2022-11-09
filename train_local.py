@@ -59,7 +59,7 @@ class TrainPipeline():
         self.c_puct = 5
         self.buffer_size = 10000
         self.data_buffer = deque(maxlen=self.buffer_size)
-        self.batch_size = 128  # mini-batch size : 버퍼 안의 데이터 중 512개를 추출 #
+        self.batch_size = 256  # mini-batch size : 버퍼 안의 데이터 중 512개를 추출 #
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
         self.kl_targ = 0.02
@@ -294,13 +294,12 @@ if __name__ == '__main__':
     #         if ai_lib == 'tensorflow':
     #             print("로컬 환경에서 학습시, CUDA가 지원되지 않는 PC에서 텐서플로우 라이브러리를 사용하면 학습 속도가 매우 저하될 수 있습니다")
     #             training_pipeline
-    #         elif ai_lib == 'theano':
+    #         el    if ai_lib == 'theano':
     #             training_pipeline = pickle.load(open(f'{train_path_theano}/train_{size}_{init_num}.pickle', 'rb'))
     #         else:
     #             print("없는 경우")
     #             quit()
     #     else:
-    #         print("존재하지 않는 train_environment 입니다")
-    #         quit()
+    #         print("존재하지 않는 tra
 
 

@@ -1,8 +1,8 @@
 import pickle
 
-import gui_ai_vs_player
+# import gui_ai_vs_player
 import gui_main
-import gui_select_hard
+# import gui_select_hard
 from Human import Human
 from constant import error_const
 from game import Board, Game
@@ -54,8 +54,11 @@ def run():
         return
 
     if is_gui_mode:
-        gui = gui_main.Gui(ai_library,int(input('난이도를 입력하세요 : ')))
-        gui.run()
+        if ai_library == 'theano':
+            gui = gui_main.Gui(ai_library, int(input('난이도를 입력하세요 : ')))
+            gui.run()
+        else:
+            print("텐서플로우 학습 모델로 게임을 진행하려면 gui_select_hard.py를 실행해주세요")
     else:
         if not ai_library == 'theano':
             print("현재 콘솔 모드 플레이는 theano 라이브러리로 학습된 모델만 사용 가능합니다")
