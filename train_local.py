@@ -111,7 +111,7 @@ class TrainPipeline():
             self.train_num = keras_init_num
             from policy_value_net_keras import PolicyValueNetKeras
             self.policy_value_net = PolicyValueNetKeras(self.board_width, self.board_height, compile_env='colab',
-                                                        model_file=keras_model_file, keras_init_num=init_num,
+                                                        model_file=keras_model_file, keras_init_num=keras_init_num,
                                                         keras_lr_data=keras_lr_data)
         else:
             print("존재하지 않는 라이브러리입니다")
@@ -228,6 +228,8 @@ class TrainPipeline():
                         data_helper = save_data_helper(self.train_num, self.board_width, self.learn_rate,
                                                        self.lr_multiplier, self.data_buffer)
                         data_helper.save_model_data()  # lr_multiplier 저장
+                    elif self.ai_lib == 'keras':
+                        self.policy_value_net.save_model(model_file=keras_model_file)
                     else:
                         print("사용할 수 없는 라이브러리입니다")
                         quit()

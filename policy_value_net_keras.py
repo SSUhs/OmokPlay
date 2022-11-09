@@ -41,13 +41,16 @@ def test_keras_environment():
 
     device_name = tf.test.gpu_device_name()
     if device_name != '/device:GPU:0':
-      print(
-          '\n\nThis error most likely means that this notebook is not '
-          'configured to use a GPU.  Change this in Notebook Settings via the '
-          'command palette (cmd/ctrl-shift-P) or the Edit menu.\n\n')
-      raise SystemError('GPU device not found')
-
-
+        go = int(input("GPU 가속이 사용되지 않고 있습니다. 진행할려면 0, 종료하려면 1을 입력해주세요 : "))
+        if go == 0:  # 테스트 없이 진행
+            return 
+        else:
+            quit()
+        # print(
+        #     '\n\nThis error most likely means that this notebook is not '
+        #     'configured to use a GPU.  Change this in Notebook Settings via the '
+        #     'command palette (cmd/ctrl-shift-P) or the Edit menu.\n\n')
+        # raise SystemError('GPU device not found')
 
     # We run each op once to warm up; see: https://stackoverflow.com/a/45067900
     print(tf.__version__, tf.test.is_gpu_available())
@@ -83,7 +86,7 @@ class PolicyValueNetKeras():
             print("GPU를 가속하지 않으면 사용할 수 없습니다")
             quit()
         # GPU를 사용하거나 TPU를 사용하지 않으면 종료 (혹시나 가속기를 안켜놓았을 상황을 방지)
-        if device_name != '/device:GPU:0': # GPU 안쓰는 환경인 경우
+        if device_name != '/device:GPU:0':  # GPU 안쓰는 환경인 경우
             print("GPU를 가속하지 않으면 사용할 수 없습니다")
             quit()
             # mode = int(input("현재 GPU 가속이 미사용 상태입니다. CPU 환경으로만 진행하려면 0, 종료할려면 1"))
@@ -99,7 +102,7 @@ class PolicyValueNetKeras():
         self._loss_train_op()
 
         test_keras_environment()
-        if model_file:
+        if (model_file is not None) and (keras_init_num != 0):
             net_params = pickle.load(open(model_file, 'rb'))
             self.model.set_weights(net_params)
 
@@ -148,7 +151,7 @@ class PolicyValueNetKeras():
         output: a list of (action, probability) tuples for each available action and the score of the board state
         """
         # legal_positions = board.availables
-        legal_positions = list(set(range(board.width*board.height)) - set(board.states.keys()))
+        legal_positions = list(set(range(board.width * board.height)) - set(board.states.keys()))
         current_state = board.current_state()
         act_probs, value = self.policy_value(current_state.reshape(-1, 4, self.board_width, self.board_height))
         act_probs = zip(legal_positions, act_probs.flatten()[legal_positions])
@@ -190,5 +193,3 @@ class PolicyValueNetKeras():
         """ save model params to file """
         net_params = self.get_policy_param()
         pickle.dump(net_params, open(model_file, 'wb'), protocol=2)
-
-
