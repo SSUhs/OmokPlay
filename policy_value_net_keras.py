@@ -42,10 +42,11 @@ class PolicyValueNetKeras():
     def create_policy_value_net(self):
         """create the policy value network """
 
-        in_x = network = tf.keras.Input((4, self.board_width, self.board_height))
+        print("policy_value_net : 11091143")
         # in_x = network = get_source_inputs((4, self.board_width, self.board_height))
 
         # conv layers
+        in_x = network = tf.keras.Input((4, self.board_width, self.board_height))
         network = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same", data_format="channels_first",
                                          activation="relu", kernel_regularizer=l2(self.l2_const))(network)
         network = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", data_format="channels_first",
@@ -81,7 +82,8 @@ class PolicyValueNetKeras():
         input: board
         output: a list of (action, probability) tuples for each available action and the score of the board state
         """
-        legal_positions = board.availables
+        # legal_positions = board.availables
+        legal_positions = list(set(range(board.width*board.height)) - set(board.states.keys()))
         current_state = board.current_state()
         act_probs, value = self.policy_value(current_state.reshape(-1, 4, self.board_width, self.board_height))
         act_probs = zip(legal_positions, act_probs.flatten()[legal_positions])
