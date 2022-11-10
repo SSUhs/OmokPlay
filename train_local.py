@@ -113,7 +113,7 @@ class TrainPipeline():
             self.train_num = start_num
             from policy_value_net_tf_keras import PolicyValueNetTensorflowKeras
             self.policy_value_net = PolicyValueNetTensorflowKeras(self.board_width, self.board_height, compile_env='colab',
-                                                        model_file=model_file, init_num=start_num,
+                                                        model_file=model_file, keras_init_num=start_num,
                                                         keras_lr_data=keras_lr_data)
             is_test_mode = True  # Keras는 테스트 값 출력하도록 설정
         elif ai_lib == 'keras':  # keras
