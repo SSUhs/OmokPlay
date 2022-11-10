@@ -2,12 +2,11 @@ from __future__ import print_function
 from keras import backend as K
 import tensorflow as tf
 from keras.models import Model
-from keras.utils.layer_utils import get_source_inputs
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.optimizers import Adam
+
 # from keras.layers import Input
 # from tensorflow.keras import regularizers
-
 # from keras.engine.topology import Input
 # from keras.engine.training import Model
 # from keras.layers.convolutional import Conv2D

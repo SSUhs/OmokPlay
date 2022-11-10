@@ -1,11 +1,13 @@
 from __future__ import print_function
 
-from keras.engine.topology import Input
+import tensorflow as tf
+
+# from keras.engine.topology import Input
 from keras.engine.training import Model
 from keras.layers.convolutional import Conv2D
 from keras.layers.core import Activation, Dense, Flatten
-from keras.layers.merge import Add
-from keras.layers.normalization import BatchNormalization
+# from keras.layers.merge import Add
+# from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 from keras.optimizers import Adam
 import keras.backend as K
@@ -32,7 +34,8 @@ class PolicyValueNetKeras():
 
     def create_policy_value_net(self):
         """create the policy value network """
-        in_x = network = Input((4, self.board_width, self.board_height))
+        # in_x = network = Input((4, self.board_width, self.board_height))
+        in_x = network = tf.keras.Input((4, self.board_width, self.board_height))
 
         # conv layers
         network = Conv2D(filters=32, kernel_size=(3, 3), padding="same", data_format="channels_first",
