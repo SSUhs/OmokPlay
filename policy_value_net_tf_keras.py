@@ -59,10 +59,10 @@ def test_keras_environment():
     print('Time (s) to convolve 32x7x7x3 filter over random 100x100x100x3 images '
           '(batch x height x width x channel). Sum of ten runs.')
     print('CPU (s):')
-    cpu_time = timeit.timeit('cpu()', number=10, setup="from policy_value_net_keras import cpu")
+    cpu_time = timeit.timeit('cpu()', number=10, setup="from policy_value_net_tf_keras import cpu")
     print(cpu_time)
     print('GPU (s):')
-    gpu_time = timeit.timeit('gpu()', number=10, setup="from policy_value_net_keras import gpu")
+    gpu_time = timeit.timeit('gpu()', number=10, setup="from policy_value_net_tf_keras import gpu")
     print(gpu_time)
     print('GPU speedup over CPU: {}x'.format(int(cpu_time / gpu_time)))
     print("위 테스트에서 GPU 결과가 0.1초 아래면 GPU가 미작동 중입니다")
