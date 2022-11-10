@@ -15,7 +15,6 @@ import check_tensorflow
 
 class PolicyValueNetTensorflow():
     def __init__(self, board_width, board_height, model_file=None,compile_env='local', init_num=0):
-
         self.compile_env=compile_env  # local  / colab
         check_tensorflow.check_tf(compile_env) # 적합한 텐서플로우 버전인지 확인
         if self.compile_env == 'local':  # GPU가 사용 안되는 컴퓨터

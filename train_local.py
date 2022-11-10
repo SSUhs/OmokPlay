@@ -38,8 +38,8 @@ def make_csv_file(board_size, last_train_num):
 
 
 class TrainPipeline():
-    def __init__(self, board_width, board_height, train_environment, ai_lib, tf_model_file=None, keras_model_file=None,
-                 tf_init_num=0, tf_lr_data=None, keras_lr_data=None, keras_init_num=0):  # tf_model_file : 텐서플로우 모델 파일
+    def __init__(self, board_width, board_height, train_environment, ai_lib, model_file=None,
+                 start_num=0, tf_lr_data=None, keras_lr_data=None):  # model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
         self.tf_lr_data = tf_lr_data
@@ -86,17 +86,17 @@ class TrainPipeline():
             from policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
             self.policy_value_net = PolicyValueNetTheano(self.board_width, self.board_height)
         elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
-            self.train_num = tf_init_num
+            self.train_num = start_num
             from policy_value_net_tensorflow import PolicyValueNetTensorflow
-            self.make_tensorflow_checkpoint_auto(tf_init_num)
+            self.make_tensorflow_checkpoint_auto(start_num)
             if ai_lib == 'tensorflow':
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,
-                                                                 model_file=tf_model_file, compile_env='colab',
-                                                                 init_num=tf_init_num)
+                                                                 model_file=model_file, compile_env='colab',
+                                                                 init_num=start_num)
             elif ai_lib == 'tensorflow-1.15gpu':  # tensorflow-1.15gpu
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,
-                                                                 model_file=tf_model_file, compile_env='colab-1.15gpu',
-                                                                 init_num=tf_init_num)
+                                                                 model_file=model_file, compile_env='colab-1.15gpu',
+                                                                 init_num=start_num)
             if not self.tf_lr_data is None:
                 try:
                     with open(tf_lr_data, 'rb') as file:
@@ -108,12 +108,19 @@ class TrainPipeline():
                         print(f'learning_rate : {self.learn_rate} lr_multiplier : {self.lr_multiplier}')
                 except:
                     print("\ntrain_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
-        elif ai_lib == 'keras':
-            self.train_num = keras_init_num
-            from policy_value_net_keras import PolicyValueNetKeras
-            self.policy_value_net = PolicyValueNetKeras(self.board_width, self.board_height, compile_env='colab',
-                                                        model_file=keras_model_file, keras_init_num=keras_init_num,
+        elif ai_lib == 'tfkeras':  # tensorflow keras
+            self.train_num = start_num
+            from policy_value_net_tf_keras import PolicyValueNetTensorflowKeras
+            self.policy_value_net = PolicyValueNetTensorflowKeras(self.board_width, self.board_height, compile_env='colab',
+                                                        model_file=model_file, init_num=start_num,
                                                         keras_lr_data=keras_lr_data)
+            is_test_mode = True  # Keras는 테스트 값 출력하도록 설정
+        elif ai_lib == 'keras':  # keras
+            self.train_num = start_num
+            from policy_value_net_keras import PolicyValueNetKeras
+            self.policy_value_net = PolicyValueNetKeras(self.board_width, self.board_height,
+                                                                  compile_env='colab',
+                                                                  model_file=model_file, init_num=start_num)
             is_test_mode = True  # Keras는 테스트 값 출력하도록 설정
         else:
             print("존재하지 않는 라이브러리입니다")
@@ -121,13 +128,13 @@ class TrainPipeline():
 
         # 훈련할 떄 사용할 플레이어 생성
         self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn, c_puct=self.c_puct,
-                                      n_playout=self.n_playout, is_selfplay=1)
+                                      n_playout=self.n_playout, is_selfplay=1,is_test_mode=is_test_mode)
 
-    def make_tensorflow_checkpoint_auto(self, init_num):  # 구글 드라이브 체크포인트 자동 생성
-        if init_num == 0:
+    def make_tensorflow_checkpoint_auto(self, start_num):  # 구글 드라이브 체크포인트 자동 생성
+        if start_num == 0:
             return
         save_path = '/content/drive/MyDrive/checkpoint'
-        model_name = f'tf_policy_{self.board_width}_{init_num}_model'
+        model_name = f'tf_policy_{self.board_width}_{start_num}_model'
         # str = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\nall_model_checkpoint_paths: "/content/drive/MyDrive/{model_name}\"\n'
         str2 = f'\"model_checkpoint_path: \"/content/drive/MyDrive/{model_name}\"\n'
         with open(save_path, "w") as f:
@@ -231,7 +238,7 @@ class TrainPipeline():
                                                        self.lr_multiplier, self.data_buffer)
                         data_helper.save_model_data()  # lr_multiplier 저장
                     elif self.ai_lib == 'keras':
-                        self.policy_value_net.save_model(model_file=keras_model_file)
+                        self.policy_value_net.save_model(model_file=model_file)
                     else:
                         print("사용할 수 없는 라이브러리입니다")
                         quit()
@@ -286,28 +293,28 @@ if __name__ == '__main__':
                 training_pipeline = pickle.load(open(f'{train_path_theano}/train_{size}_{init_num}.pickle', 'rb'))
     elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
         if init_num == 0 or init_num == None:
-            tf_model_file = None
+            model_file = None
             tf_lr_data = None
         elif train_environment == 1:  # colab + google drive
-            tf_model_file = f'/content/drive/MyDrive/tf_policy_{size}_{init_num}_model'
+            model_file = f'/content/drive/MyDrive/tf_policy_{size}_{init_num}_model'
             tf_lr_data = f'/content/drive/MyDrive/tf_train_{size}_{init_num}.pickle'
         else:  # 로컬
-            tf_model_file = f'./model/tf_policy_{size}_{init_num}_model'
+            model_file = f'./model/tf_policy_{size}_{init_num}_model'
             tf_lr_data = f'./model/tf_train_{size}_{init_num}.pickle'
-        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, tf_model_file=tf_model_file,
-                                          tf_init_num=init_num, tf_lr_data=tf_lr_data)
+        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
+                                          start_num=init_num, tf_lr_data=tf_lr_data)
     elif ai_lib == 'keras':
         if init_num == 0 or init_num == None:
-            keras_model_file = None
+            model_file = None
             keras_lr_data = None
         elif train_environment == 1:
-            keras_model_file = f'/content/drive/MyDrive/keras_policy_{size}_{init_num}_model'
+            model_file = f'/content/drive/MyDrive/keras_policy_{size}_{init_num}_model'
             keras_lr_data = f'/content/drive/MyDrive/keras_train_{size}_{init_num}.pickle'
         else:
             print("학습이 불가능한 환경입니다")
             quit()
-        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, keras_model_file=keras_model_file,
-                                          keras_init_num=init_num, keras_lr_data=keras_lr_data)
+        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
+                                          start_num=init_num, keras_lr_data=keras_lr_data)
     else:
         print("없는 경우")
         quit()
