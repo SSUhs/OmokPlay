@@ -93,6 +93,7 @@ class TrainPipeline():
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,
                                                                  model_file=model_file, compile_env='colab',
                                                                  init_num=start_num)
+                is_test_mode = True
             elif ai_lib == 'tensorflow-1.15gpu':  # tensorflow-1.15gpu
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,
                                                                  model_file=model_file, compile_env='colab-1.15gpu',
@@ -271,7 +272,7 @@ if __name__ == '__main__':
         print("존재하지 않는 환경입니다")
         quit()
 
-    print("학습에 이용할 라이브러리를 선택해주세요 : \'keras\' 또는 \'tensorflow\' 또는 \'theano\'\n")
+    print("학습에 이용할 라이브러리를 선택해주세요 : \'keras\' 또는 \'tensorflow\' 또는 \'tfkeras\' 또는 \'theano\'\n")
     ai_lib = input()
     if ai_lib == 'tf':
         ai_lib = 'tensorflow'
@@ -303,6 +304,18 @@ if __name__ == '__main__':
             tf_lr_data = f'./model/tf_train_{size}_{init_num}.pickle'
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
                                           start_num=init_num, tf_lr_data=tf_lr_data)
+    elif ai_lib == 'tfkeras':
+        if init_num == 0 or init_num == None:
+            model_file = None
+            keras_lr_data = None
+        elif train_environment == 1:
+            model_file = f'/content/drive/MyDrive/tfkeras_policy_{size}_{init_num}_model'
+            keras_lr_data = f'/content/drive/MyDrive/tfkeras_train_{size}_{init_num}.pickle'
+        else:
+            print("학습이 불가능한 환경입니다")
+            quit()
+        training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
+                                          start_num=init_num, keras_lr_data=keras_lr_data)
     elif ai_lib == 'keras':
         if init_num == 0 or init_num == None:
             model_file = None
