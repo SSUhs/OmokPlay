@@ -180,7 +180,8 @@ class MCTSPlayer(object):
     def __init__(self, policy_value_function,
                  c_puct=5, n_playout=2000, is_selfplay=0, is_test_mode=False):
         self.mcts = MCTS(policy_value_function, c_puct, n_playout,is_test_mode=is_test_mode)
-        self.is_selfplay = is_selfplay
+        self._is_selfplay = is_selfplay
+        self.is_test_mode = is_test_mode
 
     def set_player_ind(self, p):
         self.player = p
