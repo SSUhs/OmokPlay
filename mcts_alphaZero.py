@@ -148,15 +148,12 @@ class MCTS(object):
         # 이 for 문은 AI가 돌리는 for문
         # _n_playout 횟수가 찰 때까지 playout 수행
         # 따라서, _n_playout가 높을 수록 수행 횟수가 많아 지므로, 소요 시간이 늘어나고 성능은 늘어남
-        start_playout_time = time()
         for n in range(self._n_playout):
             # print("n값 : "+str(n))
             state_copy = copy.deepcopy(state)
             # state를 완전히 복사해서 play
             self._playout(state_copy)
-        if self.is_test_mode:
-            time_gap = time()-start_playout_time
-            print(f'{self._n_playout}번 playout하는데 소요된 시간 : {time_gap}')
+
 
         act_visits = [(act, node._n_visits) for act, node in self._root._children.items()]
         # print([(state.move_to_location(m),v) for m,v in act_visits])
@@ -196,13 +193,19 @@ class MCTSPlayer(object):
         move_probs = np.zeros(board.width * board.height)
         if board.width * board.height - len(board.states) > 0:  # 보드판이 꽉 안찬 경우
             # acts와 probs에 의해 착수 위치가 정해진다.
+            time_get_probs = time()  # probs를 얻는데까지 걸리는 시간
             acts, probs = self.mcts.get_move_probs(board, temp)
+            if self.is_test_mode:
+                time_gap = time() - time_get_probs
+                print(f'get_brobs 하는데 소요된 시간 : {time_gap}')
             move_probs[list(acts)] = probs
             if self._is_selfplay:
                 # (자가 학습을 할 때는) Dirichlet 노이즈를 추가하여 탐색
                 # 학습할 때 랜덤성이 추가 되는 부분 link221007
                 move = np.random.choice(acts, p=0.75 * probs + 0.25 * np.random.dirichlet(0.3 * np.ones(len(probs))))
+                time_update_with_move = time()
                 self.mcts.update_with_move(move)
+                if self.is_test_mode: print(f'update_with_move 하는데 소요된 시간 : {time() - time_update_with_move}')
             else: # 플레이어와 대결하는 경우
                 # np.random.choice(튜플, int size, boolean replace, array probs) :
                 # 아래에서는 size 파라미터를 전달 안했기 때문에 한개만 고른다
