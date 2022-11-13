@@ -136,9 +136,9 @@ class TreeNode(object):
 
     def backup(self, value_estimate):  # 루트노드 = 부모None >> 루트노드까지 계속 반복
         current = self
-        while current.parent is not None:
+        while current._parent is not None:
             current.total_value += value_estimate + 1
-            current = current.parent
+            current = current._parent
 
 
 class MCTS(object):
