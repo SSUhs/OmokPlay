@@ -41,7 +41,7 @@ class TreeNode(object):
         """
         # action : int 타입
         self.is_expanded = True
-        for action, prob in child_priors:
+        for action, prob in child_priors:  # enumerate 없이?
             # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
             if is_you_black and action in forbidden_moves: continue
             if action not in self._children:
@@ -228,7 +228,7 @@ class MCTS(object):
                     value_estimate = (1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
                 leaf.backup(value_estimate)
                 continue  # continue한다는건 한판 더 한다는 것
-            leaf.expand(child_priors)
+            leaf.expand(child_priors,state.forbidden_moves, state.is_you_black())
             leaf.backup(value_estimate)
 
     # 여기서 state는 game.py의 board 객체
