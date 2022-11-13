@@ -129,7 +129,7 @@ class TrainPipeline():
             quit()
 
         # 훈련할 떄 사용할 플레이어 생성
-        if not is_new_MCTS:  # 테스트용 MCTS
+        if is_new_MCTS:  # 테스트용 MCTS
             self.mcts_player = MCTSPlayerNew(self.policy_value_net.policy_value_fn, board_size=board_width,
                                              c_puct=self.c_puct,
                                              n_playout=self.n_playout, is_selfplay=1, is_test_mode=is_test_mode)
