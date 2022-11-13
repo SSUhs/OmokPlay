@@ -162,7 +162,6 @@ class TrainPipeline():
         """collect self-play data for training"""
         # 아래 for문을 다 돌면 자가대전을 n_games만큼 돈 것
         for i in range(n_games):
-            ㅁㄴㅇㄹ
             winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp,is_test_mode=is_test_mode)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
