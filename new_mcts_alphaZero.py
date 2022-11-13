@@ -85,6 +85,7 @@ class TreeNode(object):
 
     def select_leaf(self, state):
         current = self
+        print(f'select_leaf type : {type(current)}')
         while current.is_expanded:
             current.number_visits += 1  # Optimizing for performance using NumPy
             current.total_value -= 1  # Optimizing for performance using NumPy
