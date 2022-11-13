@@ -18,13 +18,13 @@ class TreeNode(object):
     u : visit-count-adjusted prior score
     """
 
-    def __init__(self, move,parent, prior_p):
+    def __init__(self, move, parent, prior_p):
         # self.game_state = game_state
         self.is_expanded = False
         self._parent = parent
         self._children = {}  # a map from action to TreeNode
         # self.number_visits = 0 있어야하는데 numpy 방식에서는 제거
-        self._Q = 0
+        # self._Q = 0
         self._u = 0
         self._P = prior_p
         self.move = move
@@ -49,7 +49,7 @@ class TreeNode(object):
                 # self._children[action] = TreeNode(self, prob)  # TreeNode() 에서 self는 parent node를 의미한다
 
     def add_child(self, move, prior):  # move = action (아마 int)
-        self._children[move] = TreeNode(move,parent=self, prior_p=prior)
+        self._children[move] = TreeNode(move, parent=self, prior_p=prior)
 
     # def select(self, c_puct):  # select_leaf??
     #     # 자식 노드 중에서 가장 적절한 노드를 선택 한다 (action값)
@@ -58,48 +58,47 @@ class TreeNode(object):
     #     """
     #     return max(self._children.items(), key=lambda act_node: act_node[1].get_value(c_puct))
 
-
-    def update(self, leaf_value):  # backUP?
-        """Update node values from leaf evaluation.
-        leaf_value: the value of subtree evaluation from the current player's perspective.
-        리프 노드까지 다 진행 후에 무승부가 나는 경우 leaf_value가 0이 되고, 패배하면 -1이 되고, 이기면 1이 된다
-        https://glbvis.blogspot.com/2021/05/ai_20.html
-        여기 중간 그림 보면 Terminal State에서 1/-1 나와 있다
-        (update_recursive()를 수행할 때 leaf_value에다가 양음 바꿔서 처리)
-        """
-        # 방문 횟수 체크 (평균 계산을 위해서 방문 노드 수 체크)
-        self.number_visits += 1
-        # Update Q, a running average of values for all visits.
-        self._Q += 1.0 * (leaf_value - self._Q) / self.number_visits
+    # def update(self, leaf_value):  # backUP?
+    #     """Update node values from leaf evaluation.
+    #     leaf_value: the value of subtree evaluation from the current player's perspective.
+    #     리프 노드까지 다 진행 후에 무승부가 나는 경우 leaf_value가 0이 되고, 패배하면 -1이 되고, 이기면 1이 된다
+    #     https://glbvis.blogspot.com/2021/05/ai_20.html
+    #     여기 중간 그림 보면 Terminal State에서 1/-1 나와 있다
+    #     (update_recursive()를 수행할 때 leaf_value에다가 양음 바꿔서 처리)
+    #     """
+    #     # 방문 횟수 체크 (평균 계산을 위해서 방문 노드 수 체크)
+    #     self.number_visits += 1
+    #     # Update Q, a running average of values for all visits.
+    #     self._Q += 1.0 * (leaf_value - self._Q) / self.number_visits
 
     # 자식 노드부터 부모 노드까지 가치값 업데이트
-    def update_recursive(self, leaf_value):
-        """Like a call to update(), but applied recursively for all ancestors."""
-        # If it is not root, this node's parent should be updated first.
-        # if 뒤에 객체가 오는 경우 : __bool__이 오버라이딩 되어 있지 않다면, None이면 false리턴
-        # 따라서 아래의 조건문을 만족 시키는 경우, 부모 노드가 존재하는 것이므로 부모 노드부터 업데이트 수행
-        # 아래 조건문이 false라면 부모 노드가 없는 노드이므로 root 노드
-        if self._parent:
-            self._parent.update_recursive(-leaf_value)
-        self.update(leaf_value)
+    # def update_recursive(self, leaf_value):
+    #     """Like a call to update(), but applied recursively for all ancestors."""
+    #     # If it is not root, this node's parent should be updated first.
+    #     # if 뒤에 객체가 오는 경우 : __bool__이 오버라이딩 되어 있지 않다면, None이면 false리턴
+    #     # 따라서 아래의 조건문을 만족 시키는 경우, 부모 노드가 존재하는 것이므로 부모 노드부터 업데이트 수행
+    #     # 아래 조건문이 false라면 부모 노드가 없는 노드이므로 root 노드
+    #     if self._parent:
+    #         self._parent.update_recursive(-leaf_value)
+    #     self.update(leaf_value)
 
-
-    def select_leaf(self):
+    def select_leaf(self, state):
         current = self
         while current.is_expanded:
             current.number_visits += 1
             current.total_value -= 1
             current = current.best_child()
+            state.do_move(current)
         return current
 
-    def get_value(self, c_puct):
-        """Calculate and return the value for this node.
-        It is a combination of leaf evaluations Q, and this node's prior adjusted for its visit count, u.
-        c_puct: a number in (0, inf) controlling the relative impact of value Q, and prior probability P, on this node's score.
-        """
-        self._u = (c_puct * self._P *
-                   np.sqrt(self._parent.number_visits) / (1 + self.number_visits))
-        return self._Q + self._u
+    # def get_value(self, c_puct):
+    #     """Calculate and return the value for this node.
+    #     It is a combination of leaf evaluations Q, and this node's prior adjusted for its visit count, u.
+    #     c_puct: a number in (0, inf) controlling the relative impact of value Q, and prior probability P, on this node's score.
+    #     """
+    #     self._u = (c_puct * self._P *
+    #                np.sqrt(self._parent.number_visits) / (1 + self.number_visits))
+    #     return self._Q + self._u
 
     def is_leaf(self):
         """Check if leaf node (i.e. no nodes below this have been expanded)."""
@@ -135,11 +134,11 @@ class TreeNode(object):
     def best_child(self):
         return np.argmax(self.child_Q() + self.child_U())
 
-    # def select_leaf(self) -> TreeNode:
-    #     current = self
-    #     while current.is_expanded:
-    #         current = current.best_child()
-    #     return current
+    def backup(self, value_estimate):  # 루트노드 = 부모None >> 루트노드까지 계속 반복
+        current = self
+        while current.parent is not None:
+            current.total_value += value_estimate + 1
+            current = current.parent
 
 
 class MCTS(object):
@@ -156,23 +155,15 @@ class MCTS(object):
             relying on the prior more.
         """
         self.board_size = board_size
-        self._root = TreeNode(None,None, 1.0)
+        self._root = TreeNode(None, None, 1.0)
         self._policy = policy_value_fn
         self._c_puct = c_puct
         self._n_playout = n_playout
         self.is_test_mode = is_test_mode
 
-
     def get_zero_board(self):
         zero_board = np.zeros(self.board_size * self.board_size)
         return zero_board
-
-    def backup(self, value_estimate): # 루트노드 = 부모None >> 루트노드까지 계속 반복
-        current = self
-        while current.parent is not None:
-            current.total_value += value_estimate + 1
-            current = current.parent
-
 
     # state : 현재 상태에서 deepcopy 된 state
     # 이 함수는 사용자와의 대결에도 사용 된다
@@ -201,7 +192,8 @@ class MCTS(object):
 
         # 아래 _policy 한번 수행하면 신경망 한번 통과하는 것
         # 근데 통과 했는데 게임 종료 상황(누구 한명이 이기거나 비긴 상황)이 아니면 expand를 수행한다
-        action_probs, leaf_value = self._policy(state)  # child_priors, value_estimate = NeuralNet.evaluate(leaf.game_state)  # 정책에 따라 행동들의 확률 배열 리턴
+        action_probs, leaf_value = self._policy(
+            state)  # child_priors, value_estimate = NeuralNet.evaluate(leaf.game_state)  # 정책에 따라 행동들의 확률 배열 리턴
         # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
         end, winner = state.game_end()
         if not end:  #
@@ -220,6 +212,25 @@ class MCTS(object):
         # backup
         # 여기에 backup??
 
+    # num_reads = _n_playout??
+    def UCT_search(self, state, num_reads):
+        root = self._root
+        for _ in range(num_reads):
+            leaf = root.select_leaf(state)
+            child_priors, value_estimate = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
+            end, winner = state.game_end()
+            if end:  # 누군가 이기거나 draw
+                # for end state，return the "true" leaf_value
+                # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
+                if winner == -1:  # tie (무승부)
+                    value_estimate = 0.0  # 무승부의 경우 leaf_value를 0으로 조정 (value_estimate = leaf_value)
+                else:
+                    value_estimate = (1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
+                leaf.backup(value_estimate)
+                continue  # continue한다는건 한판 더 한다는 것
+            leaf.expand(child_priors)
+            leaf.backup(value_estimate)
+
     # 여기서 state는 game.py의 board 객체
     def get_move_probs(self, state, temp=1e-3):
         # 이 for 문은 AI가 돌리는 for문
@@ -227,10 +238,13 @@ class MCTS(object):
         # 따라서, _n_playout가 높을 수록 수행 횟수가 많아 지므로, 소요 시간이 늘어나고 성능은 늘어남
         # 학습할 때 자가대전 몇판 하냐랑은 다른 것
         # n_playout이 400이면, 400번 수행해서 나온 가중치들을 기준으로 확률 배열 리턴
-        for n in range(self._n_playout):
-            state_copy = copy.deepcopy(state)
-            # state를 완전히 복사해서 play
-            self._playout(state_copy)
+
+        self.UCT_search(copy.deepcopy(state), self._n_playout)
+
+        # for n in range(self._n_playout): 여기 제거
+        #     state_copy = copy.deepcopy(state)
+        #     # state를 완전히 복사해서 play
+        #     self._playout(state_copy)
 
         act_visits = [(act, node.number_visits) for act, node in self._root._children.items()]
         # print([(state.move_to_location(m),v) for m,v in act_visits])
@@ -247,17 +261,17 @@ class MCTS(object):
             self._root = self._root._children[last_move]  # 돌을 둔 위치가 root노드가 됨
             self._root._parent = None
         else:
-            self._root = TreeNode(None, self.get_zero_board(),1.0)
+            self._root = TreeNode(None, self.get_zero_board(), 1.0)
 
     def __str__(self):
         return "MCTS"
 
 
 class MCTSPlayerNew(object):
-    def __init__(self, policy_value_function,board_size,
-                 c_puct=5, n_playout=2000,is_selfplay=0, is_test_mode=False):
+    def __init__(self, policy_value_function, board_size,
+                 c_puct=5, n_playout=2000, is_selfplay=0, is_test_mode=False):
         # 여기서 policy_value_function을 가져오기 때문에 어떤 라이브러리를 선택하냐에 따라 MCTS속도가 달라짐
-        self.mcts = MCTS(policy_value_function, c_puct, n_playout, is_test_mode=is_test_mode,board_size=board_size)
+        self.mcts = MCTS(policy_value_function, c_puct, n_playout, is_test_mode=is_test_mode, board_size=board_size)
         self._is_selfplay = is_selfplay
         self.is_test_mode = is_test_mode
 
