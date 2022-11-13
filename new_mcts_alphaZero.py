@@ -85,7 +85,7 @@ class TreeNode(object):
 
     def select_leaf(self, state):
         current = self
-        print(f'select_leaf type : {type(current)}')
+        # print(f'select_leaf type : {type(current)}')
         while current.is_expanded:
             current.number_visits += 1  # Optimizing for performance using NumPy
             current.total_value -= 1  # Optimizing for performance using NumPy
@@ -146,6 +146,7 @@ class TreeNode(object):
 class DummyNode(object):
     def __init__(self):
         self._parent = None
+        self.is_expanded = False
         self.child_total_value = collections.defaultdict(float)
         self.child_number_visits = collections.defaultdict(float)
 
