@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-
+from time import time
 from constant import error_const
 from renju_rule import Renju_Rule
 from IPython.display import clear_output
@@ -331,17 +331,20 @@ class Game(object):
     #                 else : print("Game end. Tie")
     #             return winner
 
-    def start_self_play(self, player, is_shown=0, temp=1e-3):
+
+    # 이 함수는 "1판" 자가 대전 시간이다
+    def start_self_play(self, player, is_shown=0, temp=1e-3,is_test_mode=False):
         """ 스스로 자가 대국하여 학습 데이터(state, mcts_probs, z) 생성 """
+        """ 이 함수는 "1판" 자가 대전 """
         self.board.init_board()
         p1, p2 = self.board.players
         states, mcts_probs, current_players = [], [], []
+        before_time = time()
         while True:
             # 흑돌일 때, 금수 위치 확인하기
             if self.board.is_you_black(): self.board.set_forbidden()
             if is_shown:
                 self.graphic_console(self.board, p1, p2)
-
 
             move, move_probs = player.get_action(self.board, temp=temp, return_prob=1)
             # store the data
@@ -367,4 +370,6 @@ class Game(object):
                         print("Game end. Winner is player:", winner)
                     else:
                         print("Game end. Tie")
+
+                if is_test_mode: print(f"자가대전 \'1\'판 하는데 소요된 시간 : {time()-before_time}")
                 return winner, zip(states, mcts_probs, winners_z)
