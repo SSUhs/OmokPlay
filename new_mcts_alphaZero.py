@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import copy
+import collections
 from time import time
 
 
@@ -128,8 +129,7 @@ class TreeNode(object):
         return self.child_total_value / (1 + self.child_number_visits)
 
     def child_U(self):
-        return math.sqrt(self.number_visits) * (
-                self.child_priors / (1 + self.child_number_visits))
+        return math.sqrt(self.number_visits) * (self.child_priors / (1 + self.child_number_visits))
 
     def best_child(self):
         return np.argmax(self.child_Q() + self.child_U())
@@ -140,6 +140,13 @@ class TreeNode(object):
             current.total_value += value_estimate + 1
             current = current._parent
 
+
+
+class DummyNode(object):
+    def __init__(self):
+        self.parent = None
+        self.child_total_value = collections.defaultdict(float)
+        self.child_number_visits = collections.defaultdict(float)
 
 class MCTS(object):
     """An implementation of Monte Carlo Tree Search."""
@@ -155,14 +162,13 @@ class MCTS(object):
             relying on the prior more.
         """
         self.board_size = board_size
-        self._root = TreeNode(None, self.DummyNode(), 1.0)
+        self._root = TreeNode(None, DummyNode(), 1.0)
         self._policy = policy_value_fn
         self._c_puct = c_puct
         self._n_playout = n_playout
         self.is_test_mode = is_test_mode
 
-    def DummyNode(self):
-        return TreeNode(None,None,1.0)
+
 
     def get_zero_board(self):
         zero_board = np.zeros(self.board_size * self.board_size)
@@ -264,7 +270,7 @@ class MCTS(object):
             self._root = self._root._children[last_move]  # 돌을 둔 위치가 root노드가 됨
             self._root._parent = None
         else:
-            self._root = TreeNode(None, self.get_zero_board(), 1.0)
+            self._root = TreeNode(None, DummyNode(), 1.0)
 
     def __str__(self):
         return "MCTS"
