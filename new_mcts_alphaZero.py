@@ -144,7 +144,7 @@ class TreeNode(object):
 
 class DummyNode(object):
     def __init__(self):
-        self.parent = None
+        self._parent = None
         self.child_total_value = collections.defaultdict(float)
         self.child_number_visits = collections.defaultdict(float)
 
