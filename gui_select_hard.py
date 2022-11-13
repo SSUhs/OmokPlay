@@ -31,7 +31,7 @@ input_rect_size = pygame.Rect(400, 120, 400, 40)
 color_active = pygame.Color('lightskyblue3')
 
 # color_passive store color(chartreuse4) which is
-# color of input box.
+# color of input box
 color_passive = pygame.Color('chartreuse4')
 color = color_passive
 

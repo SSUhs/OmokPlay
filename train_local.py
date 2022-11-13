@@ -6,6 +6,7 @@ from mcts_alphaZero import MCTSPlayer
 from datetime import datetime
 from pandas import DataFrame, Series
 import pickle
+import re # 정규표현식
 import sys
 from time import time
 from time import gmtime
@@ -39,7 +40,7 @@ def make_csv_file(board_size, last_train_num):
 
 class TrainPipeline():
     def __init__(self, board_width, board_height, train_environment, ai_lib, model_file=None,
-                 start_num=0, tf_lr_data=None, keras_lr_data=None):  # model_file : 텐서플로우 모델 파일
+                 start_num=0, tf_lr_data=None, keras_lr_data=None, is_test_mode=False):  # model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
         self.tf_lr_data = tf_lr_data
@@ -79,7 +80,6 @@ class TrainPipeline():
             self.check_freq = 10
         self.game_batch_num = 3000  # 최대 학습 횟수 (게임 한판이 1. 3000이면 3000판 수행)
 
-        is_test_mode = False
         # policy-value net에서 학습 시작
         if ai_lib == 'theano':
             self.train_num = 0  # 현재 학습 횟수
@@ -93,7 +93,6 @@ class TrainPipeline():
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,
                                                                  model_file=model_file, compile_env='colab',
                                                                  init_num=start_num)
-                is_test_mode = True
             elif ai_lib == 'tensorflow-1.15gpu':  # tensorflow-1.15gpu
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,
                                                                  model_file=model_file, compile_env='colab-1.15gpu',
@@ -122,7 +121,6 @@ class TrainPipeline():
             self.policy_value_net = PolicyValueNetKeras(self.board_width, self.board_height,
                                                                   compile_env='colab',
                                                                   model_file=model_file, init_num=start_num)
-            is_test_mode = True  # Keras는 테스트 값 출력하도록 설정
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
@@ -256,40 +254,65 @@ class TrainPipeline():
 
 
 if __name__ == '__main__':
-    print("학습할 사이즈를 입력해주세요 (ex : 9x9면 9 입력)\n")
-    size = int(input())
+    print("\"라이브러리 종류 / 사이즈 / 이어서 할 횟수\" 순서로 입력해주세요")
+    print("라이브러리 : tensorflow / keras / tfkeras / theano")
+    print("예시 : \'tensorflow 13 500\'(=텐서플로우 라이브러리로 13x13 500번 부터)")
+    param_list = re.split(r'[ ]+', input())  # 예시) {'tensorflow','13','500'}
+
+    if len(param_list) < 3:
+        print("형식이 잘못되었습니다")
+        quit()
+    elif param_list[0] == '':  #시작이 공백이면 잘못 넣은 것
+        print("첫번째 입력에 공백이 존재합니다. 다시 입력해주세요")
+        quit()
+
+    ai_lib = param_list[0]
+    if ai_lib == 'tf': ai_lib = 'tensorflow'  # 단축
+
+    size = param_list[1]
     if size < 5 or size > 15:
         print("오목 판의 크기는 5이상 15이하여야 합니다")
         quit()
+
+    init_num = param_list[2]
+
+
+    if len(param_list) >= 4:
+        if param_list[3] == 'test':
+            is_test_mode = True
+        else:
+            print("형식이 잘못되었습니다")
+            quit()
+    else:
+        is_test_mode = False
 
     print(f"{size}x{size} 환경에서 학습을 진행합니다.")
     train_path_theano = f"./save/train_{size}"
     model_path_theano = f"./save/model_{size}"
 
-    print("실행 환경을 입력해주세요\n1: Colab\n2: Local\n")
-    train_environment = int(input())
-    if not (train_environment == 1 or train_environment == 2):
-        print("존재하지 않는 환경입니다")
-        quit()
+    # print("실행 환경을 입력해주세요\n1: Colab\n2: Local\n")
+    # train_environment = int(input())
+    # if not (train_environment == 1 or train_environment == 2):
+    #     print("존재하지 않는 환경입니다")
+    #     quit()
 
-    print("학습에 이용할 라이브러리를 선택해주세요 : \'keras\' 또는 \'tensorflow\' 또는 \'tfkeras\' 또는 \'theano\'\n")
-    ai_lib = input()
-    if ai_lib == 'tf':
-        ai_lib = 'tensorflow'
+    # print("학습에 이용할 라이브러리를 선택해주세요 : \'keras\' 또는 \'tensorflow\' 또는 \'tfkeras\' 또는 \'theano\'\n")
+    # ai_lib = input()
 
-    print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
-    print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력  (2500회 학습한 파일)\n")
-    init_num = int(input())
 
+    # print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
+    # print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력  (2500회 학습한 파일)\n")
+
+    train_environment = 1  # 훈련 환경은 COLAB으로만
     if ai_lib == 'theano':
         if train_environment == 1:  # colab + google drive
             if init_num == 0 or init_num == None:
-                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib)
+                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,is_test_mode=is_test_mode)
             else:
                 training_pipeline = pickle.load(open(f'/content/drive/MyDrive/train_{size}_{init_num}.pickle'), 'rb')
         else:
             if init_num == 0 or init_num == None:
-                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib)
+                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,is_test_mode=is_test_mode)
             else:
                 training_pipeline = pickle.load(open(f'{train_path_theano}/train_{size}_{init_num}.pickle', 'rb'))
     elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
@@ -303,7 +326,7 @@ if __name__ == '__main__':
             model_file = f'./model/tf_policy_{size}_{init_num}_model'
             tf_lr_data = f'./model/tf_train_{size}_{init_num}.pickle'
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
-                                          start_num=init_num, tf_lr_data=tf_lr_data)
+                                          start_num=init_num, tf_lr_data=tf_lr_data,is_test_mode=is_test_mode)
     elif ai_lib == 'tfkeras':
         if init_num == 0 or init_num == None:
             model_file = None
@@ -315,7 +338,7 @@ if __name__ == '__main__':
             print("학습이 불가능한 환경입니다")
             quit()
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
-                                          start_num=init_num, keras_lr_data=keras_lr_data)
+                                          start_num=init_num, keras_lr_data=keras_lr_data,is_test_mode=is_test_mode)
     elif ai_lib == 'keras':
         if init_num == 0 or init_num == None:
             model_file = None
@@ -327,33 +350,10 @@ if __name__ == '__main__':
             print("학습이 불가능한 환경입니다")
             quit()
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
-                                          start_num=init_num, keras_lr_data=keras_lr_data)
+                                          start_num=init_num, keras_lr_data=keras_lr_data,is_test_mode=is_test_mode)
     else:
         print("없는 경우")
         quit()
     print(f"★ 학습시작 : {datetime.now()}")
     training_pipeline.run()
-    #
-    # # 이미 학습된 모델이 없는 경우 새로운 파이프 라인을 생성한다
-    # if init_num == 0 or init_num == None :
-    #     training_pipeline = TrainPipeline(size,size,train_environment,ai_lib)
-    # else: # 이미 일부 학습된 모델이 있는 경우 기존 파이프라인을 불러온다
-    #     if train_environment == 1: # Colab - 구글 드라이브
-    #         if ai_lib == 'tensorflow':
-    #
-    #         elif ai_lib == 'theano':
-    #             training_pipeline = pickle.load(open(f'/content/drive/MyDrive/train_{size}_{init_num}.pickle'), 'rb')
-    #         else:
-    #             print("없는 경우")
-    #             quit()
-    #     elif train_environment == 2: # 로컬
-    #         if ai_lib == 'tensorflow':
-    #             print("로컬 환경에서 학습시, CUDA가 지원되지 않는 PC에서 텐서플로우 라이브러리를 사용하면 학습 속도가 매우 저하될 수 있습니다")
-    #             training_pipeline
-    #         el    if ai_lib == 'theano':
-    #             training_pipeline = pickle.load(open(f'{train_path_theano}/train_{size}_{init_num}.pickle', 'rb'))
-    #         else:
-    #             print("없는 경우")
-    #             quit()
-    #     else:
-    #         print("존재하지 않는 tra
+
