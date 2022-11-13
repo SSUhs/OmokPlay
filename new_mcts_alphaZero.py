@@ -19,7 +19,7 @@ class TreeNode(object):
     u : visit-count-adjusted prior score
     """
 
-    def __init__(self, move, parent, prior_p):
+    def __init__(self, move, parent):
         # self.game_state = game_state
         self.is_expanded = False
         self._parent = parent
@@ -27,7 +27,7 @@ class TreeNode(object):
         # self.number_visits = 0 있어야하는데 numpy 방식에서는 제거
         # self._Q = 0
         self._u = 0
-        self._P = prior_p
+        # self._P = prior_p
         self.move = move
         self.child_priors = np.zeros(
             [362], dtype=np.float32)
@@ -42,15 +42,14 @@ class TreeNode(object):
         """
         # action : int 타입
         self.is_expanded = True
-        for action, prob in child_priors:  # enumerate 없이?
-            # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
-            if is_you_black and action in forbidden_moves: continue
-            if action not in self._children:
-                self.add_child(action, prior=prob)
-                # self._children[action] = TreeNode(self, prob)  # TreeNode() 에서 self는 parent node를 의미한다
+        self.child_priors = child_priors
+        # for action, prob in child_priors:  # enumerate 없이?
+        #     # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
+        #     if is_you_black and action in forbidden_moves: continue
+        #     if action not in self._children:
+        #         self.add_child(action, prior=prob)
+        #         # self._children[action] = TreeNode(self, prob)  # TreeNode() 에서 self는 parent node를 의미한다
 
-    def add_child(self, move, prior):  # move = action (아마 int)
-        self._children[move] = TreeNode(move, parent=self, prior_p=prior)
 
     # def select(self, c_puct):  # select_leaf??
     #     # 자식 노드 중에서 가장 적절한 노드를 선택 한다 (action값)
@@ -87,12 +86,23 @@ class TreeNode(object):
         current = self
         # print(f'select_leaf type : {type(current)}')
         while current.is_expanded:
-            print("while true 지나감")
             current.number_visits += 1  # Optimizing for performance using NumPy
             current.total_value -= 1  # Optimizing for performance using NumPy
-            current = current.best_child()
-            state.do_move(current)
+            best_move = current.best_child()
+            current = current.maybe_add_child(best_move,state.forbidden_moves, state.is_you_black())
+            state.do_move(current)  # 이거 while문 밖으로 나가야하나..?
         return current
+
+    # def add_child(self, move, prior):  # move = action (아마 int)
+    #     self._children[move] = TreeNode(move, parent=self)
+
+    # maybe가 붙는 이유가, move(action)이 self._children 안에 없는 경우에만 적용되기 떄문인듯
+    def maybe_add_child(self, move,forbidden_moves,is_you_black):
+        if move not in self._children:
+            if is_you_black and move in forbidden_moves:
+                self._children[move] = TreeNode(move,parent=self)
+                # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
+        return self._children[move]
 
     # def get_value(self, c_puct):
     #     """Calculate and return the value for this node.
@@ -228,6 +238,7 @@ class MCTS(object):
         root = self._root
         for _ in range(num_reads):
             leaf = root.select_leaf(state)
+            print("leaf의 타입 :",type(leaf))
             child_priors, value_estimate = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
             end, winner = state.game_end()
             if end:  # 누군가 이기거나 draw
