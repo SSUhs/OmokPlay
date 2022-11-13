@@ -160,12 +160,17 @@ class TrainPipeline():
 
     def collect_selfplay_data(self, n_games=1):
         """collect self-play data for training"""
+        before_time = time()
         for i in range(n_games):
             winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
             play_data = self.get_equi_data(play_data)  # 데이터를 뒤집어서 경우의 수를 더 확대
             self.data_buffer.extend(play_data)  # deque의 오른쪽(마지막)에 삽입
+        if is_test_mode:
+            new_time = time()
+            print(f"{n_games}판 자가대전 소요 시간 : {new_time-before_time}")
+            before_time = new_time
 
     # 자가 훈련을 통해 정책 업데이트 하는 부분
     # 플레이어와 대결 할 때는 이 함수가 호출 되지 않는다 >> 따라서 플레이어와 AI가 대결할 때는 정책 업데이트 X
