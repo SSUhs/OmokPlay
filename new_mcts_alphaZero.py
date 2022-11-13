@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import copy
 from time import time
@@ -16,30 +18,58 @@ class TreeNode(object):
     u : visit-count-adjusted prior score
     """
 
-    def __init__(self, parent, prior_p):
+    def __init__(self, game_state, parent, prior_p):
+        self.game_state = game_state
+        self.is_expanded = False
         self._parent = parent
         self._children = {}  # a map from action to TreeNode
-        self._n_visits = 0
+        # self.number_visits = 0 있어야하는데 numpy 방식에서는 제거
         self._Q = 0
         self._u = 0
         self._P = prior_p
+        self.child_priors = np.zeros(
+            [362], dtype=np.float32)
+        self.child_total_value = np.zeros(
+            [362], dtype=np.float32)
+        self.child_number_visits = np.zeros(
+            [362], dtype=np.float32)
 
-    def expand(self, action_priors, forbidden_moves, is_you_black):
+    def expand(self, child_priors, forbidden_moves, is_you_black):
         """Expand tree by creating new children.
         action_priors: a list of tuples of actions and their prior probability according to the policy function.
         """
         # action : int 타입
-        for action, prob in action_priors:
+        self.is_expanded = True
+        for action, prob in child_priors:
             # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
             if is_you_black and action in forbidden_moves: continue
-            if action not in self._children: self._children[action] = TreeNode(self, prob)
+            if action not in self._children:
+                self.add_child(action, prior=prob)
+                # self._children[action] = TreeNode(self, prob)  # TreeNode() 에서 self는 parent node를 의미한다
 
-    def select(self, c_puct):
-        # 자식 노드 중에서 가장 적절한 노드를 선택 한다 (action값)
-        """Select action among children that gives maximum action value Q plus bonus u(P).
-        Return: A tuple of (action, next_node)
-        """
-        return max(self._children.items(), key=lambda act_node: act_node[1].get_value(c_puct))
+    def add_child(self, move, prior):
+        self._children[move] = TreeNode(self.game_state.play(move), parent=self, prior_p=prior)
+
+    # def select(self, c_puct):  # select_leaf??
+    #     # 자식 노드 중에서 가장 적절한 노드를 선택 한다 (action값)
+    #     """Select action among children that gives maximum action value Q plus bonus u(P).
+    #     Return: A tuple of (action, next_node)
+    #     """
+    #     return max(self._children.items(), key=lambda act_node: act_node[1].get_value(c_puct))
+
+    def backup(self, value_estimate):
+        current = self
+        while current._parent is not None:
+            current.number_visits += 1
+            current.total_value += (value_estimate *
+                                    self.game_state.to_play)
+            current = current._parent
+
+    def select_leaf(self):
+        current = self
+        while current.is_expanded:
+            current = current.best_child()
+        return current
 
     def update(self, leaf_value):
         """Update node values from leaf evaluation.
@@ -50,9 +80,9 @@ class TreeNode(object):
         (update_recursive()를 수행할 때 leaf_value에다가 양음 바꿔서 처리)
         """
         # 방문 횟수 체크 (평균 계산을 위해서 방문 노드 수 체크)
-        self._n_visits += 1
+        self.number_visits += 1
         # Update Q, a running average of values for all visits.
-        self._Q += 1.0 * (leaf_value - self._Q) / self._n_visits
+        self._Q += 1.0 * (leaf_value - self._Q) / self.number_visits
 
     # 자식 노드부터 부모 노드까지 가치값 업데이트
     def update_recursive(self, leaf_value):
@@ -71,7 +101,7 @@ class TreeNode(object):
         c_puct: a number in (0, inf) controlling the relative impact of value Q, and prior probability P, on this node's score.
         """
         self._u = (c_puct * self._P *
-                   np.sqrt(self._parent._n_visits) / (1 + self._n_visits))
+                   np.sqrt(self._parent.number_visits) / (1 + self.number_visits))
         return self._Q + self._u
 
     def is_leaf(self):
@@ -82,11 +112,43 @@ class TreeNode(object):
     def is_root(self):
         return self._parent is None
 
+    @property
+    def number_visits(self):
+        return self.parent.child_number_visits[self.move]
+
+    @number_visits.setter
+    def number_visits(self, value):
+        self.parent.child_number_visits[self.move] = value
+
+    @property
+    def total_value(self):
+        return self.parent.child_total_value[self.move]
+
+    @total_value.setter
+    def total_value(self, value):
+        self.parent.child_total_value[self.move] = value
+
+    def child_Q(self):
+        return self.child_total_value / (1 + self.child_number_visits)
+
+    def child_U(self):
+        return math.sqrt(self.number_visits) * (
+                self.child_priors / (1 + self.child_number_visits))
+
+    def best_child(self):
+        return np.argmax(self.child_Q() + self.child_U())
+
+    # def select_leaf(self) -> TreeNode:
+    #     current = self
+    #     while current.is_expanded:
+    #         current = current.best_child()
+    #     return current
+
 
 class MCTS(object):
     """An implementation of Monte Carlo Tree Search."""
 
-    def __init__(self, policy_value_fn, c_puct=5, n_playout=10000,is_test_mode=False):
+    def __init__(self, policy_value_fn, c_puct=5, n_playout=10000, is_test_mode=False, board_size=None):
         """
         policy_value_fn: a function that takes in a board_img state and outputs
             a list of (action, probability) tuples and also a score in [-1, 1]
@@ -96,11 +158,17 @@ class MCTS(object):
             converges to the maximum-value policy. A higher value means
             relying on the prior more.
         """
-        self._root = TreeNode(None, 1.0)
+        self.board_size = board_size
+        self._root = TreeNode(None,self.get_zero_board(), 1.0)
         self._policy = policy_value_fn
         self._c_puct = c_puct
         self._n_playout = n_playout
-        self.is_test_mode=is_test_mode
+        self.is_test_mode = is_test_mode
+
+
+    def get_zero_board(self):
+        zero_board = np.zeros(self.board_size * self.board_size)
+        return zero_board
 
 
     # state : 현재 상태에서 deepcopy 된 state
@@ -130,11 +198,13 @@ class MCTS(object):
 
         # 아래 _policy 한번 수행하면 신경망 한번 통과하는 것
         # 근데 통과 했는데 게임 종료 상황(누구 한명이 이기거나 비긴 상황)이 아니면 expand를 수행한다
-        action_probs, leaf_value = self._policy(state)  # 정책에 따라 행동들의 확률 배열 리턴
+        action_probs, leaf_value = self._policy(
+            state)  # child_priors, value_estimate = NeuralNet.evaluate(leaf.game_state)  # 정책에 따라 행동들의 확률 배열 리턴
         # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
         end, winner = state.game_end()
         if not end:  #
             node.expand(action_probs, state.forbidden_moves, state.is_you_black())
+            node.backup(leaf_value)  # value_estimate
         else:
             # for end state，return the "true" leaf_value
             # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
@@ -158,8 +228,7 @@ class MCTS(object):
             # state를 완전히 복사해서 play
             self._playout(state_copy)
 
-
-        act_visits = [(act, node._n_visits) for act, node in self._root._children.items()]
+        act_visits = [(act, node.number_visits) for act, node in self._root._children.items()]
         # print([(state.move_to_location(m),v) for m,v in act_visits])
 
         # acts = 위치번호 / visits = 방문횟수
@@ -174,17 +243,17 @@ class MCTS(object):
             self._root = self._root._children[last_move]  # 돌을 둔 위치가 root노드가 됨
             self._root._parent = None
         else:
-            self._root = TreeNode(None, 1.0)
+            self._root = TreeNode(None, self.get_zero_board(),1.0)
 
     def __str__(self):
         return "MCTS"
 
 
-class MCTSPlayer(object):
-    def __init__(self, policy_value_function,
-                 c_puct=5, n_playout=2000, is_selfplay=0, is_test_mode=False):
+class MCTSPlayerNew(object):
+    def __init__(self, policy_value_function,board_size,
+                 c_puct=5, n_playout=2000,is_selfplay=0, is_test_mode=False):
         # 여기서 policy_value_function을 가져오기 때문에 어떤 라이브러리를 선택하냐에 따라 MCTS속도가 달라짐
-        self.mcts = MCTS(policy_value_function, c_puct, n_playout,is_test_mode=is_test_mode)
+        self.mcts = MCTS(policy_value_function, c_puct, n_playout, is_test_mode=is_test_mode,board_size=board_size)
         self._is_selfplay = is_selfplay
         self.is_test_mode = is_test_mode
 
@@ -212,14 +281,14 @@ class MCTSPlayer(object):
                 time_update_with_move = time()
                 self.mcts.update_with_move(move)
                 if self.is_test_mode: print(f'update_with_move 하는데 소요된 시간 : {time() - time_update_with_move}')
-            else: # 플레이어와 대결하는 경우
+            else:  # 플레이어와 대결하는 경우
                 # np.random.choice(튜플, int size, boolean replace, array probs) :
                 # 아래에서는 size 파라미터를 전달 안했기 때문에 한개만 고른다
                 # 플레이어 대결 모드에서는, probs 배열속 남은 자리에서 오직 선택된 하나만 1의 확률을 가지고 나머지는 0을 가지기 떄문에 무조건 정해진 한 위치만 뽑힌다
                 # 따라서 아래에 random 키워드가 있다고 해서 이게 임의로 뽑는건 아니다
                 # 위에 probs를 할당 받을 때 이미 어디를 고를지는 이미 정해져있다
                 # 자가 대결의 경우, 플레이어 대결과는 다르게 np.random.choice()를 수행할 때 dirichlet 노이즈를 통해서 랜덤성을 부여한다
-                move = np.random.choice(acts, p=probs)  #link2210172129
+                move = np.random.choice(acts, p=probs)  # link2210172129
                 self.mcts.update_with_move(-1)
 
             if return_prob:

@@ -343,8 +343,7 @@ class Game(object):
         while True:
             # 흑돌일 때, 금수 위치 확인하기
             if self.board.is_you_black(): self.board.set_forbidden()
-            if is_shown:
-                self.graphic_console(self.board, p1, p2)
+            if is_shown: self.graphic_console(self.board, p1, p2)
 
             move, move_probs = player.get_action(self.board, temp=temp, return_prob=1)
             # store the data

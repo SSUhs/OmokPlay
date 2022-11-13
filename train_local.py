@@ -3,10 +3,11 @@ import numpy as np
 from collections import defaultdict, deque
 from game import Board, Game
 from mcts_alphaZero import MCTSPlayer
+from new_mcts_alphaZero import MCTSPlayerNew
 from datetime import datetime
 from pandas import DataFrame, Series
 import pickle
-import re # 정규표현식
+import re  # 정규표현식
 import sys
 from time import time
 from time import gmtime
@@ -40,7 +41,8 @@ def make_csv_file(board_size, last_train_num):
 
 class TrainPipeline():
     def __init__(self, board_width, board_height, train_environment, ai_lib, model_file=None,
-                 start_num=0, tf_lr_data=None, keras_lr_data=None, is_test_mode=False):  # model_file : 텐서플로우 모델 파일
+                 start_num=0, tf_lr_data=None, keras_lr_data=None, is_test_mode=False,
+                 is_new_MCTS=False):  # model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
         self.tf_lr_data = tf_lr_data
@@ -111,23 +113,29 @@ class TrainPipeline():
         elif ai_lib == 'tfkeras':  # tensorflow keras
             self.train_num = start_num
             from policy_value_net_tf_keras import PolicyValueNetTensorflowKeras
-            self.policy_value_net = PolicyValueNetTensorflowKeras(self.board_width, self.board_height, compile_env='colab',
-                                                        model_file=model_file, keras_init_num=start_num,
-                                                        keras_lr_data=keras_lr_data)
+            self.policy_value_net = PolicyValueNetTensorflowKeras(self.board_width, self.board_height,
+                                                                  compile_env='colab',
+                                                                  model_file=model_file, keras_init_num=start_num,
+                                                                  keras_lr_data=keras_lr_data)
             is_test_mode = True  # Keras는 테스트 값 출력하도록 설정
         elif ai_lib == 'keras':  # keras
             self.train_num = start_num
             from policy_value_net_keras import PolicyValueNetKeras
             self.policy_value_net = PolicyValueNetKeras(self.board_width, self.board_height,
-                                                                  compile_env='colab',
-                                                                  model_file=model_file, init_num=start_num)
+                                                        compile_env='colab',
+                                                        model_file=model_file, init_num=start_num)
         else:
             print("존재하지 않는 라이브러리입니다")
             quit()
 
         # 훈련할 떄 사용할 플레이어 생성
-        self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn, c_puct=self.c_puct,
-                                      n_playout=self.n_playout, is_selfplay=1,is_test_mode=is_test_mode)
+        if not is_new_MCTS:  # 테스트용 MCTS
+            self.mcts_player = MCTSPlayerNew(self.policy_value_net.policy_value_fn, board_size=board_width,
+                                             c_puct=self.c_puct,
+                                             n_playout=self.n_playout, is_selfplay=1, is_test_mode=is_test_mode)
+        else:
+            self.mcts_player = MCTSPlayer(self.policy_value_net.policy_value_fn, c_puct=self.c_puct,
+                                          n_playout=self.n_playout, is_selfplay=1, is_test_mode=is_test_mode)
 
     def make_tensorflow_checkpoint_auto(self, start_num):  # 구글 드라이브 체크포인트 자동 생성
         if start_num == 0:
@@ -161,13 +169,13 @@ class TrainPipeline():
     def collect_selfplay_data(self, n_games=1):
         """collect self-play data for training"""
         # 아래 for문을 다 돌면 자가대전을 n_games만큼 돈 것
+        # 기본 한판 하게 되어있음
         for i in range(n_games):
-            winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp,is_test_mode=is_test_mode)
+            winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp, is_test_mode=is_test_mode)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
             play_data = self.get_equi_data(play_data)  # 데이터를 뒤집어서 경우의 수를 더 확대
             self.data_buffer.extend(play_data)  # deque의 오른쪽(마지막)에 삽입
-
 
     # 자가 훈련을 통해 정책 업데이트 하는 부분
     # 플레이어와 대결 할 때는 이 함수가 호출 되지 않는다 >> 따라서 플레이어와 AI가 대결할 때는 정책 업데이트 X
@@ -264,7 +272,7 @@ if __name__ == '__main__':
     if len(param_list) < 3:
         print("형식이 잘못되었습니다")
         quit()
-    elif param_list[0] == '':  #시작이 공백이면 잘못 넣은 것
+    elif param_list[0] == '':  # 시작이 공백이면 잘못 넣은 것
         print("첫번째 입력에 공백이 존재합니다. 다시 입력해주세요")
         quit()
 
@@ -278,15 +286,21 @@ if __name__ == '__main__':
 
     init_num = int(param_list[2])
 
-
     if len(param_list) >= 4:
         if param_list[3] == 'test':
             is_test_mode = True
         else:
             print("형식이 잘못되었습니다")
             quit()
+
+        if param_list[4] == 'new':  # 새로운 mcts_alphaZero 기반
+            is_new_MCTS = True
+        else:
+            is_new_MCTS = False
+
     else:
         is_test_mode = False
+        is_new_MCTS = False
 
     print(f"{size}x{size} 환경에서 학습을 진행합니다.")
     train_path_theano = f"./save/train_{size}"
@@ -301,20 +315,29 @@ if __name__ == '__main__':
     # print("학습에 이용할 라이브러리를 선택해주세요 : \'keras\' 또는 \'tensorflow\' 또는 \'tfkeras\' 또는 \'theano\'\n")
     # ai_lib = input()
 
-
     # print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
     # print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력  (2500회 학습한 파일)\n")
+
+    if is_new_MCTS:
+        if ai_lib != 'tensorflow':
+            print("new MCTS는 현재 tensorflow 1.0에서만 사용가능")
+            quit()
+        print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
+        print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
+        print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
 
     train_environment = 1  # 훈련 환경은 COLAB으로만
     if ai_lib == 'theano':
         if train_environment == 1:  # colab + google drive
             if init_num == 0 or init_num == None:
-                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,is_test_mode=is_test_mode)
+                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, is_test_mode=is_test_mode,
+                                                  is_new_MCTS=is_new_MCTS)
             else:
                 training_pipeline = pickle.load(open(f'/content/drive/MyDrive/train_{size}_{init_num}.pickle'), 'rb')
         else:
             if init_num == 0 or init_num == None:
-                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib,is_test_mode=is_test_mode)
+                training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, is_test_mode=is_test_mode,
+                                                  is_new_MCTS=is_new_MCTS)
             else:
                 training_pipeline = pickle.load(open(f'{train_path_theano}/train_{size}_{init_num}.pickle', 'rb'))
     elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
@@ -328,7 +351,8 @@ if __name__ == '__main__':
             model_file = f'./model/tf_policy_{size}_{init_num}_model'
             tf_lr_data = f'./model/tf_train_{size}_{init_num}.pickle'
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
-                                          start_num=init_num, tf_lr_data=tf_lr_data,is_test_mode=is_test_mode)
+                                          start_num=init_num, tf_lr_data=tf_lr_data, is_test_mode=is_test_mode,
+                                          is_new_MCTS=is_new_MCTS)
     elif ai_lib == 'tfkeras':
         if init_num == 0 or init_num == None:
             model_file = None
@@ -340,7 +364,8 @@ if __name__ == '__main__':
             print("학습이 불가능한 환경입니다")
             quit()
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
-                                          start_num=init_num, keras_lr_data=keras_lr_data,is_test_mode=is_test_mode)
+                                          start_num=init_num, keras_lr_data=keras_lr_data, is_test_mode=is_test_mode,
+                                          is_new_MCTS=is_new_MCTS)
     elif ai_lib == 'keras':
         if init_num == 0 or init_num == None:
             model_file = None
@@ -352,10 +377,10 @@ if __name__ == '__main__':
             print("학습이 불가능한 환경입니다")
             quit()
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
-                                          start_num=init_num, keras_lr_data=keras_lr_data,is_test_mode=is_test_mode)
+                                          start_num=init_num, keras_lr_data=keras_lr_data, is_test_mode=is_test_mode,
+                                          is_new_MCTS=is_new_MCTS)
     else:
         print("없는 경우")
         quit()
     print(f"★ 학습시작 : {datetime.now()}")
     training_pipeline.run()
-
