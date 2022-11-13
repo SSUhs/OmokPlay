@@ -269,12 +269,12 @@ if __name__ == '__main__':
     ai_lib = param_list[0]
     if ai_lib == 'tf': ai_lib = 'tensorflow'  # 단축
 
-    size = param_list[1]
-    if int(size) < 5 or int(size) > 15:
+    size = int(param_list[1])
+    if size < 5 or size > 15:
         print("오목 판의 크기는 5이상 15이하여야 합니다")
         quit()
 
-    init_num = param_list[2]
+    init_num = int(param_list[2])
 
 
     if len(param_list) >= 4:
