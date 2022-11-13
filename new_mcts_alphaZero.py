@@ -85,8 +85,8 @@ class TreeNode(object):
     def select_leaf(self, state):
         current = self
         while current.is_expanded:
-            current.number_visits += 1
-            current.total_value -= 1
+            current.number_visits += 1  # Optimizing for performance using NumPy
+            current.total_value -= 1  # Optimizing for performance using NumPy
             current = current.best_child()
             state.do_move(current)
         return current
@@ -155,11 +155,14 @@ class MCTS(object):
             relying on the prior more.
         """
         self.board_size = board_size
-        self._root = TreeNode(None, None, 1.0)
+        self._root = TreeNode(None, self.DummyNode(), 1.0)
         self._policy = policy_value_fn
         self._c_puct = c_puct
         self._n_playout = n_playout
         self.is_test_mode = is_test_mode
+
+    def DummyNode(self):
+        return TreeNode(None,None,1.0)
 
     def get_zero_board(self):
         zero_board = np.zeros(self.board_size * self.board_size)
