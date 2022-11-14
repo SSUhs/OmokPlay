@@ -30,7 +30,7 @@ class TreeNode(object):
         # self._P = prior_p
         self.move = move
         self.board_size = board_size
-        np_size = (board_size*board_size)+1  # ex : 15*15면 226. 디폴트 바둑 형태의 경우 이 값에 362가 들어갔음
+        np_size = (board_size*board_size)  # ex : 15*15면 226?? 225??. 디폴트 바둑 형태의 경우 이 값에 362가 들어갔음
         self.child_priors = np.zeros([np_size], dtype=np.float32)
         self.child_total_value = np.zeros([np_size], dtype=np.float32)
         self.child_number_visits = np.zeros([np_size], dtype=np.float32)
