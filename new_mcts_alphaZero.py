@@ -41,9 +41,9 @@ class TreeNode(object):
         """
         # action : int 타입
         self.is_expanded = True
-        print("expand 전 shpae : ",self.child_priors.shape())
+        print("expand 전 shpae : ",self.child_priors.shape)
         self.child_priors = child_priors
-        print("expand 후 shpae : ",self.child_priors.shape())
+        print("expand 후 shpae : ",self.child_priors.shape)
 
         # for action, prob in child_priors:  # enumerate 없이?
         #     # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
