@@ -249,6 +249,7 @@ class MCTS(object):
     # num_reads = _n_playout??
     def UCT_search(self, state_b, num_reads):
         beforeTime = time()
+        self._root = TreeNode(None, DummyNode(),self.board_size)
         for _ in range(num_reads):
             state = copy.deepcopy(state_b)
             root = self._root
