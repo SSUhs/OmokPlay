@@ -145,12 +145,11 @@ class TreeNode(object):
         return self.child_total_value / (1 + self.child_number_visits)
 
     def child_U(self):
-        print("child_U 실행")
-        print(type(self.number_visits))
-        print(type(self.child_priors))
-        print(type(self.child_number_visits))
-        print(f'shpae child_priors : {self.child_priors.shape}')  # (1, 81)
-        print(f'shpae child_number_visits : {self.child_number_visits.shape}')  #  (82,)
+        # print(type(self.number_visits))
+        # print(type(self.child_priors))
+        # print(type(self.child_number_visits))
+        # print(f'shpae child_priors : {self.child_priors.shape}')  # (1, 81)
+        # print(f'shpae child_number_visits : {self.child_number_visits.shape}')  #  (82,)
         return math.sqrt(self.number_visits) * (self.child_priors / (1 + self.child_number_visits))
 
     def best_child(self):
@@ -248,9 +247,9 @@ class MCTS(object):
     # num_reads = _n_playout??
     def UCT_search(self, state, num_reads):
         root = self._root
+        beforeTime = time()
         for _ in range(num_reads):
             leaf = root.select_leaf(state)
-            print("leaf의 타입 :",type(leaf))
             # child_priors가 결국 (82,)가 되든 (81,)가 되든 해야됨
             child_priors, value_estimate = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
             end, winner = state.game_end()
@@ -265,6 +264,9 @@ class MCTS(object):
                 continue  # continue한다는건 한판 더 한다는 것
             leaf.expand(child_priors)
             leaf.backup(value_estimate)
+        currentTime = time()
+        print(f'UCT-searchTime : {currentTime-beforeTime}')
+        beforeTime = currentTime
 
     # 여기서 state는 game.py의 board 객체
     def get_move_probs(self, state, temp=1e-3):
