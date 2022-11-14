@@ -163,6 +163,8 @@ class DummyNode(object):
         self._parent = None
         self.child_total_value = collections.defaultdict(float)
         self.child_number_visits = collections.defaultdict(float)
+        print(f'type : 더미노드 child_total_value: {type(self.child_total_value)}')
+        print(f'type : 더미노드 child_number_visits: {type(self.child_number_visits)}')
 
 class MCTS(object):
     """An implementation of Monte Carlo Tree Search."""
