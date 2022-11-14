@@ -174,7 +174,7 @@ class MCTS(object):
             relying on the prior more.
         """
         self.board_size = board_size
-        self._root = TreeNode(None, DummyNode(), 1.0)
+        self._root = TreeNode(None, DummyNode())
         self._policy = policy_value_fn
         self._c_puct = c_puct
         self._n_playout = n_playout
@@ -283,7 +283,7 @@ class MCTS(object):
             self._root = self._root._children[last_move]  # 돌을 둔 위치가 root노드가 됨
             self._root._parent = None
         else:
-            self._root = TreeNode(None, DummyNode(), 1.0)
+            self._root = TreeNode(None, DummyNode())
 
     def __str__(self):
         return "MCTS"
