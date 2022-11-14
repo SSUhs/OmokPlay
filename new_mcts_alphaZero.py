@@ -298,7 +298,10 @@ class MCTS(object):
         print(f'acts_list : {acts_list}')
         print(f'visits_list : {visits_list}')
         act_probs = softmax(1.0 / temp * np.log(np.array(visits) + 1e-10))
-
+        sum = 0
+        for j in enumerate(act_probs):
+            sum +=j
+        print("sum : ",sum)
         return acts, act_probs
 
     # 플레이어 대결의 경우 컴퓨터는 update_with_move를 호출 할 때 last_move 파라미터를 -1로 전달 (아직 무슨 의미인지는 파악 X)
