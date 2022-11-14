@@ -141,6 +141,7 @@ class TreeNode(object):
         return self.child_total_value / (1 + self.child_number_visits)
 
     def child_U(self):
+        print("child_U 수행")
         return math.sqrt(self.number_visits) * (self.child_priors / (1 + self.child_number_visits))
 
     def best_child(self):
