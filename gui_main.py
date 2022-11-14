@@ -91,6 +91,7 @@ class Gui:
         # print(black_white)
         hard_gui = self.hard_gui
         num = 5
+        is_test = True
 
         if self.ai_library == 'theano':
             model_file = './model/policy_9_' + str(hard_gui) + ".model"
@@ -110,6 +111,7 @@ class Gui:
             best_policy = PolicyValueNetNumpy(self.width_height, self.width_height, policy_param)
 
             # n_playout값 : 성능
+
             mcts_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
             human = Human()
 
@@ -130,7 +132,11 @@ class Gui:
                 print("없는 모드입니다")
                 pg.quit()  # 종료
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
-            mcts_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5,
+            if is_test:
+                print("테스트  플레이 모드")
+                mcts_player = MCTSPlayer(self.best_policy.policy_value_fn_new, c_puct=5, n_playout=400)
+            else:
+                mcts_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5,
                                      n_playout=400)  # set larger n_playout for better performance
             human = Human()
 

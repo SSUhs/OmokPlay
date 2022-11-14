@@ -35,15 +35,15 @@ class TreeNode(object):
         self.child_total_value = np.zeros([np_size], dtype=np.float32)
         self.child_number_visits = np.zeros([np_size], dtype=np.float32)
 
-    def expand(self, child_priors, forbidden_moves, is_you_black):
+    def expand(self, child_priors):
         """Expand tree by creating new children.
         action_priors: a list of tuples of actions and their prior probability according to the policy function.
         """
         # action : int 타입
         self.is_expanded = True
-        print("expand 전 shpae : ",self.child_priors.shape)
+        print("expand 전 shpae : ",self.child_priors.shape) # (82,)
         self.child_priors = child_priors
-        print("expand 후 shpae : ",self.child_priors.shape)
+        print("expand 후 shpae : ",self.child_priors.shape)  # (1, 81)
 
         # for action, prob in child_priors:  # enumerate 없이?
         #     # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
@@ -251,8 +251,8 @@ class MCTS(object):
         for _ in range(num_reads):
             leaf = root.select_leaf(state)
             print("leaf의 타입 :",type(leaf))
-            # code20221114134636
-            child_priors, value_estimate, legal_arr = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
+            # child_priors가 결국 (82,)가 되든 (81,)가 되든 해야됨
+            child_priors, value_estimate = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
             end, winner = state.game_end()
             if end:  # 누군가 이기거나 draw
                 # for end state，return the "true" leaf_value
@@ -263,7 +263,7 @@ class MCTS(object):
                     value_estimate = (1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
                 leaf.backup(value_estimate)
                 continue  # continue한다는건 한판 더 한다는 것
-            leaf.expand(child_priors,state.forbidden_moves, state.is_you_black())
+            leaf.expand(child_priors)
             leaf.backup(value_estimate)
 
     # 여기서 state는 game.py의 board 객체

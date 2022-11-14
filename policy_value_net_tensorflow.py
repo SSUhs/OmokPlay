@@ -141,23 +141,33 @@ class PolicyValueNetTensorflow():
         """
         # legal_positions = board.availables
         # legal position : 놓을 수 "있는"포지션
-        legal_positions = list(set(range(board.width*board.height)) - set(board.states.keys()))
+        set_all = set(range(board.width*board.height))
+        set_state_keys = set(board.states.keys())
+        legal_positions = list(set_all - set_state_keys)
         current_state = np.ascontiguousarray(board.current_state().reshape(
-                -1, 4, self.board_width, self.board_height))
+                -1, 4, self.board_width, self.board_height)) # 이 current_state는 상대가 놓은 것만 보여주는 듯
         act_probs, value = self.policy_value(current_state)
-        lega_arr = act_probs[0][legal_positions]
-        act_probs = zip(legal_positions, lega_arr)  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
+        # legal_arr : ndarray(225,)부터 시작해서 한 수당 225에서 하나씩 빠짐
+        # 참고로, legal_positions은 놓을 수 있는 move(int)임. 얘는 리스트로 하나씩 줄어든다
+        # act_probs는 따라서 (일자 좌표, 가중치)로 이루어진 것 >> 3번 좌표로 이동시 가중치 이런 방식임
+        # act_probs의 경우, 0~224판까지 모든 경우의 수가 나오는거고,
+        # 거기서 legal_positions에 해당하는 것의 개수만큼만 lega_arr로 반환
+        # 즉, legal_positions는 한번 수를 놓을 때마다 개수가 줄어드므로 결국 legal_arr 수도 줄어들고,
+        # 따라서 최종적으로 리턴하는 tuple의 수도 줄어들게 된다
+        legal_arr = act_probs[0][legal_positions] # 얘는 수를 놓을 때마다 사이즈가 줄어 듦  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
+        act_probs = zip(legal_positions, legal_arr)
         return act_probs, value
 
 
     def policy_value_fn_new(self,board):
-        legal_positions = list(set(range(board.width*board.height)) - set(board.states.keys()))
+        legal_flat_arr = np.zeros(board.width*board.height)
+        set_current_keys = set(board.states.keys())
         current_state = np.ascontiguousarray(board.current_state().reshape(
                 -1, 4, self.board_width, self.board_height))
         act_probs, value = self.policy_value(current_state)
-        lega_arr = act_probs[0][legal_positions]
-        # act_probs = zip(legal_positions, lega_arr)  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
-        return act_probs, value, lega_arr
+        for i in set_current_keys:
+            legal_flat_arr[i] = 1*(act_probs[0][i])
+        return legal_flat_arr, value
 
     def train_step(self, state_batch, mcts_probs, winner_batch, lr):
         """perform a training step"""

@@ -29,10 +29,19 @@ class TreeNode(object):
         action_priors: a list of tuples of actions and their prior probability according to the policy function.
         """
         # action : int 타입
+        # action_priors는 zip
+        # leag_arr은 크기가 점점 줄어드는 ndarray
+        # lega_arr = act_probs[0][legal_positions] # 얘는 수를 놓을 때마다 사이즈가 줄어 듦  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
+        # act_probs = zip(legal_positions, lega_arr)
+
+        # 예를들어 {1,2,6,8,13} {0.4231,0.832,~~~} 이런식이라면,
+        # 현재 노드에서 1번으로 확장하면 해당 노드의 가중치는 0.4231이 되는 것
         for action, prob in action_priors:
             # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
-            if is_you_black and action in forbidden_moves: continue
-            if action not in self._children: self._children[action] = TreeNode(self, prob)
+            if is_you_black and action in forbidden_moves:
+                continue
+            if action not in self._children:
+                self._children[action] = TreeNode(self, prob)
 
     def select(self, c_puct):
         # 자식 노드 중에서 가장 적절한 노드를 선택 한다 (action값)
@@ -131,6 +140,7 @@ class MCTS(object):
 
         # 아래 _policy 한번 수행하면 신경망 한번 통과하는 것
         # 근데 통과 했는데 게임 종료 상황(누구 한명이 이기거나 비긴 상황)이 아니면 expand를 수행한다
+        # leaf_value : evaulation_func2의 결과로 나온 평가 가치
         action_probs, leaf_value = self._policy(state)  # 정책에 따라 행동들의 확률 배열 리턴
         # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
         end, winner = state.game_end()
