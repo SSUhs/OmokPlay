@@ -281,15 +281,20 @@ class MCTS(object):
 
         self.UCT_search(state, self._n_playout)
         # acts = 위치번호 / visits = 방문횟수
-        acts = []
-        visits = []
-        for i in range(self.board_size*self.board_size):
-            if self._root.child_number_visits[i] != 0:
-                acts.append(i)
-                visits.append(self._root.child_number_visits[i])
         # acts = self._root.child_number_visits[]
         # visits = self._root.child_number_visits
         # list로 바꿔야함!!
+        # 원본 : visits는 tuple이다
+        acts_list = []
+        visits_list = []
+        cur_dict_key = state.states.keys()
+        for i in range(self.board_size*self.board_size):
+            if not (i in cur_dict_key):  # 돌이 안놓인 위치의 경우 추가
+                acts_list.append(i)
+                visits_list.append(self._root.child_number_visits[i])
+
+        acts = tuple(acts_list)
+        visits = tuple(visits_list)
         act_probs = softmax(1.0 / temp * np.log(np.array(visits) + 1e-10))
 
         return acts, act_probs
