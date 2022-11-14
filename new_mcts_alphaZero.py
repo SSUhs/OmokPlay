@@ -295,6 +295,8 @@ class MCTS(object):
 
         acts = tuple(acts_list)
         visits = tuple(visits_list)
+        print(f'acts_list : {acts_list}')
+        print(f'visits_list : {visits_list}')
         act_probs = softmax(1.0 / temp * np.log(np.array(visits) + 1e-10))
 
         return acts, act_probs
