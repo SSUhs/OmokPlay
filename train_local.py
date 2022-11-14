@@ -293,20 +293,20 @@ if __name__ == '__main__':
         else:
             print("형식이 잘못되었습니다")
             quit()
+    else:
+        is_test_mode = False
+        is_new_MCTS = False
 
+    if len(param_list) >= 5:
         if param_list[4] == 'new':  # 새로운 mcts_alphaZero 기반
             is_new_MCTS = True
         else:
             is_new_MCTS = False
 
-    if len(param_list) >= 5:
+    if len(param_list) >= 6:
         if param_list[5] == 'local':
             train_environment = 2  # 혹시 local로 테스트 할 경우
 
-
-    else:
-        is_test_mode = False
-        is_new_MCTS = False
 
     print(f"{size}x{size} 환경에서 학습을 진행합니다.")
     train_path_theano = f"./save/train_{size}"
