@@ -176,8 +176,9 @@ class MCTS(object):
         # acts = 위치번호 / visits = 방문횟수
         acts, visits = zip(*act_visits)
         act_probs = softmax(1.0 / temp * np.log(np.array(visits) + 1e-10))
-        print(f'acts : {acts} / size {len(acts)}')
-        print(f'visits : {visits} / size {len(visits)}')
+        if self.is_test_mode:
+            print(f'acts : {acts} / size {len(acts)}')
+            print(f'visits : {visits} / size {len(visits)}')
 
         return acts, act_probs
 

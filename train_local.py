@@ -290,6 +290,7 @@ if __name__ == '__main__':
     if len(param_list) >= 4:
         if param_list[3] == 'test':
             is_test_mode = True
+            is_new_MCTS = False
         else:
             print("형식이 잘못되었습니다")
             quit()
