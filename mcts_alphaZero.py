@@ -52,6 +52,7 @@ class TreeNode(object):
         # 방문 횟수 체크 (평균 계산을 위해서 방문 노드 수 체크)
         self._n_visits += 1
         # Update Q, a running average of values for all visits.
+        # leaf_value 타입 : ndarray[1,1]
         self._Q += 1.0 * (leaf_value - self._Q) / self._n_visits
 
     # 자식 노드부터 부모 노드까지 가치값 업데이트

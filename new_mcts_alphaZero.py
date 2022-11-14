@@ -98,7 +98,9 @@ class TreeNode(object):
     # maybe가 붙는 이유가, move(action)이 self._children 안에 없는 경우에만 적용되기 떄문인듯
     def maybe_add_child(self, move,forbidden_moves,is_you_black):
         if move not in self._children:
-            if is_you_black and move in forbidden_moves:
+            print("move는 action이므로 type이 int가 나와야함. 그리고 0~225사이값")
+            print(f'move type : {type(move)} / move값 : {move}')
+            if not (is_you_black and move in forbidden_moves):
                 self._children[move] = TreeNode(move,parent=self,board_size=self.board_size)
                 # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
         return self._children[move]
@@ -195,48 +197,48 @@ class MCTS(object):
     # 이 함수는 사용자와의 대결에도 사용 된다
     # 각 상태에서 끝까지 플레이 해본다
     # 이 함수가 n_playout 만큼 돌아가는 것 (디폴트 : 400번)
-    def _playout(self, state):
-        """Run a single playout from the root to the leaf, getting a value at
-        the leaf and propagating it back through its parents.
-        State is modified in-place, so a copy must be provided.
-        """
-        node = self._root
-        while (1):
-            # 리프 노드가 나올 때까지 계속 진행
-            # 확장은 여기서 안하고 아래 쪽에 node_expand 에서 진행한다
-            if node.is_leaf(): break
-            # Greedily select next move.
-            action, node = node.select(self._c_puct)
-            # 현재 state 객체는 _playout 함수 실행하기 전에 deepcopy를 해놓은 state
-            # 따라서 전달받은 state 상황에서 do_move를 리프노드가 나올 때 까지 쭉 수행해보는 것
-            # 다 이동 하면 현재 while 문이 종료되고, policy에 의해 판별
-            state.do_move(action)
-
-        # Evaluate the leaf using a network which outputs a list of
-        # (action, probability) tuples p and also a score v in [-1, 1]
-        # for the current player.
-
-        # 아래 _policy 한번 수행하면 신경망 한번 통과하는 것
-        # 근데 통과 했는데 게임 종료 상황(누구 한명이 이기거나 비긴 상황)이 아니면 expand를 수행한다
-        action_probs, leaf_value, legal_arr = self._policy(
-            state)  # child_priors, value_estimate = NeuralNet.evaluate(leaf.game_state)  # 정책에 따라 행동들의 확률 배열 리턴
-        # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
-        end, winner = state.game_end()
-        if not end:  #
-            node.expand(action_probs, state.forbidden_moves, state.is_you_black())
-            node.backup(leaf_value)  # value_estimate
-        else:
-            # for end state，return the "true" leaf_value
-            # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
-            if winner == -1:  # tie (무승부)
-                leaf_value = 0.0  # 무승부의 경우 leaf_value를 0으로 조정
-            else:
-                leaf_value = (
-                    1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
-        # 여기서 -1 하는 이유...?
-        # node.update_recursive(-leaf_value)
-        # backup
-        # 여기에 backup??
+    # def _playout(self, state):
+    #     """Run a single playout from the root to the leaf, getting a value at
+    #     the leaf and propagating it back through its parents.
+    #     State is modified in-place, so a copy must be provided.
+    #     """
+    #     node = self._root
+    #     while (1):
+    #         # 리프 노드가 나올 때까지 계속 진행
+    #         # 확장은 여기서 안하고 아래 쪽에 node_expand 에서 진행한다
+    #         if node.is_leaf(): break
+    #         # Greedily select next move.
+    #         action, node = node.select(self._c_puct)
+    #         # 현재 state 객체는 _playout 함수 실행하기 전에 deepcopy를 해놓은 state
+    #         # 따라서 전달받은 state 상황에서 do_move를 리프노드가 나올 때 까지 쭉 수행해보는 것
+    #         # 다 이동 하면 현재 while 문이 종료되고, policy에 의해 판별
+    #         state.do_move(action)
+    #
+    #     # Evaluate the leaf using a network which outputs a list of
+    #     # (action, probability) tuples p and also a score v in [-1, 1]
+    #     # for the current player.
+    #
+    #     # 아래 _policy 한번 수행하면 신경망 한번 통과하는 것
+    #     # 근데 통과 했는데 게임 종료 상황(누구 한명이 이기거나 비긴 상황)이 아니면 expand를 수행한다
+    #     action_probs, leaf_value = self._policy(
+    #         state)  # child_priors, value_estimate = NeuralNet.evaluate(leaf.game_state)  # 정책에 따라 행동들의 확률 배열 리턴
+    #     # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
+    #     end, winner = state.game_end()
+    #     if not end:  #
+    #         node.expand(action_probs, state.forbidden_moves, state.is_you_black())
+    #         node.backup(leaf_value)  # value_estimate
+    #     else:
+    #         # for end state，return the "true" leaf_value
+    #         # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
+    #         if winner == -1:  # tie (무승부)
+    #             leaf_value = 0.0  # 무승부의 경우 leaf_value를 0으로 조정
+    #         else:
+    #             leaf_value = (
+    #                 1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
+    #     # 여기서 -1 하는 이유...?
+    #     # node.update_recursive(-leaf_value)
+    #     # backup
+    #     # 여기에 backup??
 
     # num_reads = _n_playout??
     def UCT_search(self, state, num_reads):
@@ -244,7 +246,8 @@ class MCTS(object):
         for _ in range(num_reads):
             leaf = root.select_leaf(state)
             print("leaf의 타입 :",type(leaf))
-            child_priors, value_estimate = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
+            # code20221114134636 
+            child_priors, value_estimate, legal_arr = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
             end, winner = state.game_end()
             if end:  # 누군가 이기거나 draw
                 # for end state，return the "true" leaf_value
