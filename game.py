@@ -253,10 +253,6 @@ class Game(object):
 
         move = None
 
-
-        # if self.board.is_you_black():
-        #     self.board.set_forbidden()
-
         if not self.is_gui_mode: # 콘솔 모드
             if current_player == 1:
                 move = player_in_turn.get_action_console(self.board)
@@ -270,6 +266,10 @@ class Game(object):
                 if move == error_const.CONST_WRONG_POSITION or move == error_const.CONST_BANNED_POSITION or move == error_const.CONST_UNKNOWN:
                     return move  # 잘못된 경우이므로 종료
 
+        if current_player == 1:
+            print("사람이 고른 자리 :",move)
+        else:
+            print("AI가 고른 자리 :",move)
         self.board.do_move(move)
 
         if self.is_gui_mode:  # gui_mode의 경우 콘솔 출력은 이동 후에 출력

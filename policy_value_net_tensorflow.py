@@ -165,8 +165,11 @@ class PolicyValueNetTensorflow():
         current_state = np.ascontiguousarray(board.current_state().reshape(
                 -1, 4, self.board_width, self.board_height))
         act_probs, value = self.policy_value(current_state)
-        for i in set_current_keys:
-            legal_flat_arr[i] = 1*(act_probs[0][i])
+        for i in range(board.width*board.height):
+            if i in set_current_keys:  # 이미 수가 놓아져있는 부분에는 놓을 수가 없으므로 확률을 0으로 조정
+                legal_flat_arr[i] = 0
+            else:
+                legal_flat_arr[i] = 1*(act_probs[0][i])
         return legal_flat_arr, value
 
     def train_step(self, state_batch, mcts_probs, winner_batch, lr):

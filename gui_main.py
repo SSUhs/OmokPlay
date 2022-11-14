@@ -10,6 +10,7 @@ import gui_ai_vs_player
 from game import Board, Game
 import pickle
 from mcts_alphaZero import MCTSPlayer
+from new_mcts_alphaZero import MCTSPlayerNew
 from policy_value_net_numpy import PolicyValueNetNumpy
 
 from constant import error_const
@@ -39,7 +40,7 @@ clock = pg.time.Clock()
 pg.display.set_caption("오목")
 
 class Gui:
-    def __init__(self, board_size,ai_library, hard_gui):
+    def __init__(self, board_size,ai_library, hard_gui,is_test):
         # self.game_org = game.Game()
         self.width_height = board_size
         self.game = game
@@ -58,6 +59,7 @@ class Gui:
         self.y_bt_newgame_white = 0
         self.x_bt_replay = 0
         self.y_bt_replay = 0
+        self.is_test = is_test
 
         self.bs = 0
         self.ws = 0
@@ -91,7 +93,6 @@ class Gui:
         # print(black_white)
         hard_gui = self.hard_gui
         num = 5
-        is_test = True
 
         if self.ai_library == 'theano':
             model_file = './model/policy_9_' + str(hard_gui) + ".model"
@@ -132,9 +133,9 @@ class Gui:
                 print("없는 모드입니다")
                 pg.quit()  # 종료
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
-            if is_test:
+            if self.is_test:
                 print("테스트  플레이 모드")
-                mcts_player = MCTSPlayer(self.best_policy.policy_value_fn_new, c_puct=5, n_playout=400)
+                mcts_player = MCTSPlayerNew(self.best_policy.policy_value_fn_new,self.width_height, c_puct=5, n_playout=400,is_test_mode=True)
             else:
                 mcts_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5,
                                      n_playout=400)  # set larger n_playout for better performance

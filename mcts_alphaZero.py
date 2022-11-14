@@ -126,13 +126,14 @@ class MCTS(object):
         while (1):
             # 리프 노드가 나올 때까지 계속 진행
             # 확장은 여기서 안하고 아래 쪽에 node_expand 에서 진행한다
-            if node.is_leaf(): break
+            if node.is_leaf():
+                break
             # Greedily select next move.
             action, node = node.select(self._c_puct)
             # 현재 state 객체는 _playout 함수 실행하기 전에 deepcopy를 해놓은 state
             # 따라서 전달받은 state 상황에서 do_move를 리프노드가 나올 때 까지 쭉 수행해보는 것
             # 다 이동 하면 현재 while 문이 종료되고, policy에 의해 판별
-            state.do_move(action)
+            state.do_move(action)  # 리프노드가 나올 때 까지 move
 
         # Evaluate the leaf using a network which outputs a list of
         # (action, probability) tuples p and also a score v in [-1, 1]
@@ -168,7 +169,6 @@ class MCTS(object):
             state_copy = copy.deepcopy(state)
             # state를 완전히 복사해서 play
             self._playout(state_copy)
-
 
         act_visits = [(act, node._n_visits) for act, node in self._root._children.items()]
         # print([(state.move_to_location(m),v) for m,v in act_visits])

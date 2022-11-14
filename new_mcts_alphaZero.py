@@ -92,7 +92,7 @@ class TreeNode(object):
             current.total_value -= 1  # Optimizing for performance using NumPy
             best_move = current.best_child()
             current = current.maybe_add_child(best_move,state.forbidden_moves, state.is_you_black())
-            state.do_move(best_move)  # 이거 while문 밖으로 나가야하나..?
+            state.do_move(best_move)  # 리프노드가 나올 때까지 move
         return current
 
     # def add_child(self, move, prior):  # move = action (아마 int)
@@ -101,11 +101,12 @@ class TreeNode(object):
     # maybe가 붙는 이유가, move(action)이 self._children 안에 없는 경우에만 적용되기 떄문인듯
     def maybe_add_child(self, move,forbidden_moves,is_you_black):
         if move not in self._children:
-            print("move는 action이므로 type이 int가 나와야함. 그리고 0~225사이값")
-            print(f'move type : {type(move)} / move값 : {move}')
-            if not (is_you_black and move in forbidden_moves):
+            # print("move는 action이므로 type이 int가 나와야함. 그리고 0~225사이값")
+            # print(f'move type : {type(move)} / move값 : {move}')
+            if is_you_black and move in forbidden_moves: # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
+                return self
+            else:
                 self._children[move] = TreeNode(move,parent=self,board_size=self.board_size)
-                # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
         return self._children[move]
 
     # def get_value(self, c_puct):
@@ -168,8 +169,8 @@ class DummyNode(object):
         self._parent = None
         self.child_total_value = collections.defaultdict(float)
         self.child_number_visits = collections.defaultdict(float)
-        print(f'type : 더미노드 child_total_value: {type(self.child_total_value)}')
-        print(f'type : 더미노드 child_number_visits: {type(self.child_number_visits)}')
+        # print(f'type : 더미노드 child_total_value: {type(self.child_total_value)}')
+        # print(f'type : 더미노드 child_number_visits: {type(self.child_number_visits)}')
 
 class MCTS(object):
     """An implementation of Monte Carlo Tree Search."""
@@ -245,11 +246,12 @@ class MCTS(object):
     #     # 여기에 backup??
 
     # num_reads = _n_playout??
-    def UCT_search(self, state, num_reads):
-        root = self._root
+    def UCT_search(self, state_b, num_reads):
         beforeTime = time()
         for _ in range(num_reads):
-            leaf = root.select_leaf(state)
+            state = copy.deepcopy(state_b)
+            root = self._root
+            leaf = root.select_leaf(state)  # leaf : 노드 객체
             # child_priors가 결국 (82,)가 되든 (81,)가 되든 해야됨
             child_priors, value_estimate = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
             end, winner = state.game_end()
@@ -262,8 +264,9 @@ class MCTS(object):
                     value_estimate = (1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
                 leaf.backup(value_estimate)
                 continue  # continue한다는건 한판 더 한다는 것
-            leaf.expand(child_priors)
-            leaf.backup(value_estimate)
+            else:  # 게임에서 못이긴 경우
+                leaf.expand(child_priors)
+                leaf.backup(value_estimate)
         currentTime = time()
         print(f'UCT-searchTime : {currentTime-beforeTime}')
         beforeTime = currentTime
@@ -276,18 +279,17 @@ class MCTS(object):
         # 학습할 때 자가대전 몇판 하냐랑은 다른 것
         # n_playout이 400이면, 400번 수행해서 나온 가중치들을 기준으로 확률 배열 리턴
 
-        self.UCT_search(copy.deepcopy(state), self._n_playout)
-
-        # for n in range(self._n_playout): 여기 제거
-        #     state_copy = copy.deepcopy(state)
-        #     # state를 완전히 복사해서 play
-        #     self._playout(state_copy)
-
-        act_visits = [(act, node.number_visits) for act, node in self._root._children.items()]
-        # print([(state.move_to_location(m),v) for m,v in act_visits])
-
+        self.UCT_search(state, self._n_playout)
         # acts = 위치번호 / visits = 방문횟수
-        acts, visits = zip(*act_visits)
+        acts = []
+        visits = []
+        for i in range(self.board_size*self.board_size):
+            if self._root.child_number_visits[i] != 0:
+                acts.append(i)
+                visits.append(self._root.child_number_visits[i])
+        # acts = self._root.child_number_visits[]
+        # visits = self._root.child_number_visits
+        # list로 바꿔야함!!
         act_probs = softmax(1.0 / temp * np.log(np.array(visits) + 1e-10))
 
         return acts, act_probs
@@ -335,7 +337,8 @@ class MCTSPlayerNew(object):
                 move = np.random.choice(acts, p=0.75 * probs + 0.25 * np.random.dirichlet(0.3 * np.ones(len(probs))))
                 time_update_with_move = time()
                 self.mcts.update_with_move(move)
-                if self.is_test_mode: print(f'update_with_move 하는데 소요된 시간 : {time() - time_update_with_move}')
+                if self.is_test_mode:
+                    print(f'update_with_move 하는데 소요된 시간 : {time() - time_update_with_move}')
             else:  # 플레이어와 대결하는 경우
                 # np.random.choice(튜플, int size, boolean replace, array probs) :
                 # 아래에서는 size 파라미터를 전달 안했기 때문에 한개만 고른다
@@ -344,13 +347,14 @@ class MCTSPlayerNew(object):
                 # 위에 probs를 할당 받을 때 이미 어디를 고를지는 이미 정해져있다
                 # 자가 대결의 경우, 플레이어 대결과는 다르게 np.random.choice()를 수행할 때 dirichlet 노이즈를 통해서 랜덤성을 부여한다
                 move = np.random.choice(acts, p=probs)  # link2210172129
+                print("ai가 고른 자리 : ",move)
+                # 점검
                 self.mcts.update_with_move(-1)
 
             if return_prob:
                 return move, move_probs
             else:
                 return move
-
         else:
             print("WARNING: the board_img is full")
 

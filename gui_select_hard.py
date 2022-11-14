@@ -8,6 +8,8 @@ import gui_main
 
 ctypes.windll.user32.SetProcessDPIAware()
 
+is_test = int(input("테스트 모드면 1을 입력해주세요. 아니면 0입력"))
+
 # pygame.init() will initialize all
 # imported module
 pygame.init()
@@ -53,7 +55,7 @@ def load_gui_main():
         screen.blit(img_main, (0, 0))
         screen.blit(text_loading, (200,150))
         pygame.display.flip()
-        gui = gui_main.Gui(ai_library='tensorflow', board_size=int(user_test_size), hard_gui=int(user_text_hard))
+        gui = gui_main.Gui(ai_library='tensorflow', board_size=int(user_test_size), hard_gui=int(user_text_hard),is_test=is_test)
         gui.run()
         gui.update_game_view('main')
         is_run = True
