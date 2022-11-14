@@ -92,7 +92,7 @@ class TreeNode(object):
             current.total_value -= 1  # Optimizing for performance using NumPy
             best_move = current.best_child()
             current = current.maybe_add_child(best_move,state.forbidden_moves, state.is_you_black())
-            state.do_move(current)  # 이거 while문 밖으로 나가야하나..?
+            state.do_move(best_move)  # 이거 while문 밖으로 나가야하나..?
         return current
 
     # def add_child(self, move, prior):  # move = action (아마 int)
