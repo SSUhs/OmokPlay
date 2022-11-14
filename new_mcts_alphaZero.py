@@ -291,7 +291,7 @@ class MCTS(object):
         for i in range(self.board_size*self.board_size):
             if not (i in cur_dict_key):  # 돌이 안놓인 위치의 경우 추가
                 acts_list.append(i)
-                visits_list.append(self._root.child_number_visits[i])
+                visits_list.append(int(self._root.child_number_visits[i]))
 
         acts = tuple(acts_list)
         visits = tuple(visits_list)
