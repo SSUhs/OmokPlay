@@ -140,12 +140,24 @@ class PolicyValueNetTensorflow():
         action and the score of the board state
         """
         # legal_positions = board.availables
+        # legal position : 놓을 수 "있는"포지션
         legal_positions = list(set(range(board.width*board.height)) - set(board.states.keys()))
         current_state = np.ascontiguousarray(board.current_state().reshape(
                 -1, 4, self.board_width, self.board_height))
         act_probs, value = self.policy_value(current_state)
-        act_probs = zip(legal_positions, act_probs[0][legal_positions])
+        lega_arr = act_probs[0][legal_positions]
+        act_probs = zip(legal_positions, lega_arr)  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
         return act_probs, value
+
+
+    def policy_value_fn_new(self,board):
+        legal_positions = list(set(range(board.width*board.height)) - set(board.states.keys()))
+        current_state = np.ascontiguousarray(board.current_state().reshape(
+                -1, 4, self.board_width, self.board_height))
+        act_probs, value = self.policy_value(current_state)
+        lega_arr = act_probs[0][legal_positions]
+        # act_probs = zip(legal_positions, lega_arr)  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
+        return act_probs, value, lega_arr
 
     def train_step(self, state_batch, mcts_probs, winner_batch, lr):
         """perform a training step"""

@@ -19,7 +19,7 @@ class TreeNode(object):
     u : visit-count-adjusted prior score
     """
 
-    def __init__(self, move, parent):
+    def __init__(self, move, parent,board_size):
         # self.game_state = game_state
         self.is_expanded = False
         self._parent = parent
@@ -29,12 +29,11 @@ class TreeNode(object):
         self._u = 0
         # self._P = prior_p
         self.move = move
-        self.child_priors = np.zeros(
-            [362], dtype=np.float32)
-        self.child_total_value = np.zeros(
-            [362], dtype=np.float32)
-        self.child_number_visits = np.zeros(
-            [362], dtype=np.float32)
+        self.board_size = board_size
+        np_size = (board_size*board_size)+1  # ex : 15*15면 226. 디폴트 바둑 형태의 경우 이 값에 362가 들어갔음
+        self.child_priors = np.zeros([np_size], dtype=np.float32)
+        self.child_total_value = np.zeros([np_size], dtype=np.float32)
+        self.child_number_visits = np.zeros([np_size], dtype=np.float32)
 
     def expand(self, child_priors, forbidden_moves, is_you_black):
         """Expand tree by creating new children.
@@ -100,7 +99,7 @@ class TreeNode(object):
     def maybe_add_child(self, move,forbidden_moves,is_you_black):
         if move not in self._children:
             if is_you_black and move in forbidden_moves:
-                self._children[move] = TreeNode(move,parent=self)
+                self._children[move] = TreeNode(move,parent=self,board_size=self.board_size)
                 # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
         return self._children[move]
 
@@ -180,7 +179,7 @@ class MCTS(object):
             relying on the prior more.
         """
         self.board_size = board_size
-        self._root = TreeNode(None, DummyNode())
+        self._root = TreeNode(None, DummyNode(),board_size)
         self._policy = policy_value_fn
         self._c_puct = c_puct
         self._n_playout = n_playout
@@ -219,7 +218,7 @@ class MCTS(object):
 
         # 아래 _policy 한번 수행하면 신경망 한번 통과하는 것
         # 근데 통과 했는데 게임 종료 상황(누구 한명이 이기거나 비긴 상황)이 아니면 expand를 수행한다
-        action_probs, leaf_value = self._policy(
+        action_probs, leaf_value, legal_arr = self._policy(
             state)  # child_priors, value_estimate = NeuralNet.evaluate(leaf.game_state)  # 정책에 따라 행동들의 확률 배열 리턴
         # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
         end, winner = state.game_end()
@@ -289,7 +288,7 @@ class MCTS(object):
             self._root = self._root._children[last_move]  # 돌을 둔 위치가 root노드가 됨
             self._root._parent = None
         else:
-            self._root = TreeNode(None, DummyNode())
+            self._root = TreeNode(None, DummyNode(),self.board_size)
 
     def __str__(self):
         return "MCTS"

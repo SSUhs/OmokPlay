@@ -130,7 +130,7 @@ class TrainPipeline():
 
         # 훈련할 떄 사용할 플레이어 생성
         if is_new_MCTS:  # 테스트용 MCTS
-            self.mcts_player = MCTSPlayerNew(self.policy_value_net.policy_value_fn, board_size=board_width,
+            self.mcts_player = MCTSPlayerNew(self.policy_value_net.policy_value_fn_new, board_size=board_width,
                                              c_puct=self.c_puct,
                                              n_playout=self.n_playout, is_selfplay=1, is_test_mode=is_test_mode)
         else:
@@ -285,6 +285,7 @@ if __name__ == '__main__':
         quit()
 
     init_num = int(param_list[2])
+    train_environment = 1  # 훈련 환경은 COLAB으로만
 
     if len(param_list) >= 4:
         if param_list[3] == 'test':
@@ -298,6 +299,11 @@ if __name__ == '__main__':
         else:
             is_new_MCTS = False
 
+    if len(param_list) >= 5:
+        if param_list[5] == 'local':
+            train_environment = 2  # 혹시 local로 테스트 할 경우
+
+
     else:
         is_test_mode = False
         is_new_MCTS = False
@@ -306,27 +312,14 @@ if __name__ == '__main__':
     train_path_theano = f"./save/train_{size}"
     model_path_theano = f"./save/model_{size}"
 
-    # print("실행 환경을 입력해주세요\n1: Colab\n2: Local\n")
-    # train_environment = int(input())
-    # if not (train_environment == 1 or train_environment == 2):
-    #     print("존재하지 않는 환경입니다")
-    #     quit()
-
-    # print("학습에 이용할 라이브러리를 선택해주세요 : \'keras\' 또는 \'tensorflow\' 또는 \'tfkeras\' 또는 \'theano\'\n")
-    # ai_lib = input()
-
-    # print("기존에 학습된 모델을 불러와서 이어서 학습할려면, 해당 횟수를 입력해주세요 (처음 부터 학습할려면 0 입력)")
-    # print("예시 : policy_9_2500.model 파일을 불러오고 싶다면 \"2500\"을 입력  (2500회 학습한 파일)\n")
-
     if is_new_MCTS:
-        if ai_lib != 'tensorflow':
+        if not (ai_lib == 'tensorflow' or ai_lib == 'theano'):
             print("new MCTS는 현재 tensorflow 1.0에서만 사용가능")
             quit()
         print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
         print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
         print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
 
-    train_environment = 1  # 훈련 환경은 COLAB으로만
     if ai_lib == 'theano':
         if train_environment == 1:  # colab + google drive
             if init_num == 0 or init_num == None:
