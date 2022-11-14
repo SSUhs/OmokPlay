@@ -117,7 +117,6 @@ class TrainPipeline():
                                                                   compile_env='colab',
                                                                   model_file=model_file, keras_init_num=start_num,
                                                                   keras_lr_data=keras_lr_data)
-            is_test_mode = True  # Keras는 테스트 값 출력하도록 설정
         elif ai_lib == 'keras':  # keras
             self.train_num = start_num
             from policy_value_net_keras import PolicyValueNetKeras
@@ -292,8 +291,8 @@ if __name__ == '__main__':
             is_test_mode = True
             is_new_MCTS = False
         else:
-            print("형식이 잘못되었습니다")
-            quit()
+            is_test_mode = False
+            is_new_MCTS = False
     else:
         is_test_mode = False
         is_new_MCTS = False
