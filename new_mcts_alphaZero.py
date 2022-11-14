@@ -88,6 +88,7 @@ class TreeNode(object):
         current = self
         # print(f'select_leaf type : {type(current)}')
         while current.is_expanded:
+            print("노드 타입 : ",type(current))
             current.number_visits += 1  # Optimizing for performance using NumPy
             current.total_value -= 1  # Optimizing for performance using NumPy
             best_move = current.best_child()
@@ -127,7 +128,7 @@ class TreeNode(object):
         return self._parent is None
 
     @property
-    def number_visits(self):
+    def number_visits(self):  # 주의!! DummyNode가 이 함수를 실행시 오류 발생 (DummyNode는 Parent가 없기 때문)
         return self._parent.child_number_visits[self.move]
 
     @number_visits.setter
