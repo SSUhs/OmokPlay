@@ -161,7 +161,7 @@ class PolicyValueNetTensorflow():
         return act_probs, value
 
 
-    def policy_value_fn_new(self,board):
+    def policy_value_fn_new(self,board):  # 신규 MCTS용
         legal_flat_arr = np.zeros(board.width*board.height)
         set_current_keys = set(board.states.keys())
         current_state = np.ascontiguousarray(board.current_state().reshape(

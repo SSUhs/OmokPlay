@@ -24,12 +24,13 @@ list_batch_size = []  # 22.11.08 오전 1시 새로 추가
 class TrainPipeline():
     def __init__(self, board_width, board_height, train_environment, ai_lib, model_file=None,
                  start_num=0, tf_lr_data=None, keras_lr_data=None, is_test_mode=False,
-                 is_new_MCTS=False):  # model_file : 텐서플로우 모델 파일
+                 is_new_MCTS=False,is_trainset_mode=False):  # model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
         self.tf_lr_data = tf_lr_data
         self.is_test_mode = is_test_mode
         self.model_file = model_file
+        self.is_trainset_mode = is_trainset_mode
 
         # 학습 라이브러리
         self.ai_lib = ai_lib  # tensorflow 또는 theano
@@ -48,7 +49,7 @@ class TrainPipeline():
         self.n_playout = 400  # num of simulations for each move
         self.c_puct = 5
         self.buffer_size = 10000
-        self.data_buffer = deque(maxlen=self.buffer_size)
+        self.data_buffer = deque(maxlen=self.buffer_size)  # 결과 데이터가 들어가는 버퍼
         self.batch_size = 512  # mini-batch size : 버퍼 안의 데이터 중 512개를 추출 #
         self.play_batch_size = 1
         self.epochs = 5  # num of train_steps for each update
@@ -194,7 +195,39 @@ class TrainPipeline():
 
         return loss
 
+
+    def run_train_set(self,train_set_length,data_x,data_y):
+        print(f'\n\n{self.board_width}x{self.board_width} 사이즈는 구글 드라이브 자동 백업이 {self.check_freq}마다 수행됩니다')
+        print("[progress] ", end='', flush=True)
+        # Loop all batches for training
+        avg_cost = 0
+        BATCH_SIZE = self.batch_size  # 미니 배치 수
+
+        # for start in range(0,train_set_length,BATCH_SIZE):
+        #     winner_batch = np.reshape(winner_batch, (-1, 1)) 여기 수정
+        #     loss,  _ = self.session.run(
+        #             [self.loss, self.optimizer],
+        #             feed_dict={self.input_states: data_x,
+        #                        self.mcts_probs: mcts_probs,
+        #                        self.labels: winner_batch,
+        #                        self.learning_rate: lr})
+        #
+        # ------ 아래 참고 ------
+        # for start in range(0, train_set_length, BATCH_SIZE):
+        #     end = min(start + BATCH_SIZE, train_set_length)
+        #     batch_x = data_x[start:end]
+        #     batch_y = data_y[start:end]
+        #     sess.run(train,
+        #              feed_dict={X: batch_x, Y: batch_y, dropout_rate: 0.5})
+        #     avg_cost += sess.run(cost, feed_dict=data) * len(batch_x) / train_data_len
+        #
+        # print("", end='\r', flush=True)
+
+
     def run(self):
+        if self.is_trainset_mode:
+            print("train set 훈련은 run_train_set() 으로 실행해주세요")
+            quit()
         print(f'\n\n{self.board_width}x{self.board_width} 사이즈는 구글 드라이브 자동 백업이 {self.check_freq}마다 수행됩니다')
 
         before_time = time()

@@ -95,8 +95,7 @@ class PolicyValueNetKeras():
             state_input_union = np.array(state_input)
             mcts_probs_union = np.array(mcts_probs)
             winner_union = np.array(winner)
-            loss = self.model.evaluate(state_input_union, [mcts_probs_union, winner_union], batch_size=len(state_input),
-                                       verbose=0)
+            loss = self.model.evaluate(state_input_union, [mcts_probs_union, winner_union], batch_size=len(state_input),verbose=0)
             action_probs, _ = self.model.predict_on_batch(state_input_union)
             entropy = self_entropy(action_probs)
             K.set_value(self.model.optimizer.lr, learning_rate)

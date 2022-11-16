@@ -100,6 +100,7 @@ class PolicyValueNetTensorflowKeras():
             net_params = pickle.load(open(model_file, 'rb'))
             self.model.set_weights(net_params)
 
+
     def create_policy_value_net(self):
         """create the policy value network """
 
@@ -136,7 +137,6 @@ class PolicyValueNetTensorflowKeras():
             state_input_union = np.array(state_input)
             results = self.model.predict_on_batch(state_input_union)
             return results
-
         self.policy_value = policy_value
 
     def policy_value_fn(self, board):
