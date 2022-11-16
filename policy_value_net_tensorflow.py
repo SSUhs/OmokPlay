@@ -133,6 +133,8 @@ class PolicyValueNetTensorflow():
         act_probs = np.exp(log_act_probs)
         return act_probs, value
 
+    # mcts_alphaZero에서 호출 되는 함수
+    # 수 한번 놓을 때마다 한번 호출? (현재 상태에서 session.run()을 실행해서 child_priors를 받아옴)
     def policy_value_fn(self, board):
         """
         input: board

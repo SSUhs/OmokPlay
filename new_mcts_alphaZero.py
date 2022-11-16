@@ -164,7 +164,6 @@ class TreeNode(object):
             current = current._parent
 
 
-
 class DummyNode(object):
     def __init__(self):
         self._parent = None
@@ -269,9 +268,10 @@ class MCTS(object):
             else:  # 게임에서 못이긴 경우
                 leaf.expand(child_priors)
                 leaf.backup(value_estimate)
-        currentTime = time()
-        print(f'UCT-searchTime : {currentTime-beforeTime}')
-        beforeTime = currentTime
+        if self.is_test_mode:
+            currentTime = time()
+            print(f'UCT-searchTime : {currentTime-beforeTime}')
+            beforeTime = currentTime
 
     # 여기서 state는 game.py의 board 객체
     def get_move_probs(self, state, temp=1e-3):

@@ -333,6 +333,7 @@ class Game(object):
 
 
     # 이 함수는 "1판" 자가 대전 시간이다
+    # 따라서, playout이 400이면 이 함수는 400번 호출됨
     def start_self_play(self, player, is_shown=0, temp=1e-3,is_test_mode=False):
         """ 스스로 자가 대국하여 학습 데이터(state, mcts_probs, z) 생성 """
         """ 이 함수는 "1판" 자가 대전 """
