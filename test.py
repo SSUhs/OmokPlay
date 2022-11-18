@@ -2,5 +2,8 @@ import re
 import numpy as np
 
 
-a,b = np.random.random([362]), np.random.random()
-print(a,b)
+a = np.zeros([15,15])
+b = np.zeros([15,15])
+c = [a,b]
+a.transpose()
+print(c)
