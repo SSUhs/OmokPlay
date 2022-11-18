@@ -88,5 +88,8 @@ def start_train_dataset():
     # training_pipeline.run_train_set(train_data_len,data_x,data_y)
 
 
+if __name__ == '__main__':
+    print("데이터셋 로딩 테스트")
+
 
 

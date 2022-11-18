@@ -9,13 +9,13 @@ from random import randint
 import keras.backend as K
 
 
-def reshape_to_15_15_1(data):
+def reshape_to_15_15_1_Keras(data):
     return K.reshape(data,[-1,15,15,1])
 
 
 def get_model():
     model = Sequential()
-    model.add(Conv2D(96, (3, 3), activation='relu', padding='same', input_shape=(15, 15, 2)))
+    model.add(Conv2D(96, (3, 3), activation='relu', padding='same', input_shape=(15, 15, 1)))
     model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
     model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
     model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
