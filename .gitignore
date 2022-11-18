@@ -1,5 +1,4 @@
 .ipynb_checkpoints/
 __pycache__/
 save/
-convert_data/renju_state.py
-convert_data/convert_renju_net.py
+convert_data/
