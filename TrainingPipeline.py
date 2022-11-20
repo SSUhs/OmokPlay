@@ -24,13 +24,13 @@ list_batch_size = []  # 22.11.08 오전 1시 새로 추가
 class TrainPipeline():
     def __init__(self, board_width, board_height, train_environment, ai_lib, model_file=None,
                  start_num=0, tf_lr_data=None, keras_lr_data=None, is_test_mode=False,
-                 is_new_MCTS=False,is_trainset_mode=False):  # model_file : 텐서플로우 모델 파일
+                 is_new_MCTS=False,is_train_set_mode=False):  # model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
         self.tf_lr_data = tf_lr_data
         self.is_test_mode = is_test_mode
         self.model_file = model_file
-        self.is_trainset_mode = is_trainset_mode
+        self.is_train_set_mode = is_train_set_mode
 
         # 학습 라이브러리
         self.ai_lib = ai_lib  # tensorflow 또는 theano
@@ -38,7 +38,7 @@ class TrainPipeline():
         # 게임(오목)에 대한 변수들
         self.board_width, self.board_height = board_width, board_height
         self.n_in_row = 5
-        self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row)
+        self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row,is_train_set_mode=is_train_set_mode)
         self.game = Game(self.board, is_gui_mode=False)
 
         # 학습에 대한 변수들
@@ -225,7 +225,7 @@ class TrainPipeline():
 
 
     def run(self):
-        if self.is_trainset_mode:
+        if self.is_train_set_mode:
             print("train set 훈련은 run_train_set() 으로 실행해주세요")
             quit()
         print(f'\n\n{self.board_width}x{self.board_width} 사이즈는 구글 드라이브 자동 백업이 {self.check_freq}마다 수행됩니다')

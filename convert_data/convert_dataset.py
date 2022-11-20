@@ -2,6 +2,7 @@
 # https://gomocup.org/results/ 데이터 셋 변경용
 
 import copy
+import math
 import csv
 from datetime import time, datetime
 
@@ -22,6 +23,7 @@ def convert(folder_name):
     output_csv_name_b = f'csv_data/black/output_{current_time}_b.csv'
     output_csv_name_w = f'csv_data/white/output_{current_time}_w.csv'
 
+    print("파일을 읽는 중입니다..")
     file_list = []
     for (root, directories, files) in os.walk(read_folder):
         # for d in directories:
@@ -41,50 +43,53 @@ def convert(folder_name):
     w_states_list = []
     b_labels_list = []
     w_labels_list = []
-    all_states = np.zeros([15, 15])
 
     count_not_dataset_file = 0  # 확장자가 dataset 파일이 아닌 경우 (rec, psq 파일이 아닌 경우)
     count_not_1515 = 0  # 15x15가 아니거나 시작 좌표가 0인 경우
     file_list_len = len(file_list)
+    print_count = int(file_list_len / 100)  # 1%마다 출력
+    next_print_count = print_count
 
-    for count in range(len(file_list)):
+    print(f"변환 할 전체 파일 수 : {file_list_len}")
+
+    list_one_game = []  # 하나의 게임 리스트
+    for count in range(len(file_list)):  # 파일 하나당 하나의 반복
         data_file_name = file_list[count]
         if not (data_file_name.endswith('.REC') or data_file_name.endswith('.rec') or data_file_name.endswith('.psq')):
-            print(f'{data_file_name} 파일은 rec, psq 파일이 아닙니다')
+            # print(f'{data_file_name} 파일은 rec, psq 파일이 아닙니다')
             count_not_dataset_file += 1
             continue
 
         f = open(data_file_name, 'r')
-        list_all = []  # 좌표 말고도 일단 다른 정보도 포함시킨 list
         list = []  # 실제 좌표가 포함된 라인
+        skip_this = False
         while True:
             line = f.readline()
             if not line: break
-            list_all.append(line)
-
-        skip_this = False
-        for i in range(len(list_all)):  # 혹시 15가 넘어가는 파일이 있으면 스킵
-            split = list_all[i].split(",")
-            if not (2 <= len(split) <= 3):  #  n,n,n 형태 또는 n,n형태가 아니면 스킵
+            if not ',' in line: # 쉼표가 없는 경우
+                continue
+            split = line.split(",")
+            if not (2 <= len(split) <= 3):  # n,n,n 형태 또는 n,n형태가 아니면 스킵
                 continue
             try:
                 x = int(split[0])
                 y = int(split[1])
                 # 혹시 판의 크기가 15를 넘어가는 경우에는 아예 사용하지 않는 파일
                 if x > 15 or y > 15 or x == 0 or y == 0:
-                    print(f'{data_file_name} 파일의 판 크기에서 발견된 데이터 : ({x},{y}) (0으로 시작하거나 15를 넘는 데이터)')
+                    # print(f'{data_file_name} 파일의 판 크기에서 발견된 데이터 : ({x},{y}) (0으로 시작하거나 15를 넘는 데이터)')
                     count_not_1515 += 1
                     skip_this = True
                     break
                 else:  # 정상적인 좌표 데이터인 경우
-                    list.append(list_all[i])
+                    list.append(line)
             except:  # split이 안된다면 continue
                 continue
 
         if skip_this:
             continue
-
-        for i in range(len(list)):
+        
+        all_states = np.zeros([15, 15])  # 하나의 파일이 끝나면 판 초기화
+        for i in range(len(list)):  # 이건 "한번의 게임"에 들어 있는 좌표 데이터 line
             split = list[i].split(",")
             x = int(split[0])
             y = int(split[1])
@@ -110,19 +115,28 @@ def convert(folder_name):
             print("크기가 같지 않습니다")
             quit()
 
+        if count >= next_print_count:
+            next_print_count += print_count
+            percent = round((count / file_list_len) * 100)
+            print(f"변환 진행률 : {percent}%")
+
+
+    # 리스트에 다 넣은 경우
     f_csv_writer_b = csv.writer(f_csv_b)
     f_csv_writer_w = csv.writer(f_csv_w)
+    print("흑 파일 작성 시작..")
     for i in range(len(b_states_list)):
-        output = np.insert(b_states_list[i], 0, int(b_labels_list[i]))
+        output = np.insert(b_states_list[i], 0, int(b_labels_list[i]))  # 맨 앞에 레이블 붙여서 작성
         f_csv_writer_b.writerow(output)
 
+    print("백 파일 작성 시작")
     for i in range(len(w_states_list)):
-        output = np.insert(w_states_list[i], 0, int(w_labels_list[i]))
+        output = np.insert(w_states_list[i], 0, int(w_labels_list[i]))  # 맨 앞에 레이블 붙여서 작성
         f_csv_writer_w.writerow(output)
 
     print("\n---------------변환 성공---------------\n")
     print(f"전체 파일 수 : {file_list_len}")
-    print(f'스킵한 전체 파일 수 : {count_not_dataset_file+count_not_1515}')
+    print(f'스킵한 전체 파일 수 : {count_not_dataset_file + count_not_1515}')
     print(f"데이터셋 확장자가 아닌 파일 수 : {count_not_dataset_file}")
     print(f"다른 형식 데이터셋 파일 :  {count_not_1515}")
     print(f"흑 전체 상태 수 :  {len(b_states_list)}")

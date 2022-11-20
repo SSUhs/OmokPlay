@@ -47,18 +47,31 @@ def reshape_to_15_15_1(data):
     return K.reshape(data,[-1,15,15,1])
 
 
-def get_model():
-    model = Sequential()
-    model.add(Conv2D(96, (3, 3), activation='relu', padding='same', input_shape=(15, 15, 1)))
-    model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
-    model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
-    model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
-    model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
-    model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
-    model.add(Conv2D(1, (1, 1), activation='relu', padding='same'))
-    model.add(Flatten())
-    model.add(Dense(225, activation='softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
+def get_model(model_type):
+    model = None
+    if model_type == 0:
+        model = Sequential()
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same', input_shape=(15, 15, 1)))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(1, (1, 1), activation='relu', padding='same'))
+        model.add(Flatten())
+        model.add(Dense(225, activation='softmax'))
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
+    elif model_type == 1:
+        model = Sequential()
+        model.add(Conv2D(64, 7, activation='relu', padding='same', input_shape=(15, 15, 1)))
+        model.add(Conv2D(128, 7, activation='relu', padding='same'))
+        model.add(Conv2D(256, 7, activation='relu', padding='same'))
+        model.add(Conv2D(128, 7, activation='relu', padding='same'))
+        model.add(Conv2D(64, 7, activation='relu', padding='same'))
+        model.add(Conv2D(1, 1, activation='relu', padding='same'))
+        model.add(Flatten())
+        model.add(Dense(225, activation='softmax'))
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
     return model
     # model.save('policy_black.h5')
     # model.save('policy_white.h5')
@@ -70,10 +83,17 @@ def make_model(csv_name,one_hot_encoding):
     data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=one_hot_encoding)
     print("데이터 로딩 성공")
     data_x = reshape_to_15_15_1(data_x)
-    model = get_model()
+    while True:
+        model_type = int(input("모델 타입 선택 : "))
+        model = get_model(model_type)
+        if model is None:
+            print("존재하지 않는 모델입니다\n")
+            continue
+        else:
+            break
     model.summary()
     model.fit(data_x,data_y,batch_size=5120, epochs=10, shuffle=True, validation_split=0.1)
-    model.save(f'saved_model_{csv_name}.h5')
+    model.save(f'{csv_name}.h5')
     print("모델 생성이 완료되었습니다")
 
 def test_model(model_file_name,csv_file_name,one_hot_encoding):

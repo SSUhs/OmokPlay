@@ -9,6 +9,7 @@ import gui_main
 ctypes.windll.user32.SetProcessDPIAware()
 
 is_test = int(input("테스트 모드면 1을 입력해주세요. 아니면 0입력"))
+is_train_set_mode = int(input("인간 데이터로 학습한 모델을 사용할려면 1, 아니면 0"))
 
 # pygame.init() will initialize all
 # imported module
@@ -55,7 +56,7 @@ def load_gui_main():
         screen.blit(img_main, (0, 0))
         screen.blit(text_loading, (200,150))
         pygame.display.flip()
-        gui = gui_main.Gui(ai_library='tensorflow', board_size=int(user_test_size), hard_gui=int(user_text_hard),is_test=is_test)
+        gui = gui_main.Gui(ai_library='tensorflow', board_size=int(user_test_size), hard_gui=int(user_text_hard),is_test=is_test,is_train_set_mode=is_train_set_mode)
         gui.run()
         gui.update_game_view('main')
         is_run = True

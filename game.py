@@ -15,6 +15,7 @@ class Board(object):
         self.height = int(kwargs.get('height', 15))
         self.n_in_row = int(kwargs.get('n_in_row', 5))
         self.players = [1, 2]  # player1 and player2
+        self.is_train_set_mode = kwargs.get('is_train_set_mode')  # 훈련 데이터 셋을 이용해 학습된 모델로 플레이 하는 경우
 
     def init_board(self, start_player=0):
         self.order = start_player  # order = 0 → 사람 선공(흑돌) / 1 → AI 선공(흑돌)
@@ -48,6 +49,10 @@ class Board(object):
             for j in range(15) :
                 if self.states_loc[i][j] != 0 : self.states[i*15+j] = self.states_loc[i][j]
         """
+
+    # numpy 형태로 판을 받는다
+    def get_states_by_numpy(self):
+        return np.array(self.states_loc)
 
     def move_to_location(self, move):
         """ 3*3 보드를 예로 들면 : move 5 는 좌표 (1,2)를 의미한다."""  # ex) 0 1 2
@@ -236,6 +241,24 @@ class Game(object):
         self.is_initiated_play = True
         print("init play() 수행")
 
+
+    def get_move(self,player_in_turn,is_gui,is_computer,row=-1,col=-1):
+        if (not is_gui and not is_computer):
+           move = player_in_turn.get_action_console(self.board)
+        elif (not is_gui) and (is_computer):
+           move = player_in_turn.get_action(self.board)  # AI일 떄는 player_in_turn 인스턴스의 소속 클래스가 MCTSPlayer가 된다
+        elif is_gui and is_computer and (not self.board.is_train_set_mode):
+            move = player_in_turn.get_action(self.board)
+        # GUI + 훈련 셋
+        elif is_gui and is_computer and self.board.is_train_set_mode:
+            move = player_in_turn.get_action(self.board)
+        elif is_gui and (not is_computer):
+            move = player_in_turn.get_action_gui(self.board, row, col)
+        else:
+            print("현재 지원되지 않는 경우")
+            quit()
+        return move
+
     # console 모드의 경우 row, col을 -1을 대입하면 됨
     # 또한 do_next를 실행하는 차례가 컴퓨터일 경우에도 row,col 사용 X
     def do_next(self, row, col):
@@ -250,19 +273,18 @@ class Game(object):
 
         current_player = self.board.get_current_player() # 1은 사람, 2는 컴퓨터
         player_in_turn = self.players[current_player]
-
         move = None
 
         if not self.is_gui_mode: # 콘솔 모드
             if current_player == 1:
-                move = player_in_turn.get_action_console(self.board)
+                move = self.get_move(player_in_turn,is_gui_mode=False,is_computer=False)
             else:
-                move = player_in_turn.get_action(self.board) # AI일 떄는 player_in_turn 인스턴스의 소속 클래스가 MCTSPlayer가 된다
+                move = self.get_move(player_in_turn,is_gui_mode=False,is_computer=True)
         else: # GUI 모드
             if current_player == 2:  # 컴퓨터
-                move = player_in_turn.get_action(self.board)
+                move = self.get_move(player_in_turn,is_gui=True,is_computer=True)
             else:  # 사람
-                move = player_in_turn.get_action_gui(self.board, row, col)
+                move = self.get_move(player_in_turn,is_gui=True,is_computer=False,row=row,col=col)
                 if move == error_const.CONST_WRONG_POSITION or move == error_const.CONST_BANNED_POSITION or move == error_const.CONST_UNKNOWN:
                     return move  # 잘못된 경우이므로 종료
 
@@ -300,36 +322,7 @@ class Game(object):
         else:
             return error_const.CONST_SUCCESS  # 다시 반복
 
-    # def start_play_before(self, gui_board, player1, player2, is_shown=1):  # 구버전
-    #     # self.board.init_board(start_player)
-    #     p1, p2 = self.board.players
-    #     player1.set_player_ind(p1)
-    #     player2.set_player_ind(p2)
-    #     players = {p1: player1, p2: player2}
-    #     while True:
-    #         # 흑돌일 때, 금수 위치 확인하기
-    #         if self.board.is_you_black() : self.board.set_forbidden()
-    #         if is_shown:
-    #             self.graphic_console(self.board, player1.player, player2.player)
-    #             self.graphic_gui(gui_board, self.board, player1.player, player2.player)
-    #
-    #         current_player = self.board.get_current_player()
-    #         player_in_turn = players[current_player]
-    #
-    #         if current_player == 1 : # 사람일 때
-    #             move = player_in_turn.get_action(self.board)
-    #         else : # AI일 때
-    #             move = player_in_turn.get_action(self.board)
-    #
-    #         self.board.do_move(move)
-    #         end, winner = self.board.game_end()
-    #         if end:
-    #             if is_shown:
-    #                 self.graphic_console(self.board, player1.player, player2.player)
-    #                 self.graphic_gui(gui_board,self.board, player1.player, player2.player)
-    #                 if winner != -1 : print("Game end. Winner is", players[winner])
-    #                 else : print("Game end. Tie")
-    #             return winner
+
 
 
     # 이 함수는 "1판" 자가 대전 시간이다

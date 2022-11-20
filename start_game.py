@@ -64,7 +64,7 @@ def run():
             print("현재 콘솔 모드 플레이는 theano 라이브러리로 학습된 모델만 사용 가능합니다")
             quit()
         gui_board = None
-        board_arr = Board(width=width_console, height=height_console, n_in_row=num_console)
+        board_arr = Board(width=width_console, height=height_console, n_in_row=num_console,is_train_set_mode=False)
         game = Game(board_arr, is_gui_mode=is_gui_mode)
 
         print("자신이 선공(흑)인 경우에 0, 후공(백)인 경우에 1을 입력하세요.")
