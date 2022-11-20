@@ -64,7 +64,7 @@ def get_model():
     # model.save('policy_white.h5')
 
 
-def make_model(csv_name):
+def make_model(csv_name,one_hot_encoding):
     print("모델 생성 테스트")
     csv_name = '/content/drive/MyDrive/'+csv_name
     data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=one_hot_encoding)
