@@ -10,7 +10,7 @@ from convert_data.renju_state import State
 
 TRAIN_SIZE = 1000
 TRAIN_COUNT = 1
-TEST_SIZE = 2000
+TEST_SIZE = 2000 여기 수정하기
 
 f = codecs.open("renjunet_test.rif", encoding='mac_roman')
 
