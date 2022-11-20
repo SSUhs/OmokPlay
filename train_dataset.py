@@ -22,7 +22,7 @@ def get_dataset(csv_file_name, is_one_hot_encoding):
         count_read = 0
         for row in reader:
             data_x.append(row[1:])
-            labels.append(int(row[0]))  # float은 int타입으로
+            labels.append(int(float(row[0])))  # float은 int타입으로
             count_read += 1
             if count_read % 2000 == 0:
                 print("현재까지 읽은 row 수 :",count_read)
