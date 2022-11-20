@@ -67,7 +67,7 @@ def get_model():
 def make_model(csv_name):
     print("모델 생성 테스트")
     csv_name = '/content/drive/MyDrive/'+csv_name
-    data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=True)
+    data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=one_hot_encoding)
     print("데이터 로딩 성공")
     data_x = reshape_to_15_15_1(data_x)
     model = get_model()
@@ -76,14 +76,14 @@ def make_model(csv_name):
     model.save(f'saved_model_{csv_name}.h5')
     print("모델 생성이 완료되었습니다")
 
-def test_model(model_file_name,csv_file_name):
+def test_model(model_file_name,csv_file_name,one_hot_encoding):
   print("\n-----------------실제 테스트-----------------\n")
   csv_file_name = '/content/drive/MyDrive/' + csv_file_name
   model_file_name = '/content/drive/MyDrive/' + model_file_name
   model = load_model(model_file_name)
 
   print("데이터 로딩을 시작합니다")
-  data_x,data_y = get_dataset(csv_file_name,is_one_hot_encoding=True)
+  data_x,data_y = get_dataset(csv_file_name,is_one_hot_encoding=one_hot_encoding)
   print("데이터 로딩 성공")
   print("데이터 수 :",len(data_x))
   data_x = reshape_to_15_15_1(data_x)
@@ -95,13 +95,18 @@ def test_model(model_file_name,csv_file_name):
 
 if __name__ == '__main__':
     to_do = int(input('생성은 0, 테스트는 1'))
+    one_hot_encoding = int(input("one hotencoding True == 0 ? False == 1"))
+    if one_hot_encoding == 0:
+        one_hot_encoding = True
+    else:
+        one_hot_encoding = False
     if to_do == 0:
       csv_name = input("학습할 csv 파일 : ")
-      make_model(csv_name)
+      make_model(csv_name,one_hot_encoding)
     elif to_do == 1:
       csv_name = input("테스트 할 csv 파일 : ")
       model_file_name = input("모델 파일 : ")
-      test_model(model_file_name,csv_name)
+      test_model(model_file_name,csv_name,one_hot_encoding)
     else:
       print("없는 경우")
 
