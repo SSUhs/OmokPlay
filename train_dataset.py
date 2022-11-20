@@ -19,11 +19,13 @@ def get_dataset(csv_file_name, is_one_hot_encoding):
     with open(csv_file_name, 'r') as f:
         next(f, None)
         reader = csv.reader(f)
+        count_read = 0
         for row in reader:
             data_x.append(row[1:])
             labels.append(row[0])
-            if row % 2000 == 0:
-                print("현재까지 읽은 row :",row)
+            count_read += 1
+            if count_read % 2000 == 0:
+                print("현재까지 읽은 row 수 :",count_read)
 
     # train_x = [int(x) for x in row for row in train_x]
     # labels = [int(x) for x in labels]
