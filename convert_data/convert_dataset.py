@@ -1,4 +1,6 @@
 # csv 형태로 변경
+# https://gomocup.org/results/ 데이터 셋 변경용
+
 import copy
 import csv
 
@@ -13,8 +15,8 @@ def convert_to_label(x,y):
 
 def convert(folder_name, skip_count):
     read_folder = folder_name
-    output_csv_name_b = f'csv_data/output_{folder_name}_b.csv'
-    output_csv_name_w = f'csv_data/output_{folder_name}_w.csv'
+    output_csv_name_b = f'csv_data/black/output_{folder_name}_b.csv'
+    output_csv_name_w = f'csv_data/white/output_{folder_name}_w.csv'
 
     file_list = os.listdir(read_folder)
     if os.path.isfile(output_csv_name_b) or os.path.isfile(output_csv_name_w):
@@ -23,10 +25,6 @@ def convert(folder_name, skip_count):
     f_csv_b = open(output_csv_name_b, 'w', encoding='utf-8',newline='')
     f_csv_w = open(output_csv_name_w, 'w', encoding='utf-8',newline='')
 
-    for count in range(len(file_list)):
-        if not (file_list[count].endswith('.REC') or file_list[count].endswith('.rec') or file_list[count].endswith('.psq')):
-            print(f'잘못된 확장자 : {file_list[count]}')
-            quit()
 
     b_states_list = []
     w_states_list = []
@@ -36,6 +34,11 @@ def convert(folder_name, skip_count):
 
     for count in range(len(file_list)):
         data_file_name = file_list[count]
+        if not (data_file_name.endswith('.REC') or data_file_name.endswith('.rec') or data_file_name.endswith('.psq')):
+            print(f'{data_file_name} 파일은 rec, psq 파일이 아닙니다')
+            no_add_csv_count += 1
+            continue
+
         f = open(read_folder+ '/' + data_file_name, 'r')
         list = []
         skip_n = skip_count
@@ -62,8 +65,8 @@ def convert(folder_name, skip_count):
                 print("오류 발생 :",data_file_name)
                 quit()
 
-            if x > 15 or y > 15:  # 혹시 판의 크기가 15를 넘어가는 경우
-                print(f'{data_file_name} 파일의 판 크기가 15를 넘어갑니다')
+            if x > 15 or y > 15 or x== 0 or y ==0:  # 혹시 판의 크기가 15를 넘어가는 경우
+                print(f'{data_file_name} 파일의 판 크기에서 발견된 데이터 : ({x},{y}) (0으로 시작하거나 15를 넘는 데이터)')
                 no_add_csv_count += 1
                 skip_this = True
                 break

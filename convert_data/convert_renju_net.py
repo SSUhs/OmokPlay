@@ -3,11 +3,16 @@ import numpy as np
 import codecs
 from copy import deepcopy
 from random import randint
+
+from tensorflow.python.keras.utils.np_utils import to_categorical
+
+from convert_data.renju_state import State
+
 TRAIN_SIZE = 1000
 TRAIN_COUNT = 1
 TEST_SIZE = 2000
 
-f = codecs.open("데이터", encoding='mac_roman')
+f = codecs.open("renjunet_test.rif", encoding='mac_roman')
 
 def symmetry(i, r, c):
     if i == 0:
@@ -62,7 +67,9 @@ for data_num in range(TRAIN_COUNT):
             m_count += 1
 
             if s.check_turn() and b_count < TRAIN_SIZE:
-                b_state[b_count] = [deepcopy(s.black), deepcopy(s.white)]
+                copy_black = deepcopy(s.black)
+                copy_white = deepcopy(s.white)
+                b_state[b_count] = [copy_black, copy_white]  # [a,b] 형태에서 a가 list, b도 list이므로 이중 리스트
                 b_move[b_count] = 15 * r + c
                 b_count += 1
             elif not s.check_turn() and w_count < TRAIN_SIZE:
