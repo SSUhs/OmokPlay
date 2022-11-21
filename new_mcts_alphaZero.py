@@ -45,44 +45,6 @@ class TreeNode(object):
         self.child_priors = child_priors
         # print("expand 후 shpae : ",self.child_priors.shape)  # (1, 81)
 
-        # for action, prob in child_priors:  # enumerate 없이?
-        #     # 흑돌일 때 금수 위치는 확장노드에 집어 넣지 않음
-        #     if is_you_black and action in forbidden_moves: continue
-        #     if action not in self._children:
-        #         self.add_child(action, prior=prob)
-        #         # self._children[action] = TreeNode(self, prob)  # TreeNode() 에서 self는 parent node를 의미한다
-
-
-    # def select(self, c_puct):  # select_leaf??
-    #     # 자식 노드 중에서 가장 적절한 노드를 선택 한다 (action값)
-    #     """Select action among children that gives maximum action value Q plus bonus u(P).
-    #     Return: A tuple of (action, next_node)
-    #     """
-    #     return max(self._children.items(), key=lambda act_node: act_node[1].get_value(c_puct))
-
-    # def update(self, leaf_value):  # backUP?
-    #     """Update node values from leaf evaluation.
-    #     leaf_value: the value of subtree evaluation from the current player's perspective.
-    #     리프 노드까지 다 진행 후에 무승부가 나는 경우 leaf_value가 0이 되고, 패배하면 -1이 되고, 이기면 1이 된다
-    #     https://glbvis.blogspot.com/2021/05/ai_20.html
-    #     여기 중간 그림 보면 Terminal State에서 1/-1 나와 있다
-    #     (update_recursive()를 수행할 때 leaf_value에다가 양음 바꿔서 처리)
-    #     """
-    #     # 방문 횟수 체크 (평균 계산을 위해서 방문 노드 수 체크)
-    #     self.number_visits += 1
-    #     # Update Q, a running average of values for all visits.
-    #     self._Q += 1.0 * (leaf_value - self._Q) / self.number_visits
-
-    # 자식 노드부터 부모 노드까지 가치값 업데이트
-    # def update_recursive(self, leaf_value):
-    #     """Like a call to update(), but applied recursively for all ancestors."""
-    #     # If it is not root, this node's parent should be updated first.
-    #     # if 뒤에 객체가 오는 경우 : __bool__이 오버라이딩 되어 있지 않다면, None이면 false리턴
-    #     # 따라서 아래의 조건문을 만족 시키는 경우, 부모 노드가 존재하는 것이므로 부모 노드부터 업데이트 수행
-    #     # 아래 조건문이 false라면 부모 노드가 없는 노드이므로 root 노드
-    #     if self._parent:
-    #         self._parent.update_recursive(-leaf_value)
-    #     self.update(leaf_value)
 
     def select_leaf(self, state):
         current = self
@@ -110,14 +72,6 @@ class TreeNode(object):
                 self._children[move] = TreeNode(move,parent=self,board_size=self.board_size)
         return self._children[move]
 
-    # def get_value(self, c_puct):
-    #     """Calculate and return the value for this node.
-    #     It is a combination of leaf evaluations Q, and this node's prior adjusted for its visit count, u.
-    #     c_puct: a number in (0, inf) controlling the relative impact of value Q, and prior probability P, on this node's score.
-    #     """
-    #     self._u = (c_puct * self._P *
-    #                np.sqrt(self._parent.number_visits) / (1 + self.number_visits))
-    #     return self._Q + self._u
 
     def is_leaf(self):
         """Check if leaf node (i.e. no nodes below this have been expanded)."""
@@ -198,52 +152,6 @@ class MCTS(object):
         zero_board = np.zeros(self.board_size * self.board_size)
         return zero_board
 
-    # state : 현재 상태에서 deepcopy 된 state
-    # 이 함수는 사용자와의 대결에도 사용 된다
-    # 각 상태에서 끝까지 플레이 해본다
-    # 이 함수가 n_playout 만큼 돌아가는 것 (디폴트 : 400번)
-    # def _playout(self, state):
-    #     """Run a single playout from the root to the leaf, getting a value at
-    #     the leaf and propagating it back through its parents.
-    #     State is modified in-place, so a copy must be provided.
-    #     """
-    #     node = self._root
-    #     while (1):
-    #         # 리프 노드가 나올 때까지 계속 진행
-    #         # 확장은 여기서 안하고 아래 쪽에 node_expand 에서 진행한다
-    #         if node.is_leaf(): break
-    #         # Greedily select next move.
-    #         action, node = node.select(self._c_puct)
-    #         # 현재 state 객체는 _playout 함수 실행하기 전에 deepcopy를 해놓은 state
-    #         # 따라서 전달받은 state 상황에서 do_move를 리프노드가 나올 때 까지 쭉 수행해보는 것
-    #         # 다 이동 하면 현재 while 문이 종료되고, policy에 의해 판별
-    #         state.do_move(action)
-    #
-    #     # Evaluate the leaf using a network which outputs a list of
-    #     # (action, probability) tuples p and also a score v in [-1, 1]
-    #     # for the current player.
-    #
-    #     # 아래 _policy 한번 수행하면 신경망 한번 통과하는 것
-    #     # 근데 통과 했는데 게임 종료 상황(누구 한명이 이기거나 비긴 상황)이 아니면 expand를 수행한다
-    #     action_probs, leaf_value = self._policy(
-    #         state)  # child_priors, value_estimate = NeuralNet.evaluate(leaf.game_state)  # 정책에 따라 행동들의 확률 배열 리턴
-    #     # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
-    #     end, winner = state.game_end()
-    #     if not end:  #
-    #         node.expand(action_probs, state.forbidden_moves, state.is_you_black())
-    #         node.backup(leaf_value)  # value_estimate
-    #     else:
-    #         # for end state，return the "true" leaf_value
-    #         # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
-    #         if winner == -1:  # tie (무승부)
-    #             leaf_value = 0.0  # 무승부의 경우 leaf_value를 0으로 조정
-    #         else:
-    #             leaf_value = (
-    #                 1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
-    #     # 여기서 -1 하는 이유...?
-    #     # node.update_recursive(-leaf_value)
-    #     # backup
-    #     # 여기에 backup??
 
     # num_reads = _n_playout??
     def UCT_search(self, state_b, num_reads):
