@@ -88,24 +88,23 @@ def get_model(model_type):
 
 def get_not_sequential_model():
     board_size = 15
-    in_x = network = tf.keras.Input((board_size, board_size,1))
+    in_x = network = tf.keras.layers.InputLayer((board_size, board_size,1))
     l2_const = 1e-4  # coef of l2 penalty
-    network = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", data_format="channels_first",
+    # code20221121183414
+    network = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same",
                                      activation="relu", kernel_regularizer=l2(l2_const))(network)
-    network = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", data_format="channels_first",
+    network = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same",
                                      activation="relu", kernel_regularizer=l2(l2_const))(network)
-    network = tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", data_format="channels_first",
+    network = tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same",
                                      activation="relu", kernel_regularizer=l2(l2_const))(network)
     # action policy layers
-    policy_net = tf.keras.layers.Conv2D(filters=4, kernel_size=(1, 1), data_format="channels_first",
+    policy_net = tf.keras.layers.Conv2D(filters=1, kernel_size=(1, 1),
                                         activation="relu",
                                         kernel_regularizer=l2(l2_const))(network)
     policy_net = tf.keras.layers.Flatten()(policy_net)
-    policy_net = tf.keras.layers.Dense(board_size * board_size, activation="softmax",
-                                            kernel_regularizer=l2(l2_const))(policy_net)
+    policy_net = tf.keras.layers.Dense(board_size * board_size, activation="softmax", kernel_regularizer=l2(l2_const))(policy_net)
     # state value layers
-    value_net = tf.keras.layers.Conv2D(filters=2, kernel_size=(1, 1), data_format="channels_first",
-                                       activation="relu",
+    value_net = tf.keras.layers.Conv2D(filters=2, kernel_size=(1, 1), activation="relu",
                                        kernel_regularizer=l2(l2_const))(network)
     value_net = tf.keras.layers.Flatten()(value_net)
     value_net = tf.keras.layers.Dense(64, kernel_regularizer=l2(l2_const))(value_net)
@@ -163,7 +162,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
     model.fit(data_x,data_y,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
     model.save_weights(f'{path_google_drive_main+name}_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
     model.save(f'{path_google_drive_main+name}.h5')
-    save_pickle(f'{path_google_drive_main+name}_pickle',model)
+    save_pickle(f'{path_google_drive_main+name}.pickle',model)
     print("모델 최종 저장이 완료되었습니다")
 
 

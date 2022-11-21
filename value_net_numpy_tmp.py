@@ -13,9 +13,11 @@ def relu(X):
     return out
 
 def conv_forward(X, W, b, stride=1, padding=1):
-    n_filters, d_filter, h_filter, w_filter = W.shape
-    W = W[:, :, ::-1, ::-1]
-    n_x, d_x, h_x, w_x = X.shape
+    # n_filters, d_filter, h_filter, w_filter = W.shape
+    n_filters, h_filter, w_filter,d_filter = W.shape
+    # W = W[:, :, ::-1, ::-1]
+    W = W[:, ::-1, ::-1, :]
+    n_x, h_x, w_x, d_x = X.shape
     h_out = (h_x - h_filter + 2 * padding) / stride + 1
     w_out = (w_x - w_filter + 2 * padding) / stride + 1
     h_out, w_out = int(h_out), int(w_out)
@@ -31,7 +33,8 @@ def fc_forward(X, W, b):
     return out
 
 def get_im2col_indices(x_shape, field_height, field_width, padding=1, stride=1):
-    N, C, H, W = x_shape
+    # N, C, H, W = x_shape
+    N, H, W,C = x_shape
     assert (H + 2 * padding - field_height) % stride == 0
     assert (W + 2 * padding - field_height) % stride == 0
     out_height = int((H + 2 * padding - field_height) / stride + 1)
