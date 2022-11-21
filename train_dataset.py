@@ -109,6 +109,7 @@ def get_model(model_type):
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
         model.add(Conv2D(1, (1, 1), activation='relu', padding='same'))
         model.add(Flatten())
         model.add(Dense(225, activation='softmax'))
@@ -183,6 +184,8 @@ def get_dataset(csv_name,is_one_hot_encoding,pv_type):
     data_x_p_black = reshape_to_15_15_1(data_x_p_black)
     data_x_p_white = reshape_to_15_15_1(data_x_p_white)
     data_x_v = reshape_to_15_15_1(data_x_v)
+
+
     # 주의!! sequential이 아닌 방식의 경우, data_y가 [a,b]형태가 되어야함
     return data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v
 
@@ -221,11 +224,26 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
     checkpoint_path = name+'.ckpt'
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
-    print("\n------------------정책망------------------")
+    print("\n------------------정책망 (흑)------------------")
     model_policy_b.summary() # 어차피 흑이나 백이나 망은 동일한 구조이므로 하나만 출력
+    print("\n------------------정책망 (백)------------------")
+    model_policy_w.summary()
     print("\n------------------가치망------------------")
     model_value.summary()
     data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate')
+
+    data_y_p_black = to_categorical(data_y_p_black)
+    data_y_p_white = to_categorical(data_y_p_white)
+    data_y_v = to_categorical(data_y_v)
+
+    print("\n------------------Shape------------------")
+    print(f'data_x_p_black : {data_x_p_black.shape}')
+    print(f'data_x_p_white : {data_x_p_white.shape}')
+    print(f'data_x_v : {data_x_v.shape}')
+    print(f'data_y_p_black : {data_y_p_black.shape}')
+    print(f'data_y_p_white : {data_y_p_white.shape}')
+    print(f'data_y_v : {data_y_v.shape}')
+
 
     print("\n------------------흑 정책망 훈련을 시작합니다------------------")
     model_policy_b.fit(data_x_p_black,data_y_p_black,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
