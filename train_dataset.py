@@ -22,13 +22,17 @@ path_saved_model = '/content/drive/MyDrive/saved_data/model/'
 path_saved_weights = '/content/drive/MyDrive/saved_data/weights/'
 
 
-def convert_load_dataset(csv_file_name, is_one_hot_encoding):
+def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
     data_x_p_black = []  # 흑 정책망 input
     data_x_p_white = []  # 백 정책망 input
     labels_p_black = []  # 흑 정책망 레이블
     labels_p_white = []  # 백 정책망 레이블
     data_x_v = []  # 가치망 input
     labels_v = []  # 가치망 레이블
+
+    if type_train >= 3:
+        print(f"존재 하지 않는 type_train : {type_train}")
+        quit()
 
     print("\n데이터 셋 로딩 시작..")
     with open(csv_file_name, 'r') as f:
@@ -43,9 +47,11 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding):
                 skip_count+=1
                 continue
             if int(float(row[1]) == 1) and int(float(row[2]) == 0): # 흑이 이기는 경우
+                if type_train != 0: continue
                 labels_p_black.append(int(float(row[0])))
                 data_x_p_black.append(row[3:])
             elif int(float(row[1]) == 0) and int(float(row[2]) == 1): # 백이 이기는 경우
+                if type_train != 1: continue
                 labels_p_white.append(int(float(row[0])))
                 data_x_p_white.append(row[3:])
             else:
@@ -56,15 +62,30 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding):
                     continue  # 일단 스킵
 
             # 가치망 데이터는 흑이 이길 확률
-            data_x_v.append(row[3:])
-            labels_v.append(row[1])
+            if type_train == 2:
+                data_x_v.append(row[3:])
+                labels_v.append(row[1])
             if count_read % 4000 == 0:
                 print("현재까지 읽은 row 수 :",count_read)
-    data_x_p_black = np.array(data_x_p_black, dtype=np.float32)
-    data_x_p_white = np.array(data_x_p_white, dtype=np.float32)
-    labels_p_black = np.array(labels_p_black, dtype=np.int32)
-    labels_p_white = np.array(labels_p_white, dtype=np.int32)
-    labels_v = np.array(labels_v, dtype=np.float32)
+
+    if len(data_x_p_black) >=1:
+        data_x_p_black = np.array(data_x_p_black, dtype=np.float32)
+    if len(data_x_p_white) >= 1:
+        data_x_p_white = np.array(data_x_p_white, dtype=np.float32)
+    if len(labels_p_black) >= 1:
+        labels_p_black = np.array(labels_p_black, dtype=np.int32)
+        data_y_p_black = labels_p_black
+        data_y_p_black = data_y_p_black.astype(dtype=np.float32)
+    if len(labels_p_white) >= 1:
+        labels_p_white = np.array(labels_p_white, dtype=np.int32)
+        data_y_p_white = labels_p_white
+        data_y_p_white = data_y_p_white.astype(dtype=np.float32)
+    if len(labels_v) >= 1:
+        labels_v = np.array(labels_v, dtype=np.float32)
+        data_y_v = labels_v
+        data_y_v = data_y_v.astype(dtype=np.float32)
+
+
     if is_one_hot_encoding:
         print("0 1만으로 표현하지 않으므로 사용 X")
         quit()
@@ -82,14 +103,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding):
         # b = np.zeros((len(labels_v), 225))
         # b[np.arange(len(labels_v)), a] = 1
         # data_y_v = b
-    else:
-        data_y_p_black = labels_p_black
-        data_y_p_white = labels_p_white
-        data_y_v = labels_v
 
-    data_y_p_black = data_y_p_black.astype(dtype=np.float32)
-    data_y_p_white = data_y_p_white.astype(dtype=np.float32)
-    data_y_v = data_y_v.astype(dtype=np.float32)
     return data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v
 
 def reshape_to_15_15_1(data):
@@ -174,17 +188,22 @@ def get_not_sequential_model():
     return model_
 
 # pv_type : 'seperate' >> policy, value 분리망
-def get_dataset(csv_name,is_one_hot_encoding,pv_type):
+def get_dataset(csv_name,is_one_hot_encoding,pv_type,type_train):
     csv_name = path_google_drive_main+csv_name
     if pv_type == 'seperate':
-        data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= convert_load_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding)
+        data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= convert_load_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding,type_train=type_train)
     else:
         print("미구현")
     print("데이터 로딩 성공")
-    data_x_p_black = reshape_to_15_15_1(data_x_p_black)
-    data_x_p_white = reshape_to_15_15_1(data_x_p_white)
-    data_x_v = reshape_to_15_15_1(data_x_v)
-
+    if type_train == 0:
+        data_x_p_black = reshape_to_15_15_1(data_x_p_black)
+    elif type_train == 1:
+        data_x_p_white = reshape_to_15_15_1(data_x_p_white)
+    elif type_train == 2:
+        data_x_v = reshape_to_15_15_1(data_x_v)
+    else:
+        print("존재하지 않는 type")
+        quit()
 
     # 주의!! sequential이 아닌 방식의 경우, data_y가 [a,b]형태가 되어야함
     return data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v
@@ -224,44 +243,51 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
     checkpoint_path = name+'.ckpt'
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
-    print("\n------------------정책망 (흑)------------------")
+    print("\n------------------정책망 (흑) ------------------")
     model_policy_b.summary() # 어차피 흑이나 백이나 망은 동일한 구조이므로 하나만 출력
-    print("\n------------------정책망 (백)------------------")
-    model_policy_w.summary()
     print("\n------------------가치망------------------")
     model_value.summary()
-    data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate')
 
-    data_y_p_black = to_categorical(data_y_p_black)
-    data_y_p_white = to_categorical(data_y_p_white)
-    data_y_v = to_categorical(data_y_v)
-
-    print("\n------------------Shape------------------")
-    print(f'data_x_p_black : {data_x_p_black.shape}')
-    print(f'data_x_p_white : {data_x_p_white.shape}')
-    print(f'data_x_v : {data_x_v.shape}')
-    print(f'data_y_p_black : {data_y_p_black.shape}')
-    print(f'data_y_p_white : {data_y_p_white.shape}')
-    print(f'data_y_v : {data_y_v.shape}')
+    type_train = int(input("훈련할 대상 (메모리 부족으로 따로 해야함) : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
+    data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train)
 
 
-    print("\n------------------흑 정책망 훈련을 시작합니다------------------")
-    model_policy_b.fit(data_x_p_black,data_y_p_black,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
-    model_policy_b.save_weights(f'{path_google_drive_main+name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
-    model_policy_b.save(f'{path_google_drive_main+name}_black.h5')
-    save_pickle(f'{path_google_drive_main + name}_black.pickle', model_policy_b)
+    # 여기서 오류 나면, 데이터가 없는 것. 예를 들어 백이 승리한 데이터가 없는 경우
+    if type_train == 0:
+        data_y_p_black = to_categorical(data_y_p_black)
+        print("\n------------------흑 정책망 훈련을 시작합니다------------------")
+        model_policy_b.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=10, shuffle=True,
+                           validation_split=0.1, callbacks=[cp_callback, plateau])
+        model_policy_b.save_weights(f'{path_google_drive_main + name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        model_policy_b.save(f'{path_google_drive_main + name}_black.h5')
+        save_pickle(f'{path_google_drive_main + name}_black.pickle', model_policy_b)
+    elif type_train == 1:
+        data_y_p_white = to_categorical(data_y_p_white)
+        print("\n------------------백 정책망 훈련을 시작합니다------------------")
+        model_policy_w.fit(data_y_p_black, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
+                           validation_split=0.1, callbacks=[cp_callback, plateau])
+        model_policy_w.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        model_policy_w.save(f'{path_google_drive_main + name}_white.h5')
+        save_pickle(f'{path_google_drive_main + name}_white.pickle', model_policy_w)
+    elif type_train == 2:
+        data_y_v = to_categorical(data_y_v)
+        print("\n------------------가치망(흑의 승 기준) 훈련을 시작합니다------------------")
+        model_value.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,
+                        callbacks=[cp_callback, plateau])
+        model_value.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        model_value.save(f'{path_google_drive_main + name}_value.h5')
+        save_pickle(f'{path_google_drive_main + name}_value.pickle', model_value)
+    else:
+        print("없는 경우 - type-train")
 
-    print("\n------------------백 정책망 훈련을 시작합니다------------------")
-    model_policy_w.fit(data_y_p_black, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1, callbacks=[cp_callback, plateau])
-    model_policy_w.save_weights(f'{path_google_drive_main+name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
-    model_policy_w.save(f'{path_google_drive_main+name}_white.h5')
-    save_pickle(f'{path_google_drive_main+name}_white.pickle',model_policy_w)
-
-    print("\n------------------가치망(흑의 승 기준) 훈련을 시작합니다------------------")
-    model_value.fit(data_x_v,data_y_v,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
-    model_value.save_weights(f'{path_google_drive_main+name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
-    model_value.save(f'{path_google_drive_main+name}_value.h5')
-    save_pickle(f'{path_google_drive_main + name}_value.pickle', model_value)
+    # print("\n------------------Shape------------------")
+    # print(f'data_x_p_black : {data_x_p_black.shape}')
+    # print(f'data_x_p_white : {data_x_p_white.shape}')
+    # print(f'data_x_v : {data_x_v.shape}')
+    # print(f'data_y_p_black : {data_y_p_black.shape}')
+    # print(f'data_y_p_white : {data_y_p_white.shape}')
+    # print(f'data_y_v : {data_y_v.shape}')
+    # print(f"배치 사이즈 : {batch_size}")
 
     print("모델 최종 저장이 완료되었습니다")
 
@@ -303,8 +329,7 @@ if __name__ == '__main__':
       quit()
 
     if to_do == 0 or to_do == 1:
-        batch_size = int(input("배치 사이즈 : "))
-        train_model(model_policy_b,model_policy_w,model_value,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=batch_size)
+        train_model(model_policy_b,model_policy_w,model_value,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512)
     elif to_do == 2:
         test_model(model,csv_file_name=csv_file,one_hot_encoding=one_hot_encoding)
 
