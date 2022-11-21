@@ -88,7 +88,7 @@ def get_model(model_type):
 
 def get_not_sequential_model():
     board_size = 15
-    in_x = network = tf.keras.layers.InputLayer((board_size, board_size,1))
+    in_x = network = tf.keras.Input((board_size, board_size,1))
     l2_const = 1e-4  # coef of l2 penalty
     # code20221121183414
     network = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same",
