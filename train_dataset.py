@@ -43,10 +43,10 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding):
                 skip_count+=1
                 continue
             if int(float(row[1]) == 1) and int(float(row[2]) == 0): # 흑이 이기는 경우
-                labels_p_black.append(int(row[0]))
+                labels_p_black.append(int(float(row[0])))
                 data_x_p_black.append(row[3:])
             elif int(float(row[1]) == 0) and int(float(row[2]) == 1): # 백이 이기는 경우
-                labels_p_white.append(int(row[0]))
+                labels_p_white.append(int(float(row[0])))
                 data_x_p_white.append(row[3:])
             else:
                 # 무승부는 따로 학습 X
