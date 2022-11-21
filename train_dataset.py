@@ -80,6 +80,7 @@ def get_model(model_type):
         model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
     elif model_type == 2:
         model = get_not_sequential_model()
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
     return model
     # model.save('policy_black.h5')
     # model.save('policy_white.h5')
