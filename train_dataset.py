@@ -29,6 +29,9 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
     labels_p_white = []  # 백 정책망 레이블
     data_x_v = []  # 가치망 input
     labels_v = []  # 가치망 레이블
+    data_y_p_black = None
+    data_y_p_white = None
+    data_y_v = None
 
     if type_train >= 3:
         print(f"존재 하지 않는 type_train : {type_train}")
