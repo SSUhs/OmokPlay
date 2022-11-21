@@ -13,6 +13,7 @@ import keras.backend as K
 from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.regularizers import l2
 from keras.models import Model
+import pickle
 
 path_google_drive_main = '/content/drive/MyDrive/'
 path_saved_model = '/content/drive/MyDrive/saved_data/model/'
@@ -89,7 +90,7 @@ def get_not_sequential_model():
     board_size = 15
     in_x = network = tf.keras.Input((board_size, board_size,1))
     l2_const = 1e-4  # coef of l2 penalty
-    network = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same", data_format="channels_first",
+    network = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", data_format="channels_first",
                                      activation="relu", kernel_regularizer=l2(l2_const))(network)
     network = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", data_format="channels_first",
                                      activation="relu", kernel_regularizer=l2(l2_const))(network)
@@ -147,6 +148,10 @@ def load_saved_weights(model_instance, weights_file):
     model_instance.load_weights(weights_file)
     return model_instance
 
+def save_pickle(save_path,model):
+    net_params = model.get_weights()
+    pickle.dump(net_params, open(save_path, 'wb'), protocol=2)
+
 
 def train_model(model,csv_name,is_one_hot_encoding,batch_size):
     name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
@@ -156,9 +161,11 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
     model.summary()
     data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding)
     model.fit(data_x,data_y,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
-    model.save_weights(f'{name}_weights.pickle')  # 확장자는 일단 pickle이긴 한데 정확 X
-    model.save(f'{name}.h5')
+    model.save_weights(f'{path_google_drive_main+name}_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+    model.save(f'{path_google_drive_main+name}.h5')
+    save_pickle(f'{path_google_drive_main+name}_pickle',model)
     print("모델 최종 저장이 완료되었습니다")
+
 
 # 훈련된 모델을 테스트 data set을 이용해서 테스트
 def test_model(model,csv_file_name,one_hot_encoding):
