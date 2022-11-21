@@ -77,7 +77,7 @@ class ValueNetTmpNumpy():
         # legal_positions = list(set(range(self.board_width*self.board_height)) - set(board.states.keys()))
         current_state = board.current_state()
         # X = current_state.reshape(-1, 4, self.board_size, self.board_size) >> 원본
-        X = current_state.reshape(-1, 1, self.board_size, self.board_size)
+        X = current_state.reshape(-1, self.board_size, self.board_size,1)
         # first 3 conv layers with ReLu nonlinearity
         for i in [0, 2, 4]:
             X = relu(conv_forward(X, self.params[i], self.params[i+1]))
