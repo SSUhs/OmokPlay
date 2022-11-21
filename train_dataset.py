@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import codecs
 import csv
@@ -21,42 +23,82 @@ path_saved_weights = '/content/drive/MyDrive/saved_data/weights/'
 
 
 def convert_load_dataset(csv_file_name, is_one_hot_encoding):
-    data_x = []
-    labels = []
+    data_x_p_black = []  # 흑 정책망 input
+    data_x_p_white = []  # 백 정책망 input
+    labels_p_black = []  # 흑 정책망 레이블
+    labels_p_white = []  # 백 정책망 레이블
+    data_x_v = []  # 가치망 input
+    labels_v = []  # 가치망 레이블
 
     print("\n데이터 셋 로딩 시작..")
     with open(csv_file_name, 'r') as f:
         next(f, None)
         reader = csv.reader(f)
         count_read = 0
-        for row in reader:
-            data_x.append(row[1:])
-            labels.append(int(float(row[0])))  # float은 int타입으로
+        skip_count = 0
+        # 헤더 : move 위치 / black_value / white_value / 상태~
+        for row in reader: # row는 문자열 리스트
             count_read += 1
+            if float(row[1]) <= -100 or float(row[2]) <= -100: # 승부 판별 불가능
+                skip_count+=1
+                continue
+            if int(float(row[1]) == 1) and int(float(row[2]) == 0): # 흑이 이기는 경우
+                labels_p_black.append(int(row[0]))
+                data_x_p_black.append(row[3:])
+            elif int(float(row[1]) == 0) and int(float(row[2]) == 1): # 백이 이기는 경우
+                labels_p_white.append(int(row[0]))
+                data_x_p_white.append(row[3:])
+            else:
+                # 무승부는 따로 학습 X
+                if not (float(row[1]) == 0.5 and float(row[2]) == 0.5): # 무승부도 아닌 경우
+                    print(f"잘못된 value : 행 : {count_read-1} / 흑 : {row[1]} , 백 : {row[2]}")
+                    skip_count += 1
+                    continue  # 일단 스킵
+
+            # 가치망 데이터는 흑이 이길 확률
+            data_x_v.append(row[3:])
+            labels_v.append(row[1])
             if count_read % 4000 == 0:
                 print("현재까지 읽은 row 수 :",count_read)
-
-    data_x = np.array(data_x, dtype=np.float32)
-    labels = np.array(labels, dtype=np.int32)
-
+    data_x_p_black = np.array(data_x_p_black, dtype=np.float32)
+    data_x_p_white = np.array(data_x_p_white, dtype=np.float32)
+    labels_p_black = np.array(labels_p_black, dtype=np.int32)
+    labels_p_white = np.array(labels_p_white, dtype=np.int32)
     if is_one_hot_encoding:
-        a = np.array(labels)
-        b = np.zeros((len(labels), 225))
-        b[np.arange(len(labels)), a] = 1
-        data_y = b
-    else:
-        data_y = labels
+        a = np.array(labels_p_black)
+        b = np.zeros((len(labels_p_black), 225))
+        b[np.arange(len(labels_p_black)), a] = 1
+        data_y_p_black = b
 
-    data_y = data_y.astype(dtype=np.float32)
-    return data_x, data_y
+        a = np.array(labels_p_white)
+        b = np.zeros((len(labels_p_white), 225))
+        b[np.arange(len(labels_p_white)), a] = 1
+        data_y_p_white = b
+
+        a = np.array(labels_v)
+        b = np.zeros((len(labels_v), 225))
+        b[np.arange(len(labels_v)), a] = 1
+        data_y_v = b
+    else:
+        data_y_p_black = labels_p_black
+        data_y_p_white = labels_p_white
+        data_y_v = labels_v
+
+    data_y_p_black = data_y_p_black.astype(dtype=np.float32)
+    data_y_p_white = data_y_p_white.astype(dtype=np.float32)
+    data_y_v = data_y_v.astype(dtype=np.float32)
+    return data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v
 
 def reshape_to_15_15_1(data):
     return K.reshape(data,[-1,15,15,1])
 
+# root mean squared error (rmse) for regression (only for Keras tensors)
+def rmse(y_true, y_pred):
+    return K.sqrt(K.mean(K.square(y_pred - y_true), axis=-1))
 
 def get_model(model_type):
     model = None
-    if model_type == 0:
+    if model_type == 0: # 정책망 + Conv2D 6개
         model = Sequential()
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same', input_shape=(15, 15, 1)))
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
@@ -79,9 +121,23 @@ def get_model(model_type):
         model.add(Flatten())
         model.add(Dense(225, activation='softmax'))
         model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
-    elif model_type == 2:
+    elif model_type == 2: # 정책 + 가치망
         model = get_not_sequential_model()
         model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
+    elif model_type == 3: # 가치망
+        model = Sequential()
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same', input_shape=(15, 15, 1)))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(1, (1, 1), activation='relu', padding='same'))
+        model.add(Flatten())
+        model.add(Dense(225, activation='relu'))
+        model.add(Dense(1, activation='tanh'))
+        model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[rmse])
     return model
     # model.save('policy_black.h5')
     # model.save('policy_white.h5')
@@ -110,17 +166,22 @@ def get_not_sequential_model():
     value_net = tf.keras.layers.Dense(64, kernel_regularizer=l2(l2_const))(value_net)
     value_net = tf.keras.layers.Dense(1, activation="tanh", kernel_regularizer=l2(l2_const))(value_net)
     # model_ = Model(in_x, [policy_net, value_net]) # 가치망 출력은 제거 (학습 데이터에 가치망 label이 존재하지 않음. 따라서 가중치 연산만 미리 해두고 나중에 parameter만 불러와서 연산)
-    model_ = Model(in_x, policy_net)
+    model_ = Model(in_x, [policy_net,value_net])
     return model_
 
-def get_dataset(csv_name,is_one_hot_encoding):
+# pv_type : 'seperate' >> policy, value 분리망
+def get_dataset(csv_name,is_one_hot_encoding,pv_type):
     csv_name = path_google_drive_main+csv_name
-    # name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
-    data_x, data_y = convert_load_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding)
+    if pv_type == 'seperate':
+        data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= convert_load_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding)
+    else:
+        print("미구현")
     print("데이터 로딩 성공")
-    data_x = reshape_to_15_15_1(data_x)
+    data_x_p_black = reshape_to_15_15_1(data_x_p_black)
+    data_x_p_white = reshape_to_15_15_1(data_x_p_white)
+    data_x_v = reshape_to_15_15_1(data_x_v)
     # 주의!! sequential이 아닌 방식의 경우, data_y가 [a,b]형태가 되어야함
-    return data_x,data_y
+    return data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v
 
 def make_new_model():
     while True:
@@ -152,17 +213,35 @@ def save_pickle(save_path,model):
     pickle.dump(net_params, open(save_path, 'wb'), protocol=2)
 
 
-def train_model(model,csv_name,is_one_hot_encoding,batch_size):
+def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_encoding,batch_size):
     name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
     checkpoint_path = name+'.ckpt'
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
-    model.summary()
-    data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding)
-    model.fit(data_x,data_y,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
-    model.save_weights(f'{path_google_drive_main+name}_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
-    model.save(f'{path_google_drive_main+name}.h5')
-    save_pickle(f'{path_google_drive_main+name}.pickle',model)
+    print("\n------------------정책망------------------")
+    model_policy_b.summary() # 어차피 흑이나 백이나 망은 동일한 구조이므로 하나만 출력
+    print("\n------------------가치망------------------")
+    model_value.summary()
+    data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate')
+
+    print("\n------------------흑 정책망 훈련을 시작합니다------------------")
+    model_policy_b.fit(data_x_p_black,data_y_p_black,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
+    model_policy_b.save_weights(f'{path_google_drive_main+name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+    model_policy_b.save(f'{path_google_drive_main+name}_black.h5')
+    save_pickle(f'{path_google_drive_main + name}_black.pickle', model_policy_b)
+
+    print("\n------------------백 정책망 훈련을 시작합니다------------------")
+    model_policy_w.fit(data_y_p_black, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1, callbacks=[cp_callback, plateau])
+    model_policy_w.save_weights(f'{path_google_drive_main+name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+    model_policy_w.save(f'{path_google_drive_main+name}_white.h5')
+    save_pickle(f'{path_google_drive_main+name}_white.pickle',model_policy_w)
+
+    print("\n------------------가치망(흑의 승 기준) 훈련을 시작합니다------------------")
+    model_value.fit(data_x_v,data_y_v,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
+    model_value.save_weights(f'{path_google_drive_main+name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+    model_value.save(f'{path_google_drive_main+name}_value.h5')
+    save_pickle(f'{path_google_drive_main + name}_value.pickle', model_value)
+
     print("모델 최종 저장이 완료되었습니다")
 
 
@@ -183,10 +262,15 @@ def test_model(model,csv_file_name,one_hot_encoding):
 
 if __name__ == '__main__':
     to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 /테스트는 2"))
+    csv_file = input(f'사용할 csv 파일 : )')
     one_hot_encoding = True
     batch_size = None
     if to_do == 0:
-      model = make_new_model()
+      print("정책망 선택")
+      model_policy_b = make_new_model()
+      model_policy_w = copy.deepcopy(model_policy_b)
+      print("가치망 선택")
+      model_value = make_new_model()
     elif to_do == 1:
       model_file_name = input(f"이어서 학습할 모델 파일 (기본 경로 : {path_saved_model}")
       model = load_saved_model(model_file_name)
@@ -197,41 +281,10 @@ if __name__ == '__main__':
       print("없는 경우")
       quit()
 
-    csv_file = input(f'사용할 csv 파일 : )')
     if to_do == 0 or to_do == 1:
         batch_size = int(input("배치 사이즈 : "))
-        train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=batch_size)
+        train_model(model_policy_b,model_policy_w,model_value,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=batch_size)
     elif to_do == 2:
         test_model(model,csv_file_name=csv_file,one_hot_encoding=one_hot_encoding)
 
 
-
-# # 학습용 데이터 / 테스트 데이터 둘다 사용 가능
-# def get_dataset(csv_file_name, is_one_hot_encoding):
-#     data_x = []
-#     labels = []
-#
-#     with open(csv_file_name, 'r') as f:
-#         next(f, None)
-#         reader = csv.reader(f)
-#         for row in reader:
-#             data_x.append(row[1:])
-#             labels.append(row[0])
-#
-#     # train_x = [int(x) for x in row for row in train_x]
-#     # labels = [int(x) for x in labels]
-#     data_x = np.array(data_x, dtype=np.float32)
-#     labels = np.array(labels, dtype=np.int32)
-#
-#     if is_one_hot_encoding:
-#         a = np.array(labels)
-#         b = np.zeros((len(labels), 225))
-#         b[np.arange(len(labels)), a] = 1
-#         data_y = b
-#     else:
-#         data_y = labels
-#
-#     data_y = data_y.astype(dtype=np.float32)
-#     return data_x, data_y
-#
-#

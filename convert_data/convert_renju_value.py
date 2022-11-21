@@ -8,7 +8,7 @@ from renju_state import State
 
 import keras.backend as K
 
-TRAIN_SIZE = 1000
+TRAIN_SIZE = 55
 TRAIN_COUNT = 1
 TEST_SIZE = 2000
 
@@ -139,7 +139,8 @@ for data_num in range(TRAIN_COUNT):
         if count == TRAIN_SIZE:
             break
 
-    b_state = b_state.transpose(0, 2, 3, 1)
+
+    b_state = b_state.transpose(0, 2, 3, 1) # 예를 들어 원래 a,b,c,d면 a,c,d,b로 바뀌는 것
     w_state = w_state.transpose(0, 2, 3, 1)
 
     print("데이터", data_num + 1)
