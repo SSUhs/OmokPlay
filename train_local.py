@@ -20,7 +20,6 @@ if __name__ == '__main__':
     print("예시 : \'tensorflow 13 500\'(=텐서플로우 라이브러리로 13x13 500번 부터)")
     param_list = re.split(r'[ ]+', input())  # 예시) {'tensorflow','13','500'}
 
-
     if len(param_list) == 1 and param_list[0] == 'trainset':
         train_dataset.start_train_dataset()
         quit()
