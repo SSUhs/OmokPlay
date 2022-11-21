@@ -64,6 +64,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding):
     data_x_p_white = np.array(data_x_p_white, dtype=np.float32)
     labels_p_black = np.array(labels_p_black, dtype=np.int32)
     labels_p_white = np.array(labels_p_white, dtype=np.int32)
+    labels_v = np.array(labels_v, dtype=np.float32)
     if is_one_hot_encoding:
         print("0 1만으로 표현하지 않으므로 사용 X")
         quit()
@@ -268,10 +269,10 @@ if __name__ == '__main__':
     one_hot_encoding = False
     batch_size = None
     if to_do == 0:
-      print("정책망 선택")
+      print("\n정책망 선택")
       model_policy_b = make_new_model()
       model_policy_w = copy.deepcopy(model_policy_b)
-      print("가치망 선택")
+      print("\n가치망 선택")
       model_value = make_new_model()
     elif to_do == 1:
       model_file_name = input(f"이어서 학습할 모델 파일 (기본 경로 : {path_saved_model}")
