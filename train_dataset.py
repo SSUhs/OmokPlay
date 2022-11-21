@@ -1,38 +1,139 @@
-I-t/drive/MyDrive/'+csv_name
+import numpy as np
+import codecs
+import csv
+from copy import deepcopy
+import tensorflow as tf
+from tensorflow.keras.layers import Activation, Dense, Conv2D, Flatten
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.utils import to_categorical
+from random import randint
+from tensorflow.keras.models import load_model
+import keras.backend as K
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+
+
+path_google_drive_main = '/content/drive/MyDrive/'
+path_saved_model = '/content/drive/MyDrive/saved_data/model/'
+path_saved_weights = '/content/drive/MyDrive/saved_data/weights/'
+
+
+
+def get_dataset(csv_file_name, is_one_hot_encoding):
+    data_x = []
+    labels = []
+
+    print("\n데이터 셋 로딩 시작..")
+    with open(csv_file_name, 'r') as f:
+        next(f, None)
+        reader = csv.reader(f)
+        count_read = 0
+        for row in reader:
+            data_x.append(row[1:])
+            labels.append(int(float(row[0])))  # float은 int타입으로
+            count_read += 1
+            if count_read % 4000 == 0:
+                print("현재까지 읽은 row 수 :",count_read)
+
+    # train_x = [int(x) for x in row for row in train_x]
+    # labels = [int(x) for x in labels]
+    data_x = np.array(data_x, dtype=np.float32)
+    labels = np.array(labels, dtype=np.int32)
+
+    if is_one_hot_encoding:
+        a = np.array(labels)
+        b = np.zeros((len(labels), 225))
+        b[np.arange(len(labels)), a] = 1
+        data_y = b
+    else:
+        data_y = labels
+
+    data_y = data_y.astype(dtype=np.float32)
+    return data_x, data_y
+
+def reshape_to_15_15_1(data):
+    return K.reshape(data,[-1,15,15,1])
+
+
+def get_model(model_type):
+    model = None
+    if model_type == 0:
+        model = Sequential()
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same', input_shape=(15, 15, 1)))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(1, (1, 1), activation='relu', padding='same'))
+        model.add(Flatten())
+        model.add(Dense(225, activation='softmax'))
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
+    elif model_type == 1:
+        model = Sequential()
+        model.add(Conv2D(64, 7, activation='relu', padding='same', input_shape=(15, 15, 1)))
+        model.add(Conv2D(128, 7, activation='relu', padding='same'))
+        model.add(Conv2D(256, 7, activation='relu', padding='same'))
+        model.add(Conv2D(128, 7, activation='relu', padding='same'))
+        model.add(Conv2D(64, 7, activation='relu', padding='same'))
+        model.add(Conv2D(1, 1, activation='relu', padding='same'))
+        model.add(Flatten())
+        model.add(Dense(225, activation='softmax'))
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0025), metrics=['acc'])
+    return model
+    # model.save('policy_black.h5')
+    # model.save('policy_white.h5')
+
+
+def get_dataset(csv_name,is_one_hot_encoding):
+    csv_name = path_google_drive_main+csv_name
     name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
-    checkpoint_path = name+'.ckpt'
-    data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=one_hot_encoding)
+    data_x, data_y = get_dataset(csv_name, is_one_hot_encoding=one_hot_encoding)
     print("데이터 로딩 성공")
     data_x = reshape_to_15_15_1(data_x)
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
-    plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
-    model.summary()
-    model.fit(data_x,data_y,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
-    model.save(f'{name}.h5')
-    print("모델 생성이 완료되었습니다")
+    return data_x,data_y
+
+def make_new_model():
+    while True:
+        model_type = int(input("모델 타입 선택 : "))
+        model = get_model(model_type)
+        if model is None:
+            print("존재하지 않는 모델입니다\n")
+            continue
+        else:
+            break
+    return model
 
 # 이건 전체 모델 파일을 불러오는 방식
 def load_saved_model(model_file):
-    model_file = '/content/drive/MyDrive/' + model_file
+    model_file = path_saved_model+ model_file
     model = tf.keras.models.load_model(model_file)
-
+    return model
 
 
 # 가중치만 로딩
 # 따라서 모델 구조가 동일하면 다른 모델끼리도 가중치만 로딩해서 사용할 수 있음
 def load_saved_weights(model_instance, weights_file):
-    weights_file = '/content/drive/MyDrive/'+weights_file
+    weights_file = path_saved_weights+weights_file
     model_instance.load_weights(weights_file)
     return model_instance
 
 
-# 훈련된 모델을 테스트 data set을 이용해서 테스트
-def test_model(model_file_name,csv_file_name,one_hot_encoding):
-  print("\n-----------------실제 테스트-----------------\n")
-  csv_file_name = '/content/drive/MyDrive/' + csv_file_name
-  model_file_name = '/content/drive/MyDrive/' + model_file_name
-  model = load_model(model_file_name)
+def train_model(model,csv_name,is_one_hot_encoding,batch_size):
+    name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
+    checkpoint_path = name+'.ckpt'
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
+    plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
+    model.summary()
+    data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding)
+    model.fit(data_x,data_y,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
+    model.save(f'{name}.h5')
+    print("모델 최종 저장이 완료되었습니다")
 
+# 훈련된 모델을 테스트 data set을 이용해서 테스트
+def test_model(model,csv_file_name,one_hot_encoding):
+  print("\n-----------------실제 테스트-----------------\n")
+  csv_file_name = path_google_drive_main + csv_file_name
   print("데이터 로딩을 시작합니다")
   data_x,data_y = get_dataset(csv_file_name,is_one_hot_encoding=one_hot_encoding)
   print("데이터 로딩 성공")
@@ -46,25 +147,26 @@ def test_model(model_file_name,csv_file_name,one_hot_encoding):
 
 if __name__ == '__main__':
     to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 /테스트는 2"))
-    # one_hot_encoding = int(input("one hotencoding True == 0 ? False == 1"))
-    # if one_hot_encoding == 0:
-    #     one_hot_encoding = True
-    # else:
-    #     one_hot_encoding = False
     one_hot_encoding = True
+    batch_size = None
     if to_do == 0:
-      csv_name = input("학습할 csv 파일 : ")
-      batch_size = int(input("배치 사이즈 : "))
-      make_model(csv_name,one_hot_encoding,batch_size)
+      model = make_new_model()
     elif to_do == 1:
       model_file_name = input(f"이어서 학습할 모델 파일 (기본 경로 : {path_saved_model}")
-      asdf
+      model = load_saved_model(model_file_name)
     elif to_do == 2:
-      csv_name = input("테스트 할 csv 파일 : ")
-      model_file_name = input("모델 파일 : ")
-      test_model(model_file_name,csv_name,one_hot_encoding)
+      model_file_name = input(f"테스트에 사용할 모델 파일 (기본 경로 : {path_saved_model}")
+      model = load_saved_model(model_file_name)
     else:
       print("없는 경우")
+      quit()
+
+    csv_file = input(f'사용할 csv 파일 : )')
+    if to_do == 0 or to_do == 1:
+        batch_size = int(input("배치 사이즈 : "))
+        train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=batch_size)
+    elif to_do == 2:
+        test_model(model,csv_file_name=csv_file,one_hot_encoding=one_hot_encoding)
 
 
 
