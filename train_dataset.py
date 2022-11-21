@@ -77,12 +77,8 @@ def get_model(model_type):
     # model.save('policy_white.h5')
 
 
-def make_model(csv_name,one_hot_encoding):
+def make_model(csv_name,one_hot_encoding,batch_size):
     print("모델 생성 테스트")
-    csv_name = '/content/drive/MyDrive/'+csv_name
-    data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=one_hot_encoding)
-    print("데이터 로딩 성공")
-    data_x = reshape_to_15_15_1(data_x)
     while True:
         model_type = int(input("모델 타입 선택 : "))
         model = get_model(model_type)
@@ -91,8 +87,12 @@ def make_model(csv_name,one_hot_encoding):
             continue
         else:
             break
+    csv_name = '/content/drive/MyDrive/'+csv_name
+    data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=one_hot_encoding)
+    print("데이터 로딩 성공")
+    data_x = reshape_to_15_15_1(data_x)
     model.summary()
-    model.fit(data_x,data_y,batch_size=5120, epochs=10, shuffle=True, validation_split=0.1)
+    model.fit(data_x,data_y,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1)
     model.save(f'{csv_name}.h5')
     print("모델 생성이 완료되었습니다")
 
@@ -115,14 +115,16 @@ def test_model(model_file_name,csv_file_name,one_hot_encoding):
 
 if __name__ == '__main__':
     to_do = int(input('생성은 0, 테스트는 1'))
-    one_hot_encoding = int(input("one hotencoding True == 0 ? False == 1"))
-    if one_hot_encoding == 0:
-        one_hot_encoding = True
-    else:
-        one_hot_encoding = False
+    # one_hot_encoding = int(input("one hotencoding True == 0 ? False == 1"))
+    # if one_hot_encoding == 0:
+    #     one_hot_encoding = True
+    # else:
+    #     one_hot_encoding = False
+    one_hot_encoding = True
     if to_do == 0:
       csv_name = input("학습할 csv 파일 : ")
-      make_model(csv_name,one_hot_encoding)
+      batch_size = int(input("배치 사이즈 : "))
+      make_model(csv_name,one_hot_encoding,batch_size)
     elif to_do == 1:
       csv_name = input("테스트 할 csv 파일 : ")
       model_file_name = input("모델 파일 : ")

@@ -7,7 +7,6 @@ import re  # 정규표현식
 import sys
 
 from TrainingPipeline import TrainPipeline
-from train_dataset import start_train_dataset
 from time import time
 from time import gmtime
 
