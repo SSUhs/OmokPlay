@@ -19,7 +19,7 @@ path_saved_model = '/content/drive/MyDrive/saved_data/model/'
 path_saved_weights = '/content/drive/MyDrive/saved_data/weights/'
 
 
-def get_dataset(csv_file_name, is_one_hot_encoding):
+def convert_load_dataset(csv_file_name, is_one_hot_encoding):
     data_x = []
     labels = []
 
@@ -35,8 +35,6 @@ def get_dataset(csv_file_name, is_one_hot_encoding):
             if count_read % 4000 == 0:
                 print("현재까지 읽은 row 수 :",count_read)
 
-    # train_x = [int(x) for x in row for row in train_x]
-    # labels = [int(x) for x in labels]
     data_x = np.array(data_x, dtype=np.float32)
     labels = np.array(labels, dtype=np.int32)
 
@@ -116,7 +114,7 @@ def get_not_sequential_model():
 def get_dataset(csv_name,is_one_hot_encoding):
     csv_name = path_google_drive_main+csv_name
     # name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
-    data_x, data_y = get_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding)
+    data_x, data_y = convert_load_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding)
     print("데이터 로딩 성공")
     data_x = reshape_to_15_15_1(data_x)
     return data_x,data_y
