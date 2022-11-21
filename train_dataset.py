@@ -87,7 +87,7 @@ def get_model(model_type):
 
 def get_not_sequential_model():
     board_size = 15
-    in_x = network = tf.keras.Input((board_size, board_size,1))
+    in_x = network = tf.keras.Input((1,board_size, board_size))
     l2_const = 1e-4  # coef of l2 penalty
     network = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same", data_format="channels_first",
                                      activation="relu", kernel_regularizer=l2(l2_const))(network)
@@ -109,8 +109,9 @@ def get_not_sequential_model():
     value_net = tf.keras.layers.Flatten()(value_net)
     value_net = tf.keras.layers.Dense(64, kernel_regularizer=l2(l2_const))(value_net)
     value_net = tf.keras.layers.Dense(1, activation="tanh", kernel_regularizer=l2(l2_const))(value_net)
-    model = Model(in_x, [policy_net, value_net])
-    return model
+    # model_ = Model(in_x, [policy_net, value_net]) # 가치망 출력은 제거 (학습 데이터에 가치망 label이 존재하지 않음. 따라서 가중치 연산만 미리 해두고 나중에 parameter만 불러와서 연산)
+    model_ = Model(in_x, policy_net)
+    return model_
 
 def get_dataset(csv_name,is_one_hot_encoding):
     csv_name = path_google_drive_main+csv_name
@@ -118,6 +119,7 @@ def get_dataset(csv_name,is_one_hot_encoding):
     data_x, data_y = convert_load_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding)
     print("데이터 로딩 성공")
     data_x = reshape_to_15_15_1(data_x)
+    # 주의!! sequential이 아닌 방식의 경우, data_y가 [a,b]형태가 되어야함
     return data_x,data_y
 
 def make_new_model():
@@ -154,6 +156,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
     model.summary()
     data_x,data_y = get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding)
     model.fit(data_x,data_y,batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,callbacks=[cp_callback,plateau])
+    model.save_weights(f'{name}_weights.pickle')  # 확장자는 일단 pickle이긴 한데 정확 X
     model.save(f'{name}.h5')
     print("모델 최종 저장이 완료되었습니다")
 

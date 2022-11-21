@@ -4,7 +4,7 @@ import pygame
 import sys
 from tkinter import messagebox
 from tkinter import *
-import gui_main
+# import gui_main
 
 ctypes.windll.user32.SetProcessDPIAware()
 
@@ -52,6 +52,7 @@ def load_gui_main():
         messagebox.showinfo('오류', '판 크기는 9에서 15까지만 가능합니다')
     else:
         text_loading = base_font.render('모델을 로딩중입니다...', True, (0, 0, 0))
+        import gui_main
         screen = pygame.display.set_mode([700, 400])
         screen.blit(img_main, (0, 0))
         screen.blit(text_loading, (200,150))

@@ -6,7 +6,6 @@ import time
 from tkinter import messagebox
 from tkinter import *
 
-import gui_ai_vs_player
 from game import Board, Game
 import pickle
 from mcts_alphaZero import MCTSPlayer
@@ -14,8 +13,6 @@ from new_mcts_alphaZero import MCTSPlayerNew
 from player_AI import player_AI
 from policy_value_net_numpy import PolicyValueNetNumpy
 
-from constant import error_const
-from policy_value_net_tensorflow import PolicyValueNetTensorflow
 
 ctypes.windll.user32.SetProcessDPIAware()
 
@@ -67,6 +64,7 @@ class Gui:
         self.ws = 0
         self.hard_gui = hard_gui
         if self.ai_library == 'tensorflow' and not is_train_set_mode:
+            from policy_value_net_tensorflow import PolicyValueNetTensorflow
             model_file =  f'./model/tf_policy_{self.width_height}_{str(hard_gui)}_model'
             self.best_policy = PolicyValueNetTensorflow(self.width_height, self.width_height, model_file,
                                                compile_env='local')  # 코랩에서는 start_game.py 수행 안하기 때문에 compile_env는 local로 고정
@@ -119,6 +117,8 @@ class Gui:
             computer_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
             human = Human()
 
+            import gui_ai_vs_player
+
             game.board.init_board(start_player=order)
             gui_board = gui_ai_vs_player.Gui(game, board_arr, human, computer_player)
             gui_board.run()
@@ -149,6 +149,8 @@ class Gui:
                     computer_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5,
                                      n_playout=400)  # set larger n_playout for better performance
             human = Human()
+
+            import gui_ai_vs_player
 
             game.board.init_board(start_player=order)
             gui_board = gui_ai_vs_player.Gui(game, board_arr, human, computer_player)
