@@ -65,20 +65,22 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding):
     labels_p_black = np.array(labels_p_black, dtype=np.int32)
     labels_p_white = np.array(labels_p_white, dtype=np.int32)
     if is_one_hot_encoding:
-        a = np.array(labels_p_black)
-        b = np.zeros((len(labels_p_black), 225))
-        b[np.arange(len(labels_p_black)), a] = 1
-        data_y_p_black = b
-
-        a = np.array(labels_p_white)
-        b = np.zeros((len(labels_p_white), 225))
-        b[np.arange(len(labels_p_white)), a] = 1
-        data_y_p_white = b
-
-        a = np.array(labels_v)
-        b = np.zeros((len(labels_v), 225))
-        b[np.arange(len(labels_v)), a] = 1
-        data_y_v = b
+        print("0 1만으로 표현하지 않으므로 사용 X")
+        quit()
+        # a = np.array(labels_p_black)
+        # b = np.zeros((len(labels_p_black), 225))
+        # b[np.arange(len(labels_p_black)), a] = 1
+        # data_y_p_black = b
+        #
+        # a = np.array(labels_p_white)
+        # b = np.zeros((len(labels_p_white), 225))
+        # b[np.arange(len(labels_p_white)), a] = 1
+        # data_y_p_white = b
+        #
+        # a = np.array(labels_v)
+        # b = np.zeros((len(labels_v), 225))
+        # b[np.arange(len(labels_v)), a] = 1
+        # data_y_v = b
     else:
         data_y_p_black = labels_p_black
         data_y_p_white = labels_p_white
@@ -263,7 +265,7 @@ def test_model(model,csv_file_name,one_hot_encoding):
 if __name__ == '__main__':
     to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 /테스트는 2"))
     csv_file = input(f'사용할 csv 파일 : )')
-    one_hot_encoding = True
+    one_hot_encoding = False
     batch_size = None
     if to_do == 0:
       print("정책망 선택")
