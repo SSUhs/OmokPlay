@@ -68,7 +68,8 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
         data_x_p_black = np.array(data_x_p_black, dtype=np.float32)
     if len(data_x_p_white) >= 1:
         data_x_p_white = np.array(data_x_p_white, dtype=np.float32)
-
+    if len(data_x_v) >= 1:
+        data_x_p_white = np.array(data_x_v, dtype=np.float32)
 
     if len(labels_p_black) >= 1:
         labels_p_black = np.array(labels_p_black, dtype=np.int32)
