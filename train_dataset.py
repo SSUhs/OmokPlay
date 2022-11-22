@@ -59,8 +59,8 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                     labels_p_white.append(int(float(row[0])))
                     data_x_p_white.append(row[3:])
             elif type_train == 2:
-                data_x_v.append(row[3:])
                 labels_v.append(float(row[1]))
+                data_x_v.append(row[3:])
             if count_read % 4000 == 0:
                 print("현재까지 읽은 row 수 :",count_read)
 
@@ -69,7 +69,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
     if len(data_x_p_white) >= 1:
         data_x_p_white = np.array(data_x_p_white, dtype=np.float32)
     if len(data_x_v) >= 1:
-        data_x_p_white = np.array(data_x_v, dtype=np.float32)
+        data_x_v = np.array(data_x_v, dtype=np.float32)
 
     if len(labels_p_black) >= 1:
         labels_p_black = np.array(labels_p_black, dtype=np.int32)
@@ -138,7 +138,6 @@ def get_model(model_type):
         model.add(Flatten())
         model.add(Dense(256, activation='relu'))
         model.add(Dense(1, activation='tanh'))
-        # model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[tf.keras.metrics.RootMeanSquaredError()])
         model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[rmse])
     return model
     # model.save('policy_black.h5')
