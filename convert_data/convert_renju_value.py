@@ -146,6 +146,8 @@ for data_num in range(TRAIN_COUNT):
     print("데이터", data_num + 1)
     print(b_state.shape, w_state.shape)
     print(b_move.shape, w_move.shape)
+    tmp = np.array([b_move])
+    print(tmp.shape)
     print(type(b_move[0]))
     print()
 
