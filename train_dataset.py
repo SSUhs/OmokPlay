@@ -137,7 +137,8 @@ def get_model(model_type):
         model.add(Flatten())
         model.add(Dense(256, activation='relu'))
         model.add(Dense(1, activation='tanh'))
-        model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[rmse])
+        model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=['root_mean_squared_error'])
+        # model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[rmse])
     return model
     # model.save('policy_black.h5')
     # model.save('policy_white.h5')
