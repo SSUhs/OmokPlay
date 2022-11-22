@@ -39,7 +39,7 @@ def check_down(arr_list,y,x,stone):
 def check_down_cross_right(arr_list,y,x,stone):
     cnt = 0
     while True:
-        if y>= 15 or x >=15:
+        if y+cnt>= 15 or x+cnt >=15:
             return False
         elif arr_list[y+cnt][x+cnt] == stone:
             cnt+=1
@@ -50,7 +50,7 @@ def check_down_cross_right(arr_list,y,x,stone):
 def check_down_cross_left(arr_list,y,x,stone):
     cnt = 0
     while True:
-        if y< 0 or x <0 or y>=15 or x>=15:
+        if y+cnt< 0 or x-cnt <0 or y+cnt>=15 or x-cnt>=15:
             return False
         elif arr_list[y+cnt][x-cnt] == stone:
             cnt+=1

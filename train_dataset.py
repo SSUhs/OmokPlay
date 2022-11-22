@@ -9,6 +9,7 @@ from tensorflow.keras.layers import Activation, Dense, Conv2D, Flatten
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.utils import to_categorical
+
 from random import randint
 from tensorflow.keras.models import load_model
 import keras.backend as K
@@ -247,7 +248,8 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
     data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train)
 
 
-    # 여기서 오류 나면, 데이터가 없는 것. 예를 들어 백이 승리한 데이터가 없는 경우
+    # 여기서 오류 나면, 데이터가 없는 것이나 부족한 경우. 예를 들어 백이 승리한 데이터가 없는 경우
+    # 또는 정답지 데이터가
     if type_train == 0:
         data_y_p_black = to_categorical(data_y_p_black)
         print("\n------------------Shape------------------")
@@ -260,6 +262,8 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
         model_policy_b.save(f'{path_google_drive_main + name}_black.h5')
         save_pickle(f'{path_google_drive_main + name}_black.pickle', model_policy_b)
     elif type_train == 1:
+        print("\n------------------Shape------------------")
+        print(f'data_y_p_white : {data_y_p_white.shape}')
         data_y_p_white = to_categorical(data_y_p_white)
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
         model_policy_w.fit(data_y_p_black, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
