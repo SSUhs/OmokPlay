@@ -60,7 +60,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                     data_x_p_white.append(row[3:])
             elif type_train == 2:
                 data_x_v.append(row[3:])
-                labels_v.append(int(float(row[1])))
+                labels_v.append(float(row[1]))
             if count_read % 4000 == 0:
                 print("현재까지 읽은 row 수 :",count_read)
 
@@ -79,7 +79,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
         data_y_p_white = labels_p_white
         data_y_p_white = data_y_p_white.astype(dtype=np.int32)
     if len(labels_v) >= 1:
-        labels_v = np.array(labels_v, dtype=np.int32)
+        labels_v = np.array(labels_v, dtype=np.float64)
         data_y_v = labels_v
         # data_y_v = data_y_v.astype(dtype=np.int32)
 
@@ -227,7 +227,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
     model.summary()
 
-    type_train = int(input("훈련할 대상 (메모리 부족으로 따로 해야함) : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
+    type_train = int(input("훈련할 대상 : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
     data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train)
 
     if type_train == 0:
@@ -257,6 +257,8 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         print("\n------------------Shape------------------")
         print(f'data_x_v : {data_x_v.shape}')
         print(f'data_y_v : {data_y_v.shape}') # ex) 상태가 55개라면 (55,) 로 나와야함
+        print(f'타입 : {type(data_y_v[0])}') # <class 'numpy.float64'>가 나와야 됨
+        print("\n------------------가치망 훈련을 시작합니다------------------")
         model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=20, shuffle=True, validation_split=0.1,
                         callbacks=[cp_callback, plateau])
         model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
