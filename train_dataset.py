@@ -133,7 +133,6 @@ def get_model(model_type):
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
-        model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
         model.add(Conv2D(1, (1, 1), activation='relu', padding='same'))
         model.add(Flatten())
         model.add(Dense(256, activation='relu'))
