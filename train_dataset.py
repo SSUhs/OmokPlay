@@ -255,7 +255,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
     elif type_train == 2:
         # data_y_v = to_categorical(data_y_v)
         data_y_v = np.array([data_y_v])
-        data_y_v.transpose(1,0)
+        data_y_v = data_y_v.transpose(1,0)
         print("\n------------------Shape------------------")
         print(f'data_x_v : {data_x_v.shape}')
         print(f'data_y_v : {data_y_v.shape}') # ex) 상태가 55개라면 (55,) 로 나와야함
