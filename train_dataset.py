@@ -136,7 +136,7 @@ def get_model(model_type):
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
         model.add(Conv2D(1, (1, 1), activation='relu', padding='same'))
         model.add(Flatten())
-        model.add(Dense(225, activation='relu'))
+        model.add(Dense(256, activation='relu'))
         model.add(Dense(1, activation='tanh'))
         model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[rmse])
     return model
