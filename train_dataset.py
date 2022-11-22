@@ -79,6 +79,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
     if len(labels_v) >= 1:
         labels_v = np.array(labels_v, dtype=np.float32)
         data_y_v = labels_v
+        # 혹시 to_categorical에서 오류 나면 이거 float타입이라 categorical이 안될 수도 있음
         data_y_v = data_y_v.astype(dtype=np.float32)
 
 
@@ -251,7 +252,7 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
     # 여기서 오류 나면, 데이터가 없는 것이나 부족한 경우. 예를 들어 백이 승리한 데이터가 없는 경우
     # 또는 정답지 데이터가
     if type_train == 0:
-        data_y_p_black = to_categorical(data_y_p_black)
+        # data_y_p_black = to_categorical(data_y_p_black)
         print("\n------------------Shape------------------")
         print(f'data_x_p_black : {data_x_p_black.shape}')
         print(f'data_y_p_black : {data_y_p_black.shape}')
@@ -263,7 +264,7 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
         save_pickle(f'{path_google_drive_main + name}_black.pickle', model_policy_b)
     elif type_train == 1:
         print("\n------------------Shape------------------")
-        data_y_p_white = to_categorical(data_y_p_white)
+        # data_y_p_white = to_categorical(data_y_p_white)
         print(f'data_y_p_white : {data_y_p_white.shape}')
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
         model_policy_w.fit(data_y_p_black, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
@@ -272,7 +273,7 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
         model_policy_w.save(f'{path_google_drive_main + name}_white.h5')
         save_pickle(f'{path_google_drive_main + name}_white.pickle', model_policy_w)
     elif type_train == 2:
-        data_y_v = to_categorical(data_y_v)
+        # data_y_v = to_categorical(data_y_v) # 가치망 데이터는 이거 안할 수도
         print("\n------------------가치망(흑의 승 기준) 훈련을 시작합니다------------------")
         model_value.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,
                         callbacks=[cp_callback, plateau])
