@@ -264,7 +264,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         print(f'data_y_v : {data_y_v.shape}') # ex) 상태가 55개라면 (55,) 로 나와야함
         # print(f'타입 : {type(data_y_v[0])}') # <class 'numpy.float64'>가 나와야 됨
         print("\n------------------가치망 훈련을 시작합니다------------------")
-        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=20, shuffle=True, validation_split=0.1)
+        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=20, shuffle=True, validation_split=0.1,verbose=1)
         model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_value.h5')
         save_pickle(f'{path_google_drive_main + name}_value.pickle', model)
