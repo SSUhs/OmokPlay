@@ -7,7 +7,6 @@ import collections
 import copy
 import math
 
-from value_net_numpy_tmp import ValueNetTmpNumpy
 
 
 def convert_to_one_dimension(state):
@@ -40,8 +39,9 @@ class player_AI():
         self.is_sequential_model = is_sequential_model
         self.use_mcts_search = use_mcts_search  # MCTS 검색을 쓸 것인지 아니면 단순히 가장 probs가 높은 걸로 리턴할 것인지
         if self.use_mcts_search:
-            value_net_tmp = ValueNetTmpNumpy(board_size=size,net_params_file=f'tf_value_{size}_{train_num}_{self.black_white_ai}.pickle')# numpy로 임시로 구현한 가치망
-            self.mcts = MCTS_TrainSet(self.model, c_puct=5, n_playout=400, is_test_mode=is_test_mode, board_size=size,value_net=value_net_tmp)
+            self.value_net =  여기 추가
+            # value_net_tmp = ValueNetTmpNumpy(board_size=size,net_params_file=f'tf_value_{size}_{train_num}_{self.black_white_ai}.pickle')# numpy로 임시로 구현한 가치망
+            self.mcts = MCTS_TrainSet(self.model, c_puct=5, n_playout=400, is_test_mode=is_test_mode, board_size=size,value_net=value_net)
 
     def convert_to_2nd_loc(self, index):  # 2차원 좌표로 변경
         y = index // self.size
@@ -58,7 +58,6 @@ class player_AI():
         # state : numpy
         state = board.get_states_by_numpy()
         if self.is_sequential_model:
-            print("여기에서 흑은 1, 백은 2로 잘 출력되는지 확인필요!!!!")  # code20221120224154
             # 한번 펼친다음에 넣어볼까??
             inputs = reshape_to_15_15_1(state)  # 현재 상태. 이 상태를 기반으로 예측
             if self.use_mcts_search:
@@ -98,7 +97,6 @@ class player_AI():
 
     # MCTS 기반
     def get_move_mcts(self, board, input):
-        # 금수 제거도 넣기; code20221121165433
         # np.zeros : 0으로만 채워진 배열 생성하는 함수
         if board.width * board.height - len(board.states) > 0:  # 보드판이 꽉 안찬 경우
             # acts와 probs에 의해 착수 위치가 정해진다.
@@ -169,7 +167,8 @@ class MCTS_TrainSet(object):
             leaf = root.select_leaf(state)  # leaf : 노드 객체
             # child_priors가 결국 (82,)가 되든 (81,)가 되든 해야됨
             child_priors = self._policy_model.predict(state)  # NeuralNet.evaluate(leaf.game_state)
-            value_estimate = self.make_value_tmp(child_priors,state)
+            print(f'child_priors shape : {child_priors.shape}')
+            value_estimate = self.get_value(child_priors,state)
             end, winner = state.game_end()
             if end:  # 누군가 이기거나 draw
                 # for end state，return the "true" leaf_value

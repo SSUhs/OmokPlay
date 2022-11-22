@@ -148,7 +148,6 @@ def get_not_sequential_model():
     board_size = 15
     in_x = network = tf.keras.Input((board_size, board_size,1))
     l2_const = 1e-4  # coef of l2 penalty
-    # code20221121183414
     network = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same",
                                      activation="relu", kernel_regularizer=l2(l2_const))(network)
     network = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same",
@@ -225,7 +224,7 @@ def save_pickle(save_path,model):
 def train_model(model,csv_name,is_one_hot_encoding,batch_size):
     name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
     checkpoint_path = name+'.ckpt'
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=path_google_drive_main+checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
     model.summary()
 
@@ -255,8 +254,9 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         model.save(f'{path_google_drive_main + name}_white.h5')
         save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
     elif type_train == 2:
-        # data_y_v = to_categorical(data_y_v) # 가치망 데이터는 이거 안할 수도
-        print("\n------------------가치망(흑의 승 기준) 훈련을 시작합니다------------------")
+        data_y_v = to_categorical(data_y_v)
+        print("\n------------------Shape------------------")
+        print(f'data_y_v : {data_y_v.shape}')
         model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,
                         callbacks=[cp_callback, plateau])
         model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
