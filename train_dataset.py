@@ -252,6 +252,7 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
         data_y_p_black = to_categorical(data_y_p_black)
         print("\n------------------Shape------------------")
         print(f'data_x_p_black : {data_x_p_black.shape}')
+        print(f'data_y_p_black : {data_y_p_black.shape}')
         print("\n------------------흑 정책망 훈련을 시작합니다------------------")
         model_policy_b.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
