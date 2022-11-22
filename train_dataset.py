@@ -138,8 +138,7 @@ def get_model(model_type):
         model.add(Dense(256, activation='relu'))
         model.add(Dense(1, activation='tanh'))
         # model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[tf.keras.metrics.RootMeanSquaredError()])
-        # model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[rmse])
-        model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003))
+        model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[rmse])
     return model
     # model.save('policy_black.h5')
     # model.save('policy_white.h5')
@@ -255,8 +254,11 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
     elif type_train == 2:
         # data_y_v = to_categorical(data_y_v)
-        data_y_v = np.array([data_y_v])
-        data_y_v = data_y_v.transpose(1,0)
+        # data_y_v = np.array([data_y_v])
+        # data_y_v = data_y_v.transpose(1,0)
+        from sklearn.preprocessing import LabelEncoder
+        lb = LabelEncoder()
+        data_y_v = lb.fit_transform(data_y_v)
         print("\n------------------Shape------------------")
         print(f'data_x_v : {data_x_v.shape}')
         print(f'data_y_v : {data_y_v.shape}') # ex) 상태가 55개라면 (55,) 로 나와야함
