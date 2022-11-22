@@ -254,8 +254,8 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
     elif type_train == 2:
         # data_y_v = to_categorical(data_y_v)
-        # data_y_v = np.array([data_y_v])
-        # data_y_v = data_y_v.transpose(1,0)
+        data_y_v = np.array([data_y_v])
+        data_y_v = data_y_v.transpose(1,0)
         from sklearn.preprocessing import LabelEncoder
         lb = LabelEncoder()
         data_y_v = lb.fit_transform(data_y_v)
