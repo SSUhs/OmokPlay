@@ -60,7 +60,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                     data_x_p_white.append(row[3:])
             elif type_train == 2:
                 data_x_v.append(row[3:])
-                labels_v.append(row[1])
+                labels_v.append(float(row[1]))
             if count_read % 4000 == 0:
                 print("현재까지 읽은 row 수 :",count_read)
 
@@ -79,7 +79,6 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
     if len(labels_v) >= 1:
         labels_v = np.array(labels_v, dtype=np.float32)
         data_y_v = labels_v
-        # 혹시 to_categorical에서 오류 나면 이거 float타입이라 categorical이 안될 수도 있음
         data_y_v = data_y_v.astype(dtype=np.float32)
 
 
@@ -237,7 +236,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         print(f'data_x_p_black : {data_x_p_black.shape}')
         print(f'data_y_p_black : {data_y_p_black.shape}')
         print("\n------------------흑 정책망 훈련을 시작합니다------------------")
-        model.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=10, shuffle=True,
+        model.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=20, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
         model.save_weights(f'{path_google_drive_main + name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_black.h5')
@@ -248,7 +247,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         print(f'data_x_p_white : {data_x_p_white.shape}')
         print(f'data_y_p_white : {data_y_p_white.shape}')
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
-        model.fit(data_x_p_white, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
+        model.fit(data_x_p_white, data_y_p_white, batch_size=batch_size, epochs=20, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
         model.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_white.h5')
@@ -257,7 +256,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         data_y_v = to_categorical(data_y_v)
         print("\n------------------Shape------------------")
         print(f'data_y_v : {data_y_v.shape}')
-        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,
+        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=20, shuffle=True, validation_split=0.1,
                         callbacks=[cp_callback, plateau])
         model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_value.h5')
