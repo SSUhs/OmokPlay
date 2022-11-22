@@ -18,35 +18,59 @@ from renju_rule import Renju_Rule
 def get_all_stone_count(arr):
     return np.count_nonzero(arr)
 
-def check_right(arr_list,i,j,stone):
-    for s in range(i,i+5):
+def check_right(arr_list,y,x,stone):
+    for s in range(x,x+5):
         if s >= 15: return False # 좌표 초과
-        if arr_list[s][j] == stone:
+        if arr_list[y][s] == stone:
             continue
         else:
             return False # 하나라도 안되면 탈락
     return True
 
-def check_down_cross(arr_list,i,j,stone):
+def check_down(arr_list,y,x,stone):
+    for s in range(y,y+5):
+        if s >= 15: return False # 좌표 초과
+        if arr_list[s][x] == stone:
+            continue
+        else:
+            return False # 하나라도 안되면 탈락
+    return True
+
+def check_down_cross_right(arr_list,y,x,stone):
     cnt = 0
     while True:
-        if i>= 15 or j >=15:
+        if y>= 15 or x >=15:
             return False
-        elif arr_list[i][j] == stone:
+        elif arr_list[y+cnt][x+cnt] == stone:
             cnt+=1
             if cnt == 5: return True
         else:
             return False
 
+def check_down_cross_left(arr_list,y,x,stone):
+    cnt = 0
+    while True:
+        if y< 0 or x <0 or y>=15 or x>=15:
+            return False
+        elif arr_list[y+cnt][x-cnt] == stone:
+            cnt+=1
+            if cnt == 5: return True
+        else:
+            return False
+
+
+
 # draw면 0, 흑이 이긴거면 1, 백이 이긴거면 2, 예측 불가면 3
 def contains_five(arr_list,size):
-    for i in range(size):
-        for j in range(size):
-            if arr_list[i][j] == 1:
-                if check_right(arr_list,i,j,1) or check_down_cross(arr_list,i,j,1):
+    for y in range(size):
+        for x in range(size):
+            if arr_list[y][x] == 1:
+                if check_right(arr_list,y,x,1) or check_down_cross_right(arr_list,y,x,1) \
+                        or check_down_cross_left(arr_list,y,x,1) or check_down(arr_list,y,x,1):
                     return 1
-            elif arr_list[i][j] == 2:
-                if check_right(arr_list,i,j,2) or check_down_cross(arr_list,i,j,2):
+            elif arr_list[y][x] == 2:
+                if check_right(arr_list,y,x,2) or check_down_cross_right(arr_list,y,x,2)\
+                        or check_down_cross_left(arr_list,y,x,2) or check_down(arr_list,y,x,2):
                     return 2
     return 3
 
@@ -89,6 +113,9 @@ def convert(folder_name):
     # output_csv_name_w = f'csv_data/white/output_{current_time}_w.csv'
 
     print("파일을 읽는 중입니다..")
+    if not os.path.isdir(folder_name):
+        print(f'\"{folder_name}\"은 존재하지 않는 폴더입니다)')
+
     file_list = []
     for (root, directories, files) in os.walk(read_folder):
         for file in files:
@@ -101,8 +128,8 @@ def convert(folder_name):
     f_csv = open(output_csv_name, 'w', encoding='utf-8', newline='')
 
     winner_move_labels = []  # 승자가 이기는 move
-    values_black = []  # 0 or 1
-    values_white = []  # 0 or 1
+    values_black = []  # 0 or 1 # 백은 따로 계산 X (흑의 확률에서 -1)
+    turn_stone = [] # 누구 차례인지 (1이면 흑, 2면 백)
 
     count_not_dataset_file = 0  # 확장자가 dataset 파일이 아닌 경우 (rec, psq 파일이 아닌 경우)
     count_not_1515 = 0  # 15x15가 아니거나 시작 좌표가 0인 경우
@@ -155,42 +182,41 @@ def convert(folder_name):
         else : game_count+=1
 
         all_states = np.zeros([15, 15])  # 하나의 파일이 끝나면 판 초기화
+        # 주의!! 하지만, 훈련 데이터들이 비어있는 데이터로 시작하는게 아니라 흑이 먼저 하나 놓은 상태로 시작한다는 점
         for i in range(len(list)):  # 이건 "한번의 게임"에 들어 있는 좌표 데이터 line
             split = list[i].split(",")
             x = int(split[0])
             y = int(split[1])
 
             if i % 2 == 0:  # 흑
+                turn_stone.append(1)
+                states_list.append(all_states)
+                label = convert_to_label(x, y)
+                winner_move_labels.append(label)
                 t = copy.deepcopy(all_states)
                 t[y - 1][x - 1] = 1
-                label = convert_to_label(x, y)
-                winner_move_labels.append(label)
-                states_list.append(t)
                 all_states = t
             else:  # 백
-                t = copy.deepcopy(all_states)
-                t[y - 1][x - 1] = 2
+                turn_stone.append(2)
+                states_list.append(all_states)
                 label = convert_to_label(x, y)
                 winner_move_labels.append(label)
-                states_list.append(t)
+                t = copy.deepcopy(all_states)
+                t[y - 1][x - 1] = 2
                 all_states = t
 
         winner_number = who_is_winner(arr=all_states,rule=rule)  # draw면 0, 흑이 이긴거면 1, 백이 이긴거면 2, 예측 불가면 3
         if winner_number == 0:
             black_value = 0.5
-            white_value = 0.5
             draw_count += 1
         elif winner_number == 1: # 흑이 승리
             black_value = 1.0
-            white_value = 0.0
             black_win_count += 1
         elif winner_number == 2:  # 백이 승리
             black_value = 0.0
-            white_value = 1.0
             white_win_count += 1
         elif winner_number == 3:
             black_value = -1000.0  # 나중에 가치망에서 학습 할 때 제외
-            white_value = -1000.0  # 나중에 가치망에서 학습 할 때 제외
             unknown_win_count += 1
         else:
             print(winner_number+"이 0,1,2,3이 아닙니다")
@@ -198,11 +224,10 @@ def convert(folder_name):
 
         for i in range(len(list)):
             values_black.append(black_value)
-            values_white.append(white_value)
 
         # 데이터가 잘못들어간 경우
-        if (len(values_black) != len(values_white)) or (len(values_black) != len(states_list)):
-            print(f'데이터 오류 : values_black : {len(values_black)} / values_white : {len(values_white)} / all_states {len(all_states)}')
+        if (len(values_black) != len(states_list)) or (len(values_black) != len(turn_stone)):
+            print(f'데이터 오류 : values_black : {len(values_black)} / turn_stone : {len(turn_stone)} / all_states {len(all_states)}')
             quit()
         else: len_state_count = len(values_black)
 
@@ -219,7 +244,7 @@ def convert(folder_name):
     # header_np = np.array(['next_move','black_value','white_value'])
     # f_csv_writer.writerow()
     for i in range(len_state_count):
-        output = np.insert(states_list[i], 0, float(values_white[i]))
+        output = np.insert(states_list[i], 0, int(turn_stone[i]))
         output = np.insert(output, 0, float(values_black[i]))
         output = np.insert(output, 0, int(winner_move_labels[i]))
         f_csv_writer.writerow(output)

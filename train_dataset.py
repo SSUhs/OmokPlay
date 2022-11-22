@@ -43,24 +43,24 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
         reader = csv.reader(f)
         count_read = 0
         skip_count = 0
-        # 헤더 : move 위치 / black_value / white_value / 상태~
+        # 헤더 : move 위치 / black_value / 누가 돌을 놓을차례(흑1, 백2) / 상태~
         for row in reader: # row는 문자열 리스트
             count_read += 1
-            if float(row[1]) <= -100 or float(row[2]) <= -100: # 승부 판별 불가능
+            if float(row[1]) <= -100: # 승부 판별 불가능
                 skip_count+=1
                 continue
-            if int(float(row[1]) == 1) and int(float(row[2]) == 0): # 흑이 이기는 경우
+            if int(float(row[1]) == 1) and int(float(row[2]) == 1): # 흑이 이기는 경우이면서 흑이 돌을 놓을 차례인 경우
                 if type_train != 0: continue
                 labels_p_black.append(int(float(row[0])))
                 data_x_p_black.append(row[3:])
-            elif int(float(row[1]) == 0) and int(float(row[2]) == 1): # 백이 이기는 경우
+            elif int(float(row[1]) == 2) and int(float(row[2]) == 2): # 백이 이기는 경우 백이 돌을 놓을 차례인 경우
                 if type_train != 1: continue
                 labels_p_white.append(int(float(row[0])))
                 data_x_p_white.append(row[3:])
             else:
                 # 무승부는 따로 학습 X
-                if not (float(row[1]) == 0.5 and float(row[2]) == 0.5): # 무승부도 아닌 경우
-                    print(f"잘못된 value : 행 : {count_read-1} / 흑 : {row[1]} , 백 : {row[2]}")
+                if not float(row[1]) == 0.5: # 무승부도 아닌 경우
+                    print(f"잘못된 value : 행 : {count_read-1} / 흑 가치 : {row[1]} , 차례 : {row[2]}")
                     skip_count += 1
                     continue  # 일단 스킵
 

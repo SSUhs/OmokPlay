@@ -25,26 +25,31 @@ def softmax(x):
 
 
 class player_AI():
-    def __init__(self, size, is_test_mode, black_white, train_num, is_sequential_model=True, use_mcts_search=True,
-                 is_self_play=False):
+    def __init__(self, size, is_test_mode, black_white_human, train_num, is_sequential_model=True, use_mcts_search=False,is_self_play=False):
         self.size = size
         self.is_self_play = is_self_play
         self.is_test_mode = is_test_mode
-        self.black_white = black_white
-        self.model = self.load_model(black_white, train_num)
+        self.black_white_human = black_white_human # 참고로 사람이 흑을 하면 AI는 백을 로딩해야됨
+        self.black_white_ai = None
+        if black_white_human == 'black':
+            self.black_white_ai = 'white'
+        else:
+            self.black_white_ai = 'black'
+
+        self.model = self.load_model(black_white_ai=self.black_white_ai, train_num=train_num)
         self.is_sequential_model = is_sequential_model
         self.use_mcts_search = use_mcts_search  # MCTS 검색을 쓸 것인지 아니면 단순히 가장 probs가 높은 걸로 리턴할 것인지
         if self.use_mcts_search:
-            value_net_tmp = ValueNetTmpNumpy(board_size=size,net_params_file=f'tf_value_{size}_{train_num}_{black_white}.pickle')# numpy로 임시로 구현한 가치망
+            value_net_tmp = ValueNetTmpNumpy(board_size=size,net_params_file=f'tf_value_{size}_{train_num}_{self.black_white_ai}.pickle')# numpy로 임시로 구현한 가치망
             self.mcts = MCTS_TrainSet(self.model, c_puct=5, n_playout=400, is_test_mode=is_test_mode, board_size=size,value_net=value_net_tmp)
 
     def convert_to_2nd_loc(self, index):  # 2차원 좌표로 변경
-        y = index / self.size
-        x = index - (index / self.size)
-        return x, y
+        y = index // self.size
+        x = index - y
+        return x,y
 
-    def load_model(self, black_white, train_num):
-        model_file = f'./model_train/tf_policy_{self.size}_{train_num}_{black_white}.h5'
+    def load_model(self, black_white_ai, train_num):
+        model_file = f'./model_train/tf_policy_{self.size}_{train_num}_{black_white_ai}.h5'
         model = tf.keras.models.load_model(model_file)
         return model
 
@@ -54,13 +59,14 @@ class player_AI():
         state = board.get_states_by_numpy()
         if self.is_sequential_model:
             print("여기에서 흑은 1, 백은 2로 잘 출력되는지 확인필요!!!!")  # code20221120224154
+            # 한번 펼친다음에 넣어볼까??
             inputs = reshape_to_15_15_1(state)  # 현재 상태. 이 상태를 기반으로 예측
             if self.use_mcts_search:
                 move = self.get_move_mcts(board, inputs)  # mcts를 사용해서 추가 예측
             else:
                 move = self.get_move_not_mcts(board, inputs)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
             x, y = self.convert_to_2nd_loc(move)
-            print(f"선택된 move : {move} = ({x},{y}")
+            print(f"선택된 move : {move} = ({y-1},{x-1})")
             return move
         else:
             print("sequential 아닌 것은 아직 구현 X")
@@ -85,7 +91,7 @@ class player_AI():
 
     # 이미 수가 놓아진 자리 or 금수 자리
     def is_banned_pos(self, board, index):
-        if (index in board.states) or (self.black_white == 'black' and (index in board.forbidden_moves)):
+        if (index in board.states) or (self.black_white_ai == 'black' and (index in board.forbidden_moves)):
             return True
         else:
             return False

@@ -2,9 +2,7 @@ import pygame as pg
 import ctypes
 from Human import Human
 import game
-import time
-from tkinter import messagebox
-from tkinter import *
+
 
 from game import Board, Game
 import pickle
@@ -139,12 +137,12 @@ class Gui:
             if self.is_test:
                 print("테스트  플레이 모드")
                 if self.is_train_set_mode:
-                    computer_player = player_AI(size=self.width_height,is_test_mode=True,black_white=black_white,train_num=hard_gui)
+                    computer_player = player_AI(size=self.width_height,is_test_mode=True,black_white_human=black_white,train_num=hard_gui)
                 else:
                     computer_player = MCTSPlayerNew(self.best_policy.policy_value_fn_new,self.width_height, c_puct=5, n_playout=400,is_test_mode=True)
             else:
                 if self.is_train_set_mode:
-                    computer_player = player_AI(self.width_height,is_test_mode=True,black_white=black_white,train_num=hard_gui)
+                    computer_player = player_AI(self.width_height,is_test_mode=True,black_white_human=black_white,train_num=hard_gui)
                 else:
                     computer_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5,
                                      n_playout=400)  # set larger n_playout for better performance
