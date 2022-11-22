@@ -49,11 +49,15 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
             if float(row[1]) <= -100: # 승부 판별 불가능
                 skip_count+=1
                 continue
-            if int(float(row[1]) == 1) and int(float(row[2]) == 1): # 흑이 이기는 경우이면서 흑이 돌을 놓을 차례인 경우
-                if type_train != 0: continue
+            if int(float(row[1]) == 1): # 흑이 이기는 경우이면서 흑이 돌을 놓을 차례인 경우
+                if not int(float(row[2]) == 1): # 흑 차례가 아니면
+                    continue
+                if type_train != 0: continue # 흑 정책망 학습하는게 아니면 스킵
                 labels_p_black.append(int(float(row[0])))
                 data_x_p_black.append(row[3:])
-            elif int(float(row[1]) == 2) and int(float(row[2]) == 2): # 백이 이기는 경우 백이 돌을 놓을 차례인 경우
+            elif int(float(row[1]) == 2): # 백이 이기는 경우 백이 돌을 놓을 차례인 경우
+                if not int(float(row[2]) == 2):  # 백이 놓을 차례가 아니면 스킵
+                    continue
                 if type_train != 1: continue
                 labels_p_white.append(int(float(row[0])))
                 data_x_p_white.append(row[3:])
