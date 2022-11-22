@@ -239,7 +239,7 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
     # 여기서 오류 나면, 데이터가 없는 것이나 부족한 경우. 예를 들어 백이 승리한 데이터가 없는 경우
     # 또는 정답지 데이터가
     if type_train == 0:
-        # data_y_p_black = to_categorical(data_y_p_black)
+        data_y_p_black = to_categorical(data_y_p_black)
         print("\n------------------Shape------------------")
         print(f'data_x_p_black : {data_x_p_black.shape}')
         print(f'data_y_p_black : {data_y_p_black.shape}')
@@ -251,7 +251,7 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
         save_pickle(f'{path_google_drive_main + name}_black.pickle', model_policy_b)
     elif type_train == 1:
         print("\n------------------Shape------------------")
-        # data_y_p_white = to_categorical(data_y_p_white)
+        data_y_p_white = to_categorical(data_y_p_white)
         print(f'data_y_p_white : {data_y_p_white.shape}')
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
         model_policy_w.fit(data_y_p_black, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
