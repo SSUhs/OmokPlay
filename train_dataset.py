@@ -81,7 +81,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
     if len(labels_v) >= 1:
         labels_v = np.array(labels_v, dtype=np.float64)
         data_y_v = labels_v
-        # data_y_v = data_y_v.astype(dtype=np.int32)
+        data_y_v = data_y_v.astype(dtype=np.float64)
 
     if is_one_hot_encoding:
         print("0 1만으로 표현하지 않으므로 사용 X")

@@ -207,16 +207,16 @@ def convert(folder_name):
 
         winner_number = who_is_winner(arr=all_states,rule=rule)  # draw면 0, 흑이 이긴거면 1, 백이 이긴거면 2, 예측 불가면 3
         if winner_number == 0: # 무승부
-            black_value = 50
+            black_value = 0.5
             draw_count += 1
         elif winner_number == 1: # 흑이 승리
-            black_value = 100
+            black_value = 1.0
             black_win_count += 1
         elif winner_number == 2:  # 백이 승리
-            black_value = 0
+            black_value = 0.0
             white_win_count += 1
         elif winner_number == 3:
-            black_value = -1000  # 나중에 가치망에서 학습 할 때 제외
+            black_value = 0.5  # 나중에 가치망에서 학습 할 때 제외
             unknown_win_count += 1
             if unknown_win_count < 3:
                 unknown_sample.append(copy.deepcopy(all_states))
@@ -247,7 +247,7 @@ def convert(folder_name):
     # f_csv_writer.writerow()
     for i in range(len_state_count):
         output = np.insert(states_list[i], 0, int(turn_stone[i]))
-        output = np.insert(output, 0, int(values_black[i]))
+        output = np.insert(output, 0, float(values_black[i]))
         output = np.insert(output, 0, int(winner_move_labels[i]))
         f_csv_writer.writerow(output)
         if i % 5000 == 0:
@@ -263,7 +263,7 @@ def convert(folder_name):
     print(f"백 승리 :  {white_win_count}")
     print(f"무승부 :  {draw_count}")
     print(f"승리 판별 불가 :  {unknown_win_count}")
-    print(f'판별 불가 상태 샘플 : {unknown_sample}')
+    print(f'판별 불가 상태 샘플 : \n{unknown_sample}')
     print(f'파일 경로 : {output_csv_name}')
     f_csv.close()
 
