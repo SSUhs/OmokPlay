@@ -55,7 +55,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                     labels_p_black.append(int(float(row[0])))
                     data_x_p_black.append(row[3:])
             elif type_train == 1: # 백 정책망 학습
-                if int(float(row[1]) == 2) and int(float(row[2]) == 2):  # 백이 이기는 경우이면서 백이 돌을 놓을 차례인 경우
+                if int(float(row[1]) == 0) and int(float(row[2]) == 2):  # 백이 이기는 경우이면서 백이 돌을 놓을 차례인 경우
                     labels_p_white.append(int(float(row[0])))
                     data_x_p_white.append(row[3:])
             elif type_train == 2:
@@ -86,20 +86,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
     if is_one_hot_encoding:
         print("0 1만으로 표현하지 않으므로 사용 X")
         quit()
-        # a = np.array(labels_p_black)
-        # b = np.zeros((len(labels_p_black), 225))
-        # b[np.arange(len(labels_p_black)), a] = 1
-        # data_y_p_black = b
-        #
-        # a = np.array(labels_p_white)
-        # b = np.zeros((len(labels_p_white), 225))
-        # b[np.arange(len(labels_p_white)), a] = 1
-        # data_y_p_white = b
-        #
-        # a = np.array(labels_v)
-        # b = np.zeros((len(labels_v), 225))
-        # b[np.arange(len(labels_v)), a] = 1
-        # data_y_v = b
+
 
     return data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v
 
