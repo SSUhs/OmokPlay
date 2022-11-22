@@ -49,27 +49,15 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
             if float(row[1]) <= -100: # 승부 판별 불가능
                 skip_count+=1
                 continue
-            if int(float(row[1]) == 1): # 흑이 이기는 경우이면서 흑이 돌을 놓을 차례인 경우
-                if not int(float(row[2]) == 1): # 흑 차례가 아니면
-                    continue
-                if type_train != 0: continue # 흑 정책망 학습하는게 아니면 스킵
-                labels_p_black.append(int(float(row[0])))
-                data_x_p_black.append(row[3:])
-            elif int(float(row[1]) == 2): # 백이 이기는 경우 백이 돌을 놓을 차례인 경우
-                if not int(float(row[2]) == 2):  # 백이 놓을 차례가 아니면 스킵
-                    continue
-                if type_train != 1: continue
-                labels_p_white.append(int(float(row[0])))
-                data_x_p_white.append(row[3:])
-            else:
-                # 무승부는 따로 학습 X
-                if not float(row[1]) == 0.5: # 무승부도 아닌 경우
-                    print(f"잘못된 value : 행 : {count_read-1} / 흑 가치 : {row[1]} , 차례 : {row[2]}")
-                    skip_count += 1
-                    continue  # 일단 스킵
-
-            # 가치망 데이터는 흑이 이길 확률
-            if type_train == 2:
+            if type_train == 0: # 흑 정책망 학습
+                if int(float(row[1]) == 1) and int(float(row[2]) == 1):  # 흑이 이기는 경우이면서 흑이 돌을 놓을 차례인 경우
+                    labels_p_black.append(int(float(row[0])))
+                    data_x_p_black.append(row[3:])
+            elif type_train == 1: # 백 정책망 학습
+                if int(float(row[1]) == 2) and int(float(row[2]) == 2):  # 백이 이기는 경우이면서 백이 돌을 놓을 차례인 경우
+                    labels_p_white.append(int(float(row[0])))
+                    data_x_p_white.append(row[3:])
+            elif type_train == 2:
                 data_x_v.append(row[3:])
                 labels_v.append(row[1])
             if count_read % 4000 == 0:
@@ -262,6 +250,8 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
     # 여기서 오류 나면, 데이터가 없는 것. 예를 들어 백이 승리한 데이터가 없는 경우
     if type_train == 0:
         data_y_p_black = to_categorical(data_y_p_black)
+        print("\n------------------Shape------------------")
+        print(f'data_x_p_black : {data_x_p_black.shape}')
         print("\n------------------흑 정책망 훈련을 시작합니다------------------")
         model_policy_b.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
