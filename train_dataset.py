@@ -71,11 +71,11 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
     if len(labels_p_black) >= 1:
         labels_p_black = np.array(labels_p_black, dtype=np.int32)
         data_y_p_black = labels_p_black
-        data_y_p_black = data_y_p_black.astype(dtype=np.float32)
+        data_y_p_black = data_y_p_black.astype(dtype=np.int32)
     if len(labels_p_white) >= 1:
         labels_p_white = np.array(labels_p_white, dtype=np.int32)
         data_y_p_white = labels_p_white
-        data_y_p_white = data_y_p_white.astype(dtype=np.float32)
+        data_y_p_white = data_y_p_white.astype(dtype=np.int32)
     if len(labels_v) >= 1:
         labels_v = np.array(labels_v, dtype=np.float32)
         data_y_v = labels_v
@@ -263,8 +263,8 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
         save_pickle(f'{path_google_drive_main + name}_black.pickle', model_policy_b)
     elif type_train == 1:
         print("\n------------------Shape------------------")
-        print(f'data_y_p_white : {data_y_p_white.shape}')
         data_y_p_white = to_categorical(data_y_p_white)
+        print(f'data_y_p_white : {data_y_p_white.shape}')
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
         model_policy_w.fit(data_y_p_black, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
