@@ -222,52 +222,46 @@ def save_pickle(save_path,model):
     pickle.dump(net_params, open(save_path, 'wb'), protocol=2)
 
 
-def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_encoding,batch_size):
+def train_model(model,csv_name,is_one_hot_encoding,batch_size):
     name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
     checkpoint_path = name+'.ckpt'
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
-    print("\n------------------정책망 (흑) ------------------")
-    model_policy_b.summary() # 어차피 흑이나 백이나 망은 동일한 구조이므로 하나만 출력
-    print("\n------------------가치망------------------")
-    model_value.summary()
+    model.summary()
 
     type_train = int(input("훈련할 대상 (메모리 부족으로 따로 해야함) : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
     data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train)
 
-
-    # 여기서 오류 나면, 데이터가 없는 것이나 부족한 경우. 예를 들어 백이 승리한 데이터가 없는 경우
-    # 또는 정답지 데이터가
     if type_train == 0:
         data_y_p_black = to_categorical(data_y_p_black)
         print("\n------------------Shape------------------")
         print(f'data_x_p_black : {data_x_p_black.shape}')
         print(f'data_y_p_black : {data_y_p_black.shape}')
         print("\n------------------흑 정책망 훈련을 시작합니다------------------")
-        model_policy_b.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=10, shuffle=True,
+        model.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
-        model_policy_b.save_weights(f'{path_google_drive_main + name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
-        model_policy_b.save(f'{path_google_drive_main + name}_black.h5')
-        save_pickle(f'{path_google_drive_main + name}_black.pickle', model_policy_b)
+        model.save_weights(f'{path_google_drive_main + name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        model.save(f'{path_google_drive_main + name}_black.h5')
+        save_pickle(f'{path_google_drive_main + name}_black.pickle', model)
     elif type_train == 1:
         print("\n------------------Shape------------------")
         data_y_p_white = to_categorical(data_y_p_white)
         print(f'data_x_p_white : {data_x_p_white.shape}')
         print(f'data_y_p_white : {data_y_p_white.shape}')
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
-        model_policy_w.fit(data_x_p_white, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
+        model.fit(data_x_p_white, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
-        model_policy_w.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
-        model_policy_w.save(f'{path_google_drive_main + name}_white.h5')
-        save_pickle(f'{path_google_drive_main + name}_white.pickle', model_policy_w)
+        model.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        model.save(f'{path_google_drive_main + name}_white.h5')
+        save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
     elif type_train == 2:
         # data_y_v = to_categorical(data_y_v) # 가치망 데이터는 이거 안할 수도
         print("\n------------------가치망(흑의 승 기준) 훈련을 시작합니다------------------")
-        model_value.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,
+        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1,
                         callbacks=[cp_callback, plateau])
-        model_value.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
-        model_value.save(f'{path_google_drive_main + name}_value.h5')
-        save_pickle(f'{path_google_drive_main + name}_value.pickle', model_value)
+        model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        model.save(f'{path_google_drive_main + name}_value.h5')
+        save_pickle(f'{path_google_drive_main + name}_value.pickle', model)
     else:
         print("없는 경우 - type-train")
 
@@ -299,16 +293,11 @@ def test_model(model,csv_file_name,one_hot_encoding):
 
 
 if __name__ == '__main__':
-    to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 /테스트는 2"))
-    csv_file = input(f'사용할 csv 파일 : )')
+    to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 / 테스트 : 2"))
     one_hot_encoding = False
     batch_size = None
     if to_do == 0:
-      print("\n정책망 선택")
-      model_policy_b = make_new_model()
-      model_policy_w = copy.deepcopy(model_policy_b)
-      print("\n가치망 선택")
-      model_value = make_new_model()
+      model = make_new_model()
     elif to_do == 1:
       model_file_name = input(f"이어서 학습할 모델 파일 (기본 경로 : {path_saved_model}")
       model = load_saved_model(model_file_name)
@@ -319,8 +308,9 @@ if __name__ == '__main__':
       print("없는 경우")
       quit()
 
+    csv_file = input(f'사용할 csv 파일 : )')
     if to_do == 0 or to_do == 1:
-        train_model(model_policy_b,model_policy_w,model_value,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512)
+        train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512)
     elif to_do == 2:
         test_model(model,csv_file_name=csv_file,one_hot_encoding=one_hot_encoding)
 
