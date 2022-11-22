@@ -252,6 +252,7 @@ def train_model(model_policy_b,model_policy_w,model_value,csv_name,is_one_hot_en
     elif type_train == 1:
         print("\n------------------Shape------------------")
         data_y_p_white = to_categorical(data_y_p_white)
+        print(f'data_y_p_black : {data_y_p_black.shape}')
         print(f'data_y_p_white : {data_y_p_white.shape}')
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
         model_policy_w.fit(data_y_p_black, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
