@@ -5,7 +5,6 @@ import copy
 import math
 import csv
 from datetime import time, datetime
-
 import numpy as np
 import os
 
@@ -142,6 +141,7 @@ def convert(folder_name):
     draw_count = 0 # (디버그용)
     game_count = 0
     unknown_win_count = 0 # (디버그용) 누가 이겼는지 판단이 안되는 경우
+    unknown_sample = [] # (디버그용) 승리 알 수 없는 데이터 중 일부
     states_list = []  # state
 
     print(f"변환 할 전체 파일 수 : {file_list_len}")
@@ -206,18 +206,20 @@ def convert(folder_name):
                 all_states = t
 
         winner_number = who_is_winner(arr=all_states,rule=rule)  # draw면 0, 흑이 이긴거면 1, 백이 이긴거면 2, 예측 불가면 3
-        if winner_number == 0:
-            black_value = 0.5
+        if winner_number == 0: # 무승부
+            black_value = 50
             draw_count += 1
         elif winner_number == 1: # 흑이 승리
-            black_value = 1.0
+            black_value = 100
             black_win_count += 1
         elif winner_number == 2:  # 백이 승리
-            black_value = 0.0
+            black_value = 0
             white_win_count += 1
         elif winner_number == 3:
-            black_value = -1000.0  # 나중에 가치망에서 학습 할 때 제외
+            black_value = -1000  # 나중에 가치망에서 학습 할 때 제외
             unknown_win_count += 1
+            if unknown_win_count < 3:
+                unknown_sample.append(copy.deepcopy(all_states))
         else:
             print(winner_number+"이 0,1,2,3이 아닙니다")
             quit()
@@ -245,7 +247,7 @@ def convert(folder_name):
     # f_csv_writer.writerow()
     for i in range(len_state_count):
         output = np.insert(states_list[i], 0, int(turn_stone[i]))
-        output = np.insert(output, 0, float(values_black[i]))
+        output = np.insert(output, 0, int(values_black[i]))
         output = np.insert(output, 0, int(winner_move_labels[i]))
         f_csv_writer.writerow(output)
         if i % 5000 == 0:
@@ -261,6 +263,7 @@ def convert(folder_name):
     print(f"백 승리 :  {white_win_count}")
     print(f"무승부 :  {draw_count}")
     print(f"승리 판별 불가 :  {unknown_win_count}")
+    print(f'판별 불가 상태 샘플 : {unknown_sample}')
     print(f'파일 경로 : {output_csv_name}')
     f_csv.close()
 

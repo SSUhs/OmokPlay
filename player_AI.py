@@ -35,21 +35,28 @@ class player_AI():
         else:
             self.black_white_ai = 'black'
 
-        self.model = self.load_model(black_white_ai=self.black_white_ai, train_num=train_num)
+        self.model = self.load_model(model_type='policy',black_white_ai=self.black_white_ai, train_num=train_num)
         self.is_sequential_model = is_sequential_model
         self.use_mcts_search = use_mcts_search  # MCTS 검색을 쓸 것인지 아니면 단순히 가장 probs가 높은 걸로 리턴할 것인지
         if self.use_mcts_search:
-            self.value_net =  여기 추가
+            self.value_net_model = self.load_model(model_type='value',black_white_ai=self.black_white_ai,train_num=train_num)
             # value_net_tmp = ValueNetTmpNumpy(board_size=size,net_params_file=f'tf_value_{size}_{train_num}_{self.black_white_ai}.pickle')# numpy로 임시로 구현한 가치망
-            self.mcts = MCTS_TrainSet(self.model, c_puct=5, n_playout=400, is_test_mode=is_test_mode, board_size=size,value_net=value_net)
+            self.mcts = MCTS_TrainSet(self.model, c_puct=5, n_playout=400, is_test_mode=is_test_mode, board_size=size,value_net_model=value_net_model)
 
     def convert_to_2nd_loc(self, index):  # 2차원 좌표로 변경
         y = index // self.size
         x = index - y
         return x,y
 
-    def load_model(self, black_white_ai, train_num):
-        model_file = f'./model_train/tf_policy_{self.size}_{train_num}_{black_white_ai}.h5'
+    def load_model(self, model_type,black_white_ai, train_num):
+        model_file = None
+        if model_type == 'policy':
+            model_file = f'./model_train/tf_policy_{self.size}_{train_num}_{black_white_ai}.h5'
+        elif model_type == 'value':
+            model_file = f'./model_train/tf_value_{self.size}_{train_num}_{black_white_ai}.h5'
+        else:
+            print("잘못된 타입")
+            quit()
         model = tf.keras.models.load_model(model_file)
         return model
 
@@ -130,7 +137,7 @@ class player_AI():
 class MCTS_TrainSet(object):
     """An implementation of Monte Carlo Tree Search."""
 
-    def __init__(self, model, c_puct=5, n_playout=400, is_test_mode=False, board_size=None,value_net=None):
+    def __init__(self, model, c_puct=5, n_playout=400, is_test_mode=False, board_size=None,value_net_model=None):
         """
         policy_value_fn: a function that takes in a board_img state and outputs
             a list of (action, probability) tuples and also a score in [-1, 1]
@@ -146,7 +153,7 @@ class MCTS_TrainSet(object):
         self._c_puct = c_puct
         self._n_playout = n_playout
         self.is_test_mode = is_test_mode
-        self.value_net = value_net
+        self.value_net_model = value_net_model
 
     def get_zero_board(self):
         zero_board = np.zeros(self.board_size * self.board_size)
@@ -168,7 +175,7 @@ class MCTS_TrainSet(object):
             # child_priors가 결국 (82,)가 되든 (81,)가 되든 해야됨
             child_priors = self._policy_model.predict(state)  # NeuralNet.evaluate(leaf.game_state)
             print(f'child_priors shape : {child_priors.shape}')
-            value_estimate = self.get_value(child_priors,state)
+            value_estimate = self.value_net_model.predict(state)
             end, winner = state.game_end()
             if end:  # 누군가 이기거나 draw
                 # for end state，return the "true" leaf_value
