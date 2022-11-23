@@ -56,7 +56,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                 rotate_12dir_states = get_rotate_board_12dir(board_2nd) # 12번 뒤집은 state
                 rotate_12dir_labels = get_rotate_label(label,board_size)
                 for i in range(len(rotate_12dir_states)):
-                    data_x_p_black.append(list(rotate_12dir_states[i]))
+                    data_x_p_black.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
                     labels_p_black.append(int(rotate_12dir_labels[i]))
             elif type_train == 1: # 백 정책망 학습
                 # if float(row[1]) >= 0.5 and int(float(row[2]) == 2):  # 백이 이기거나 비기는 경우면서 백이 돌을 놓을 차례인 경우
@@ -66,7 +66,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                 rotate_12dir_states = get_rotate_board_12dir(board_2nd) # 12번 뒤집은 state
                 rotate_12dir_labels = get_rotate_label(label,board_size)
                 for i in range(len(rotate_12dir_states)):
-                    data_x_p_white.append(list(rotate_12dir_states[i]))
+                    data_x_p_white.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
                     labels_p_white.append(int(rotate_12dir_labels[i]))
             # elif type_train == 1: # 백 정책망 학습
             #     if float(row[1]) >= 0.5 and int(float(row[2]) == 2):  # 백이 이기거나 비기는 경우면서 백이 돌을 놓을 차례인 경우
@@ -78,16 +78,20 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                 board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]),board_size=board_size) # 2차원 형태로 state 변경
                 rotate_12dir_states = get_rotate_board_12dir(board_2nd) # 12번 뒤집은 state
                 for i in range(len(rotate_12dir_states)):
-                    data_x_v.append(list(rotate_12dir_states[i]))
+                    data_x_v.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
                     labels_v.append(float(row[1]))
             if count_read % 4000 == 0:
                 print("현재까지 읽은 row 수 :",count_read)
 
+    print(f"\n불러온 row : {count_read}")
     if len(data_x_p_black) >= 1:
+        print(f'회전 포함 전체 개수 : {len(data_x_p_black)}')
         data_x_p_black = np.array(data_x_p_black, dtype=np.float32)
     if len(data_x_p_white) >= 1:
+        print(f'회전 포함 전체 개수 : {len(data_x_p_white)}')
         data_x_p_white = np.array(data_x_p_white, dtype=np.float32)
     if len(data_x_v) >= 1:
+        print(f'회전 포함 전체 개수 : {len(data_x_v)}')
         data_x_v = np.array(data_x_v, dtype=np.float32)
 
     if len(labels_p_black) >= 1:

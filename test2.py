@@ -51,6 +51,7 @@ def convert_label_to_board(move,board_size):
 test_1nd = np.linspace(0, 224, 225)
 arr_2nd = convert_1nd_board_to_2nd(test_1nd,15)
 arr_1nd = convert_2nd_board_to_1nd(arr_2nd)
+listTest = list(arr_1nd)
 arr = np.zeros([5,5])
 arr[1][2] = 1
 arr[2][3] = 2
