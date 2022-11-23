@@ -51,13 +51,15 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                 skip_count+=1
                 continue
             if type_train == 0: # 흑 정책망 학습
-                if float(row[1]) <= 0.5 and int(float(row[2]) == 1):  # 흑이 이기거나 비기는 경우면서 흑이 돌을 놓을 차례인 경우
-                    labels_p_black.append(int(float(row[0])))
-                    data_x_p_black.append(row[3:])
+                # 일단 전부 다 학습
+                # if float(row[1]) <= 0.5 and int(float(row[2]) == 1):  # 흑이 이기거나 비기는 경우면서 흑이 돌을 놓을 차례인 경우
+                labels_p_black.append(int(float(row[0])))
+                data_x_p_black.append(row[3:])
             elif type_train == 1: # 백 정책망 학습
-                if float(row[1]) >= 0.5 and int(float(row[2]) == 2):  # 백이 이기거나 비기는 경우면서 백이 돌을 놓을 차례인 경우
-                    labels_p_white.append(int(float(row[0])))
-                    data_x_p_white.append(row[3:])
+                # if float(row[1]) >= 0.5 and int(float(row[2]) == 2):  # 백이 이기거나 비기는 경우면서 백이 돌을 놓을 차례인 경우
+                # 일단 전부 다 학습
+                labels_p_white.append(int(float(row[0])))
+                data_x_p_white.append(row[3:])
             elif type_train == 2:
                 labels_v.append(float(row[1]))
                 data_x_v.append(row[3:])
