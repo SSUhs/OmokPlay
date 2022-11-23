@@ -216,7 +216,7 @@ def convert(folder_name):
             black_value = 0.0
             white_win_count += 1
         elif winner_number == 3:
-            black_value = 0.5  # 나중에 가치망에서 학습 할 때 제외
+            black_value = 0.5  # 판별이 안되는건 무승부
             unknown_win_count += 1
             if unknown_win_count < 3:
                 unknown_sample.append(copy.deepcopy(all_states))

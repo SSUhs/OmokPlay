@@ -51,11 +51,11 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                 skip_count+=1
                 continue
             if type_train == 0: # 흑 정책망 학습
-                if int(float(row[1]) == 1) and int(float(row[2]) == 1):  # 흑이 이기는 경우이면서 흑이 돌을 놓을 차례인 경우
+                if float(row[1]) <= 0.5 and int(float(row[2]) == 1):  # 흑이 이기거나 비기는 경우면서 흑이 돌을 놓을 차례인 경우
                     labels_p_black.append(int(float(row[0])))
                     data_x_p_black.append(row[3:])
             elif type_train == 1: # 백 정책망 학습
-                if int(float(row[1]) == 0) and int(float(row[2]) == 2):  # 백이 이기는 경우이면서 백이 돌을 놓을 차례인 경우
+                if float(row[1]) >= 0.5 and int(float(row[2]) == 2):  # 백이 이기거나 비기는 경우면서 백이 돌을 놓을 차례인 경우
                     labels_p_white.append(int(float(row[0])))
                     data_x_p_white.append(row[3:])
             elif type_train == 2:
@@ -236,22 +236,22 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         print(f'data_x_p_black : {data_x_p_black.shape}')
         print(f'data_y_p_black : {data_y_p_black.shape}')
         print("\n------------------흑 정책망 훈련을 시작합니다------------------")
-        model.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=20, shuffle=True,
+        model.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
         model.save_weights(f'{path_google_drive_main + name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_black.h5')
-        save_pickle(f'{path_google_drive_main + name}_black.pickle', model)
+        # save_pickle(f'{path_google_drive_main + name}_black.pickle', model)
     elif type_train == 1:
         print("\n------------------Shape------------------")
         data_y_p_white = to_categorical(data_y_p_white)
         print(f'data_x_p_white : {data_x_p_white.shape}')
         print(f'data_y_p_white : {data_y_p_white.shape}')
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
-        model.fit(data_x_p_white, data_y_p_white, batch_size=batch_size, epochs=20, shuffle=True,
+        model.fit(data_x_p_white, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
         model.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_white.h5')
-        save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
+        # save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
     elif type_train == 2:
         # data_y_v = to_categorical(data_y_v)
         # data_y_v = np.array([data_y_v])
@@ -265,10 +265,10 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size):
         print(f'data_y_v : {data_y_v.shape}') # ex) 상태가 55개라면 (55,) 로 나와야함
         # print(f'타입 : {type(data_y_v[0])}') # <class 'numpy.float64'>가 나와야 됨
         print("\n------------------가치망 훈련을 시작합니다------------------")
-        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=20, shuffle=True, validation_split=0.1)
+        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1)
         model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_value.h5')
-        save_pickle(f'{path_google_drive_main + name}_value.pickle', model)
+        # save_pickle(f'{path_google_drive_main + name}_value.pickle', model)
     else:
         print("없는 경우 - type-train")
 

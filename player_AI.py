@@ -79,7 +79,7 @@ class player_AI():
             quit()
 
     # 금수 or 이미 수가 놓아지지 않은 자리 중에서 가장 최선의 인덱스
-    def get_best_not_banned(self, probs, board):
+    def get_best_idx(self, probs, board):
         probs_tmp = copy.deepcopy(probs)
         while True:
             best_index = np.argmax(probs_tmp[0])
@@ -93,7 +93,7 @@ class player_AI():
 
     def get_move_not_mcts(self, board, input):
         probs = self.model.predict(input)
-        return self.get_best_not_banned(probs, board)
+        return self.get_best_idx(probs, board)
 
     # 이미 수가 놓아진 자리 or 금수 자리
     def is_banned_pos(self, board, index):
@@ -122,7 +122,7 @@ class player_AI():
                 # if self.is_test_mode:
                 #     print(f'update_with_move 하는데 소요된 시간 : {time() - time_update_with_move}')
             else:  # 플레이어와 대결하는 경우
-                move = self.get_best_not_banned(probs,board) # 금수 or 이미 놓지 않은 자리중에서 가장 좋은 자리 선택
+                move = self.get_best_idx(probs, board)  # 금수 or 이미 놓지 않은 자리중에서 가장 좋은 자리 선택
                 print("mcts ai가 고른 자리 : ", move)
                 # 점검
                 self.mcts.update_with_move(-1)
