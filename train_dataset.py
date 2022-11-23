@@ -54,6 +54,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                 label = int(float(row[0])) # 정답 라벨
                 board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]),board_size=board_size) # 2차원 형태로 state 변경
                 rotate_12dir_states = get_rotate_board_12dir(board_2nd) # 12번 뒤집은 state
+                board_2nd = None
                 rotate_12dir_labels = get_rotate_label(label,board_size)
                 for i in range(len(rotate_12dir_states)):
                     data_x_p_black.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
@@ -65,6 +66,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train):
                 board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]),board_size=board_size) # 2차원 형태로 state 변경
                 rotate_12dir_states = get_rotate_board_12dir(board_2nd) # 12번 뒤집은 state
                 rotate_12dir_labels = get_rotate_label(label,board_size)
+                board_2nd = None
                 for i in range(len(rotate_12dir_states)):
                     data_x_p_white.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
                     labels_p_white.append(int(rotate_12dir_labels[i]))
