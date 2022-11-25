@@ -382,7 +382,9 @@ def test_model(model,csv_file_name,one_hot_encoding):
 if __name__ == '__main__':
     to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 / 테스트 데이터 : 2 / 기타 : 3"))
     auto_rotate = int(input("램 내에서 회전 데이터 추가 : 맞으면 1, 아니면 0"))
-    csv_file = input(f'사용할 csv 파일 : )')
+    csv_file_all = input(f'사용할 csv 파일 (파일이 여러개면 \' and \'로 구별): ')
+    csv_file_list = csv_file_all.split(' and ')
+
     if auto_rotate == 0: auto_rotate = False
     elif auto_rotate == 1: auto_rotate = True
     else:
@@ -393,10 +395,10 @@ if __name__ == '__main__':
     if to_do == 0:
       model = make_new_model()
     elif to_do == 1:
-      model_file_name = input(f"이어서 학습할 모델 파일 (기본 경로 : {path_saved_model}")
+      model_file_name = input(f"이어서 학습할 모델 파일 (기본 경로 : {path_saved_model} )")
       model = load_saved_model(model_file_name)
     elif to_do == 2:
-      model_file_name = input(f"테스트에 사용할 모델 파일 (기본 경로 : {path_saved_model}")
+      model_file_name = input(f"테스트에 사용할 모델 파일 (기본 경로 : {path_saved_model} )")
       model = load_saved_model(model_file_name)
     elif to_do == 3:
         csv_name = input("csv name : ")
@@ -407,8 +409,14 @@ if __name__ == '__main__':
       quit()
 
     if to_do == 0 or to_do == 1:
-        train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512,auto_rotate=auto_rotate)
+        if len(csv_file_list) >= 2:
+            print("csv 파일 이름 확인")
+            print(csv_file_list)
+        for i in range(len(csv_file_list)):
+            csv_file = csv_file_list[i]
+            train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512,auto_rotate=auto_rotate)
     elif to_do == 2:
-        test_model(model,csv_file_name=csv_file,one_hot_encoding=one_hot_encoding)
+        print("잠시 비활성화")
+        # test_model(model,csv_file_name=csv_file,one_hot_encoding=one_hot_encoding)
 
 

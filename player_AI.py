@@ -8,7 +8,6 @@ import copy
 import math
 
 
-
 def convert_to_one_dimension(state):
     return np.concatenate(state)
 
@@ -45,7 +44,7 @@ class player_AI():
 
     def convert_to_2nd_loc(self, index):  # 2차원 좌표로 변경
         y = index // self.size
-        x = index - y
+        x = index - y * self.size
         return x,y
 
     def load_model(self, model_type,black_white_ai, train_num):
