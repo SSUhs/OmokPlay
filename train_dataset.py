@@ -386,7 +386,7 @@ if __name__ == '__main__':
     csv_file_all = input(f'사용할 csv 파일 (파일이 여러개면 \' and \'로 구분 또는 등록된 파일 번호 입력): ')
     if csv_file_all == '0':
         csv_file_list = []
-        for i in range(12):
+        for i in range(13):
             csv_file_list.append(f"{path_google_drive_main}reunju_rotate_{i}.csv")
     else:
         csv_file_list = csv_file_all.split(' and ')
