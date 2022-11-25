@@ -331,7 +331,6 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_t
         # model.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_white.h5')
         return model
-        weight는 weight폴더에 따로.. ㅡㅡ
 
         # save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
     elif type_train == 2:
