@@ -300,14 +300,14 @@ def save_pickle(save_path,model):
     pickle.dump(net_params, open(save_path, 'wb'), protocol=2)
 
 
-def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate):
+def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_train):
     name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
     checkpoint_path = name+'.ckpt'
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=path_google_drive_main+checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
     model.summary()
 
-    type_train = int(input("훈련할 대상 : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
+
     data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(path_google_drive_main+csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train,auto_rotate=auto_rotate)
 
     if type_train == 0:
@@ -318,7 +318,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate):
         print("\n------------------흑 정책망 훈련을 시작합니다------------------")
         model.fit(data_x_p_black, data_y_p_black, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
-        model.save_weights(f'{path_google_drive_main + name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        # model.save_weights(f'{path_google_drive_main + name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_black.h5')
         # save_pickle(f'{path_google_drive_main + name}_black.pickle', model)
     elif type_train == 1:
@@ -329,7 +329,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate):
         print("\n------------------백 정책망 훈련을 시작합니다------------------")
         model.fit(data_x_p_white, data_y_p_white, batch_size=batch_size, epochs=10, shuffle=True,
                            validation_split=0.1, callbacks=[cp_callback, plateau])
-        model.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        # model.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_white.h5')
         # save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
     elif type_train == 2:
@@ -346,7 +346,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate):
         # print(f'타입 : {type(data_y_v[0])}') # <class 'numpy.float64'>가 나와야 됨
         print("\n------------------가치망 훈련을 시작합니다------------------")
         model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1)
-        model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
+        # model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_value.h5')
         # save_pickle(f'{path_google_drive_main + name}_value.pickle', model)
     else:
@@ -409,12 +409,13 @@ if __name__ == '__main__':
       quit()
 
     if to_do == 0 or to_do == 1:
+        type_train = int(input("훈련할 대상 : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
         if len(csv_file_list) >= 2:
             print("csv 파일 이름 확인")
             print(csv_file_list)
         for i in range(len(csv_file_list)):
             csv_file = csv_file_list[i]
-            train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512,auto_rotate=auto_rotate)
+            train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512,auto_rotate=auto_rotate,type_train=type_train)
     elif to_do == 2:
         print("잠시 비활성화")
         # test_model(model,csv_file_name=csv_file,one_hot_encoding=one_hot_encoding)
