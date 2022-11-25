@@ -36,7 +36,7 @@ clock = pg.time.Clock()
 pg.display.set_caption("오목")
 
 class Gui:
-    def __init__(self, board_size,ai_library, hard_gui,is_test,is_train_set_mode):
+    def __init__(self, board_size,ai_library, hard_gui,is_test_mode,is_train_set_mode):
         # self.game_org = game.Game()
         self.width_height = board_size
         self.game = game
@@ -55,7 +55,7 @@ class Gui:
         self.y_bt_newgame_white = 0
         self.x_bt_replay = 0
         self.y_bt_replay = 0
-        self.is_test = is_test
+        self.is_test_mode = is_test_mode
         self.is_train_set_mode = is_train_set_mode
 
         self.bs = 0
@@ -134,12 +134,13 @@ class Gui:
                 print("없는 모드입니다")
                 pg.quit()  # 종료
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
-            if self.is_test:
+            if self.is_test_mode:
                 print("테스트  플레이 모드")
                 if self.is_train_set_mode:
                     computer_player = player_AI(size=self.width_height,is_test_mode=True,black_white_human=black_white,train_num=hard_gui)
                 else:
-                    computer_player = MCTSPlayerNew(self.best_policy.policy_value_fn_new,self.width_height, c_puct=5, n_playout=400,is_test_mode=True)
+                    computer_player = MCTSPlayerNew(self.best_policy.policy_value_fn_new,self.width_height,
+                                                    c_puct=5, n_playout=400,is_test_mode=True)
             else:
                 if self.is_train_set_mode:
                     computer_player = player_AI(self.width_height,is_test_mode=True,black_white_human=black_white,train_num=hard_gui)
@@ -151,7 +152,7 @@ class Gui:
             import gui_ai_vs_player
 
             game.board.init_board(start_player=order)
-            gui_board = gui_ai_vs_player.Gui(game, board_arr, human, computer_player)
+            gui_board = gui_ai_vs_player.Gui(game, board_arr, human, computer_player,is_test_mode=self.is_test_mode)
             gui_board.run()
             gui_board.update_game_view()
             pg.quit()

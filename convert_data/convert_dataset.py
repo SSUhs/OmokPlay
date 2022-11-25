@@ -418,9 +418,10 @@ if __name__ == '__main__':
         convert_new_file(args[0])
         quit()
     elif mode == 1:  # CSV 회전
-        csv_path = input("CSV 파일 경로 : ")
+        csv_path_args = input("CSV 파일 경로 (여러개면 \' and \'로 구분) : ")
+        csv_path_list = csv_path_args.split(" and ")
         print("\n< 회전 방향 입력 > ")
-        print("(스페이스 바로 구분해서 여러 방향 한번에 가능)")
+        print("(쉼표로 구분해서 여러 방향 한번에 가능)")
         print("1 : 90도")
         print("2 : 180도")
         print("3 : 270도")
@@ -428,7 +429,8 @@ if __name__ == '__main__':
         print("5 : 좌우 반전")
         args_dir_str = input()
         dir_list = args_dir_str.split(",")
-        rotate_dataset(csv_path, dir_list)
+        for i in range(len(csv_path_list)):
+            rotate_dataset(csv_path_list[i], dir_list)
 
     else:
         print("없는 모드")

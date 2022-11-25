@@ -383,8 +383,13 @@ def test_model(model,csv_file_name,one_hot_encoding):
 if __name__ == '__main__':
     to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 / 테스트 데이터 : 2 / 기타 : 3"))
     auto_rotate = int(input("램 내에서 회전 데이터 추가 : 맞으면 1, 아니면 0"))
-    csv_file_all = input(f'사용할 csv 파일 (파일이 여러개면 \' and \'로 구별): ')
-    csv_file_list = csv_file_all.split(' and ')
+    csv_file_all = input(f'사용할 csv 파일 (파일이 여러개면 \' and \'로 구분 또는 등록된 파일 번호 입력): ')
+    if csv_file_all == '0':
+        csv_file_list = []
+        for i in range(12):
+            csv_file_list.append(f"{path_google_drive_main}reunju_rotate_{i}.csv")
+    else:
+        csv_file_list = csv_file_all.split(' and ')
 
     if auto_rotate == 0: auto_rotate = False
     elif auto_rotate == 1: auto_rotate = True

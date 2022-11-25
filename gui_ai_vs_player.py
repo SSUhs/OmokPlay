@@ -43,7 +43,7 @@ pg.display.set_caption("오목")
 CONST_WRONG_POSITION = 1;
 
 class Gui:
-    def __init__(self, game, board_arr, player1, player2):
+    def __init__(self, game, board_arr, player1, player2,is_test_mode=False):
         # self.game_org = game.Game()
         self.game = game
         self.player1 = player1
@@ -66,7 +66,12 @@ class Gui:
         self.mark_33 = mark_33
         self.mark_44 = mark_44
         self.mark_6 = mark_6
-        self.hint = False
+        self.hint = None
+        self.is_test_mode = is_test_mode
+        if self.is_test_mode:
+            self.hint = True
+        else:
+            self.hint = False
         self.new_game = False
         self.bs = 0
         self.ws = 0
@@ -228,11 +233,13 @@ class Gui:
                             col = round((x - 43 * self.width / 800) / (51 * self.width / 800))
                             self.game.do_next(row,col)
 
+                            # 힌트 버튼
                             if 700 * self.width / 800 < x < 780 * self.width / 800 and y < 45 * self.width / 800:
                                 if self.hint:
                                     self.hint = False
                                 else:
                                     self.hint = True
+                            # 새 게임 버튼 ? 다시 시작?
                             elif 50 * self.width / 800 < x < 130 * self.width / 800 and y < 45 * self.width / 800:
                                 if not self.new_game:
                                     self.game.__init__()
@@ -375,23 +382,6 @@ class Gui:
                                      round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.diameter / 2)))
 
 
-        # OmokMaster 프로젝트에서 사용하던 금지 수 이미지 표시 방식
-        # for i in self.game.illegal:
-        #     row = i[0] // game.width
-        #     col = i[0] % game.width
-        #     if i[1] == 3:
-        #         screen.blit(self.mark_33,
-        #                     (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.diameter / 2),
-        #                      round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.diameter / 2)))
-        #     elif i[1] == 4:
-        #         screen.blit(self.mark_44,
-        #                     (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.diameter / 2),
-        #                      round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.diameter / 2)))
-        #     elif i[1] == 6:
-        #         screen.blit(self.mark_6,
-        #                     (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.diameter / 2),
-        #                      round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.diameter / 2)))
-
 
         # 가장 최근에 어디 놨는지 보여주는 기능
         if self.board_arr.last_loc != -1:
@@ -412,21 +402,10 @@ class Gui:
                                                        21,
                                                        21], 2)
 
-        # 아래는 기존 OmokMaster에서 사용하던 가장 최근 돌 위치 이미지 보여주는 코드
-        # if self.game.last != None:
-        #     row = self.game.last // 15
-        #     col = self.game.last % 15
-        #     if self.game.state.check_turn():
-        #         color = (0,0,0)
-        #     else:
-        #         color = (255,255,255)
-        #     pg.draw.rect(screen, color, [round(self.width / 2 - (7 - col) * 51 * self.width / 800 - 20 / 2),
-        #                                                round(self.height / 2 - (7 - row) * 51 * self.height / 800 - 21 / 2),
-        #                                                21,
-        #                                                21], 2)
 
-        if self.hint and self.game.end == 0:
+        if self.hint:
             print("확률 설명은 구현중")
+
             # if self.game.state.check_turn():
             #     print("현재 흑이 이길 확률 : 구현중")
             #     # print('현재 흑이 이길 확률 :', round((float(get_value(self.model3, self.model4, self.game.state)) * 100 + 100) / 2, 2), '%')

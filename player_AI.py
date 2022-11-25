@@ -22,6 +22,8 @@ def softmax(x):
     return probs
 
 
+
+
 class player_AI():
     def __init__(self, size, is_test_mode, black_white_human, train_num, is_sequential_model=True, use_mcts_search=False,is_self_play=False):
         self.size = size
@@ -39,8 +41,8 @@ class player_AI():
         self.use_mcts_search = use_mcts_search  # MCTS 검색을 쓸 것인지 아니면 단순히 가장 probs가 높은 걸로 리턴할 것인지
         if self.use_mcts_search:
             self.value_net_model = self.load_model(model_type='value',black_white_ai=self.black_white_ai,train_num=train_num)
+            self.mcts = MCTS_TrainSet(self.model, c_puct=5, n_playout=400, is_test_mode=is_test_mode, board_size=size, value_net_model=self.value_net_model)
             # value_net_tmp = ValueNetTmpNumpy(board_size=size,net_params_file=f'tf_value_{size}_{train_num}_{self.black_white_ai}.pickle')# numpy로 임시로 구현한 가치망
-            self.mcts = MCTS_TrainSet(self.model, c_puct=5, n_playout=400, is_test_mode=is_test_mode, board_size=size,value_net_model=value_net_model)
 
     def convert_to_2nd_loc(self, index):  # 2차원 좌표로 변경
         y = index // self.size
@@ -71,7 +73,7 @@ class player_AI():
             else:
                 move = self.get_move_not_mcts(board, inputs)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
             x, y = self.convert_to_2nd_loc(move)
-            print(f"선택된 move : {move} = ({y-1},{x-1})")
+            print(f"선택 좌표 (0,0부터) : {move} = ({x},{y})")
             return move
         else:
             print("sequential 아닌 것은 아직 구현 X")
@@ -80,6 +82,9 @@ class player_AI():
     # 금수 or 이미 수가 놓아지지 않은 자리 중에서 가장 최선의 인덱스
     def get_best_idx(self, probs, board):
         probs_tmp = copy.deepcopy(probs)
+        if self.is_test_mode:
+            print("정책망 확률 표 (0,0 부터 시작)")
+            self.print_states_probs(probs_tmp)
         while True:
             best_index = np.argmax(probs_tmp[0])
             # 이미 돌이 있는 자리를 선택하거나 금수에 놓은 경우
@@ -89,6 +94,24 @@ class player_AI():
             else:
                 break
         return best_index
+
+    # (디버그 용도) 확률 리턴
+    # ndarray_probs_1nd : ndarray(1,225) # 15x15 기준
+    def print_states_probs(self,ndarray_probs_1nd_):
+        length = self.size*self.size
+        ndarray_probs_1nd = copy.deepcopy(ndarray_probs_1nd_)
+        list_print = []
+        for i in range(length):
+            best_idx = np.argmax(ndarray_probs_1nd[0])
+            best_prob_float = ndarray_probs_1nd[0][best_idx]
+            ndarray_probs_1nd[0][best_idx] = -1  # 그 다음 최대를 찾기 위해 -1로 수정
+            if best_prob_float <= 0.001:
+                continue
+            x,y = self.convert_to_2nd_loc(best_idx)
+            list_print.append(f'({x},{y}) : {format(best_prob_float,".4f")}%')
+
+        for i in range(len(list_print)):
+            print(list_print[i])
 
     def get_move_not_mcts(self, board, input):
         probs = self.model.predict(input)
