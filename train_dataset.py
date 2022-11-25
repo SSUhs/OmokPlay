@@ -303,10 +303,9 @@ def save_pickle(save_path,model):
 def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_train):
     name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
     checkpoint_path = name+'.ckpt'
-    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=path_google_drive_main+checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=path_saved_weights+checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
     model.summary()
-
 
     data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(path_google_drive_main+csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train,auto_rotate=auto_rotate)
 
@@ -331,6 +330,9 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_t
                            validation_split=0.1, callbacks=[cp_callback, plateau])
         # model.save_weights(f'{path_google_drive_main + name}_white_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_white.h5')
+        return model
+        weight는 weight폴더에 따로.. ㅡㅡ
+
         # save_pickle(f'{path_google_drive_main + name}_white.pickle', model)
     elif type_train == 2:
         # data_y_v = to_categorical(data_y_v)
@@ -415,7 +417,7 @@ if __name__ == '__main__':
             print(csv_file_list)
         for i in range(len(csv_file_list)):
             csv_file = csv_file_list[i]
-            train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512,auto_rotate=auto_rotate,type_train=type_train)
+            model = train_model(model,csv_file,is_one_hot_encoding=one_hot_encoding,batch_size=512,auto_rotate=auto_rotate,type_train=type_train)
     elif to_do == 2:
         print("잠시 비활성화")
         # test_model(model,csv_file_name=csv_file,one_hot_encoding=one_hot_encoding)
