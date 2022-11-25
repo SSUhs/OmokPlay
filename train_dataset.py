@@ -387,7 +387,7 @@ if __name__ == '__main__':
     if csv_file_all == '0':
         csv_file_list = []
         for i in range(13):
-            csv_file_list.append(f"{path_google_drive_main}reunju_rotate_{i}.csv")
+            csv_file_list.append(f"reunju_rotate_{i}.csv")
     else:
         csv_file_list = csv_file_all.split(' and ')
 
