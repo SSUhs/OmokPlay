@@ -405,7 +405,6 @@ class Gui:
 
         if self.hint:
             print("확률 설명은 구현중")
-
             # if self.game.state.check_turn():
             #     print("현재 흑이 이길 확률 : 구현중")
             #     # print('현재 흑이 이길 확률 :', round((float(get_value(self.model3, self.model4, self.game.state)) * 100 + 100) / 2, 2), '%')

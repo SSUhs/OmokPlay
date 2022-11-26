@@ -38,9 +38,10 @@ class player_AI():
 
         self.model = self.load_model(model_type='policy',black_white_ai=self.black_white_ai, train_num=train_num)
         self.is_sequential_model = is_sequential_model
+        self.value_net_model = self.load_model(model_type='value', black_white_ai=self.black_white_ai,
+                                               train_num=train_num)
         self.use_mcts_search = use_mcts_search  # MCTS 검색을 쓸 것인지 아니면 단순히 가장 probs가 높은 걸로 리턴할 것인지
         if self.use_mcts_search:
-            self.value_net_model = self.load_model(model_type='value',black_white_ai=self.black_white_ai,train_num=train_num)
             self.mcts = MCTS_TrainSet(self.model, c_puct=5, n_playout=400, is_test_mode=is_test_mode, board_size=size, value_net_model=self.value_net_model)
             # value_net_tmp = ValueNetTmpNumpy(board_size=size,net_params_file=f'tf_value_{size}_{train_num}_{self.black_white_ai}.pickle')# numpy로 임시로 구현한 가치망
 
@@ -53,12 +54,14 @@ class player_AI():
         model_file = None
         if model_type == 'policy':
             model_file = f'./model_train/tf_policy_{self.size}_{train_num}_{black_white_ai}.h5'
+            model = tf.keras.models.load_model(model_file)
         elif model_type == 'value':
             model_file = f'./model_train/tf_value_{self.size}_{train_num}_{black_white_ai}.h5'
+            model = tf.keras.models.load_model(model_file,compile=False)
         else:
             print("잘못된 타입")
             quit()
-        model = tf.keras.models.load_model(model_file)
+
         return model
 
     # n*n 형태를 일차원으로
@@ -69,15 +72,17 @@ class player_AI():
             # 한번 펼친다음에 넣어볼까??
             inputs = reshape_to_15_15_1(state)  # 현재 상태. 이 상태를 기반으로 예측
             if self.use_mcts_search:
-                move = self.get_move_mcts(board, inputs)  # mcts를 사용해서 추가 예측
+                move,value = self.get_move_mcts(board, inputs)  # mcts를 사용해서 추가 예측
             else:
-                move = self.get_move_not_mcts(board, inputs)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
+                move,value = self.get_move_not_mcts(board, inputs)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
             x, y = self.convert_to_2nd_loc(move)
             print(f"선택 좌표 (0,0부터) : {move} = ({x},{y})")
+            print(f'가치망 value : {value}')
             return move
         else:
             print("sequential 아닌 것은 아직 구현 X")
             quit()
+
 
     # 금수 or 이미 수가 놓아지지 않은 자리 중에서 가장 최선의 인덱스
     def get_best_idx(self, probs, board):
@@ -94,6 +99,7 @@ class player_AI():
             else:
                 break
         return best_index
+
 
     # (디버그 용도) 확률 리턴
     # ndarray_probs_1nd : ndarray(1,225) # 15x15 기준
@@ -115,7 +121,8 @@ class player_AI():
 
     def get_move_not_mcts(self, board, input):
         probs = self.model.predict(input)
-        return self.get_best_idx(probs, board)
+        value = self.value_net_model.predict(input)
+        return self.get_best_idx(probs, board),value
 
     # 이미 수가 놓아진 자리 or 금수 자리
     def is_banned_pos(self, board, index):

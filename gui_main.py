@@ -2,14 +2,12 @@ import pygame as pg
 import ctypes
 from Human import Human
 import game
-
-
 from game import Board, Game
 import pickle
 from mcts_alphaZero import MCTSPlayer
 from new_mcts_alphaZero import MCTSPlayerNew
-from player_AI import player_AI
-from policy_value_net_numpy import PolicyValueNetNumpy
+
+#
 
 
 ctypes.windll.user32.SetProcessDPIAware()
@@ -67,7 +65,6 @@ class Gui:
             self.best_policy = PolicyValueNetTensorflow(self.width_height, self.width_height, model_file,
                                                compile_env='local')  # 코랩에서는 start_game.py 수행 안하기 때문에 compile_env는 local로 고정
 
-
         self.update_game_view('main')
         # self.model = load_model('./model/policy_black.h5', compile=False)
         # self.model2 = load_model('./model/policy_white.h5', compile=False)
@@ -92,7 +89,6 @@ class Gui:
         # print(black_white)
         hard_gui = self.hard_gui
         num = 5
-
         if self.ai_library == 'theano':
             model_file = './model/policy_9_' + str(hard_gui) + ".model"
             gui_board = None
@@ -108,6 +104,7 @@ class Gui:
 
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
             policy_param = pickle.load(open(model_file, 'rb'), encoding='bytes')
+            from policy_value_net_numpy import PolicyValueNetNumpy
             best_policy = PolicyValueNetNumpy(self.width_height, self.width_height, policy_param)
 
             # n_playout값 : 성능
@@ -136,14 +133,16 @@ class Gui:
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
             if self.is_test_mode:
                 print("테스트  플레이 모드")
+                from player_AI import player_AI
                 if self.is_train_set_mode:
-                    computer_player = player_AI(size=self.width_height,is_test_mode=True,black_white_human=black_white,train_num=hard_gui)
+                    computer_player = player_AI(size=self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui)
                 else:
                     computer_player = MCTSPlayerNew(self.best_policy.policy_value_fn_new,self.width_height,
                                                     c_puct=5, n_playout=400,is_test_mode=True)
             else:
                 if self.is_train_set_mode:
-                    computer_player = player_AI(self.width_height,is_test_mode=True,black_white_human=black_white,train_num=hard_gui)
+                    from player_AI import player_AI
+                    computer_player = player_AI(self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui)
                 else:
                     computer_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5,
                                      n_playout=400)  # set larger n_playout for better performance

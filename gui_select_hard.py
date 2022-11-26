@@ -9,6 +9,10 @@ from tkinter import *
 ctypes.windll.user32.SetProcessDPIAware()
 
 is_test_mode = int(input("테스트 모드면 1을 입력해주세요. 아니면 0입력"))
+if is_test_mode == 0:
+    is_test_mode = False
+else:
+    is_test_mode = True
 is_train_set_mode = int(input("인간 데이터로 학습한 모델을 사용할려면 1, 아니면 0"))
 
 # pygame.init() will initialize all

@@ -89,7 +89,13 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train,auto_rota
                         data_x_v.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
                         labels_v.append(float(row[1]))
                 else:
-                    labels_v.append(float(row[1]))
+                    if 0.4 <= float(row[1]) == 0.5:
+                        labels_v.append(-1.0)
+                    elif float(row[1]) >= 0.9:
+                        labels_v.append(1.0)
+                    else:
+                        labels_v.append(0.0)
+                    # labels_v.append(float(row[1]))
                     data_x_v.append(row[3:])
             if count_read % 8000 == 0:
                 print("현재까지 읽은 row :",count_read)
@@ -215,7 +221,8 @@ def get_model(model_type):
         model.add(Conv2D(96, (3, 3), activation='relu', padding='same'))
         model.add(Conv2D(1, (1, 1), activation='relu', padding='same'))
         model.add(Flatten())
-        model.add(Dense(256, activation='relu'))
+        # model.add(Dense(256, activation='relu'))
+        model.add(Dense(225, activation='relu'))
         model.add(Dense(1, activation='tanh'))
         model.compile(loss='mean_squared_error', optimizer=Adam(lr=0.00003), metrics=[rmse])
     return model
@@ -353,7 +360,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_t
         print(f'data_y_v : {data_y_v.shape}') # ex) 상태가 55개라면 (55,) 로 나와야함
         # print(f'타입 : {type(data_y_v[0])}') # <class 'numpy.float64'>가 나와야 됨
         print("\n------------------가치망 훈련을 시작합니다------------------")
-        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1)
+        model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=20, shuffle=True, validation_split=0.1)
         # model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_value.h5')
         return model
