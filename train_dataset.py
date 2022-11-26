@@ -273,7 +273,12 @@ def get_dataset(csv_name,is_one_hot_encoding,pv_type,type_train,auto_rotate):
 
 def make_new_model():
     while True:
-        model_type = int(input("모델 타입 선택 : "))
+        print("\n< 모델 타입 선택 >")
+        print("0번 : 흑 정책망")
+        print("1번 : 백 정책망")
+        print("2번 : (사용 X)")
+        print("3번 : 가치망")
+        model_type = int(input())
         model = get_model(model_type)
         if model is None:
             print("존재하지 않는 모델입니다\n")
@@ -387,7 +392,7 @@ if __name__ == '__main__':
     to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 / 테스트 데이터 : 2 / 기타 : 3"))
     # auto_rotate = int(input("램 내에서 회전 데이터 추가 : 맞으면 1, 아니면 0"))
     auto_rotate = False
-    csv_file_all = input(f'번호 입력 : ')
+    csv_file_all = input(f'자동으로 CSV를 불러오려면 0번 입력 : ')
     # csv_file_all = input(f'사용할 csv 파일 (파일이 여러개면 \' and \'로 구분 또는 등록된 파일 번호 입력 : ')
     if csv_file_all == '0':
         csv_file_list = []
