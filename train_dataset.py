@@ -32,7 +32,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train,auto_rota
     data_y_p_black = None
     data_y_p_white = None
     data_y_v = None
-    csv_file_name = '/csv/'+csv_file_name
+    csv_file_name = path_google_drive_main+'csv/'+csv_file_name
 
     if type_train >= 3:
         print(f"존재 하지 않는 type_train : {type_train}")
@@ -308,7 +308,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_t
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
     model.summary()
 
-    data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(path_google_drive_main+csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train,auto_rotate=auto_rotate)
+    data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train,auto_rotate=auto_rotate)
 
     if type_train == 0:
         data_y_p_black = to_categorical(data_y_p_black)
@@ -387,7 +387,8 @@ if __name__ == '__main__':
     to_do = int(input("처음 부터 생성 : 0 / 이어서 학습 : 1 / 테스트 데이터 : 2 / 기타 : 3"))
     # auto_rotate = int(input("램 내에서 회전 데이터 추가 : 맞으면 1, 아니면 0"))
     auto_rotate = False
-    csv_file_all = input(f'사용할 csv 파일 (파일이 여러개면 \' and \'로 구분 또는 등록된 파일 번호 입력 : ')
+    csv_file_all = input(f'번호 입력 : ')
+    # csv_file_all = input(f'사용할 csv 파일 (파일이 여러개면 \' and \'로 구분 또는 등록된 파일 번호 입력 : ')
     if csv_file_all == '0':
         csv_file_list = []
         for i in range(13):
