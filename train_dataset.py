@@ -32,6 +32,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train,auto_rota
     data_y_p_black = None
     data_y_p_white = None
     data_y_v = None
+    csv_file_name = '/csv/'+csv_file_name
 
     if type_train >= 3:
         print(f"존재 하지 않는 type_train : {type_train}")
@@ -90,8 +91,8 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train,auto_rota
                 else:
                     labels_v.append(float(row[1]))
                     data_x_v.append(row[3:])
-            if count_read % 4000 == 0:
-                print("현재까지 읽은 row 수 :",count_read)
+            if count_read % 8000 == 0:
+                print("현재까지 읽은 row :",count_read)
 
     print(f"\n불러온 row : {count_read}")
     if len(data_x_p_black) >= 1:
@@ -319,6 +320,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_t
                            validation_split=0.1, callbacks=[cp_callback, plateau])
         # model.save_weights(f'{path_google_drive_main + name}_black_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_black.h5')
+        return model
         # save_pickle(f'{path_google_drive_main + name}_black.pickle', model)
     elif type_train == 1:
         print("\n------------------Shape------------------")
@@ -349,6 +351,7 @@ def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_t
         model.fit(data_x_v, data_y_v, batch_size=batch_size, epochs=10, shuffle=True, validation_split=0.1)
         # model.save_weights(f'{path_google_drive_main + name}_value_weights')  # 확장자는 일단 pickle이긴 한데 정확 X
         model.save(f'{path_google_drive_main + name}_value.h5')
+        return model
         # save_pickle(f'{path_google_drive_main + name}_value.pickle', model)
     else:
         print("없는 경우 - type-train")
@@ -388,7 +391,7 @@ if __name__ == '__main__':
     if csv_file_all == '0':
         csv_file_list = []
         for i in range(13):
-            csv_file_list.append(f"csv/renju_rotate_{i}.csv")
+            csv_file_list.append(f"renju_rotate_{i}.csv")
     else:
         csv_file_list = csv_file_all.split(' and ')
 
@@ -403,7 +406,7 @@ if __name__ == '__main__':
       model_file_name = input(f"테스트에 사용할 모델 파일 (기본 경로 : {path_saved_model} )")
       model = load_saved_model(model_file_name)
     elif to_do == 3:
-        csv_name = input("csv name : ")
+        csv_name = input("csv name (기본 경로 : 구글드라이브/csv) : ")
         data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=False,pv_type='seperate',type_train=0)
         quit()
     else:
