@@ -110,6 +110,7 @@ def check_down_cross_left(arr_list, y, x, stone):
 
 
 # draw면 0, 흑이 이긴거면 1, 백이 이긴거면 2, 예측 불가면 3
+# arr_list : ndarray(15,15) 형태를 list()로
 def contains_five(arr_list, size):
     for y in range(size):
         for x in range(size):
@@ -123,8 +124,8 @@ def contains_five(arr_list, size):
                     return 2
     return 3
 
-
-def who_is_winner(arr, rule):  # 15x15 형태의 numpy array
+# arr : 15x15 형태의 numpy array (ndarray)
+def who_is_winner(arr, rule):
     if rule == 'renju':
         width = 15
         height = 15
@@ -143,6 +144,8 @@ def who_is_winner(arr, rule):  # 15x15 형태의 numpy array
     return None
 
 
+# 주의 : 이 함수는 데이터 셋을 기준으로 바꿔주는거라 시작 좌표가 (1,1)
+# 따라서 다른 곳에서 옮겨 쓸 때는 좌표 바꿔야함
 def convert_to_label(x, y):
     if x == 0 or y == 0:
         print("시작이 0인 데이터가 존재합니다")

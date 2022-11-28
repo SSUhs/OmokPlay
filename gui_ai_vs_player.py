@@ -403,29 +403,29 @@ class Gui:
                                                        21], 2)
 
 
-        if self.hint:
-            print("확률 설명은 구현중")
-            # if self.game.state.check_turn():
-            #     print("현재 흑이 이길 확률 : 구현중")
-            #     # print('현재 흑이 이길 확률 :', round((float(get_value(self.model3, self.model4, self.game.state)) * 100 + 100) / 2, 2), '%')
-            # else:
-            #     print("현재 백이 이길 확률 : 구현중")
-            #     # print('현재 백이 이길 확률 :', round((float(get_value(self.model3, self.model4, self.game.state)) * 100 + 100) / 2, 2), '%')
-            # screen.blit(self.button_2, (680 * self.width / 800, -37 * self.width / 800))
-            # p, m = get_policy(self.model, self.model2, self.game.state)
-            # m = 1 / m
-            # n = 0
-            # for i in self.game.legal_actions:
-            #     row = i // game.width
-            #     col = i % game.width
-            #     s.set_alpha(256 * p[n] * m)
-            #     n += 1
-            #     screen.blit(s,
-            #                 (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.dot_size / 2),
-            #                  round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.dot_size / 2)))
-        else:
-            print("")
-            # screen.blit(self.button_1, (680 * self.width / 800, -37 * self.width / 800))
+        # if self.hint:
+        #     print("확률 설명은 구현중")
+        #     # if self.game.state.check_turn():
+        #     #     print("현재 흑이 이길 확률 : 구현중")
+        #     #     # print('현재 흑이 이길 확률 :', round((float(get_value(self.model3, self.model4, self.game.state)) * 100 + 100) / 2, 2), '%')
+        #     # else:
+        #     #     print("현재 백이 이길 확률 : 구현중")
+        #     #     # print('현재 백이 이길 확률 :', round((float(get_value(self.model3, self.model4, self.game.state)) * 100 + 100) / 2, 2), '%')
+        #     # screen.blit(self.button_2, (680 * self.width / 800, -37 * self.width / 800))
+        #     # p, m = get_policy(self.model, self.model2, self.game.state)
+        #     # m = 1 / m
+        #     # n = 0
+        #     # for i in self.game.legal_actions:
+        #     #     row = i // game.width
+        #     #     col = i % game.width
+        #     #     s.set_alpha(256 * p[n] * m)
+        #     #     n += 1
+        #     #     screen.blit(s,
+        #     #                 (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.dot_size / 2),
+        #     #                  round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.dot_size / 2)))
+        # else:
+        #     print("")
+        #     # screen.blit(self.button_1, (680 * self.width / 800, -37 * self.width / 800))
 
         # if not self.new_game:
         #     screen.blit(self.button_3, (30 * self.width / 800, -37 * self.width / 800))

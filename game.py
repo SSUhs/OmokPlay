@@ -148,6 +148,8 @@ class Board(object):
             self.forbidden_locations, self.forbidden_types = rule.get_forbidden_points(stone=2)
         self.forbidden_moves = [self.location_to_move(loc) for loc in self.forbidden_locations]
 
+
+    # 이건 이 함수를 호출한 상황에서 black인지 리턴하는 것. 사람이 흑인지 사람이 백인지를 판단하는 것이 아님
     def is_you_black(self):
         # order, current_player
         # (0,1) → 사람(흑돌)
@@ -288,10 +290,10 @@ class Game(object):
                 if move == error_const.CONST_WRONG_POSITION or move == error_const.CONST_BANNED_POSITION or move == error_const.CONST_UNKNOWN:
                     return move  # 잘못된 경우이므로 종료
 
-        if current_player == 1:
-            print("사람이 고른 자리 :",move)
-        else:
-            print("AI가 고른 자리 :",move)
+        # if current_player == 1:
+        #     print("사람이 고른 자리 :",move)
+        # else:
+        #     print("AI가 고른 자리 :",move)
         self.board.do_move(move)
 
         if self.is_gui_mode:  # gui_mode의 경우 콘솔 출력은 이동 후에 출력

@@ -86,6 +86,11 @@ class Gui:
 
 
     def load_game(self, black_white):
+        is_human_intervene = int(input("사람 알고리즘 개입 하는 경우 1, 아닌 경우 0 입력 : "))
+        if is_human_intervene == 0:
+            is_human_intervene = False
+        else:
+            is_human_intervene = True
         # print(black_white)
         hard_gui = self.hard_gui
         num = 5
@@ -130,19 +135,22 @@ class Gui:
             else:
                 print("없는 모드입니다")
                 pg.quit()  # 종료
+
+
+
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
             if self.is_test_mode:
                 print("테스트  플레이 모드")
                 from player_AI import player_AI
                 if self.is_train_set_mode:
-                    computer_player = player_AI(size=self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui)
+                    computer_player = player_AI(size=self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui,is_human_intervene=is_human_intervene)
                 else:
                     computer_player = MCTSPlayerNew(self.best_policy.policy_value_fn_new,self.width_height,
                                                     c_puct=5, n_playout=400,is_test_mode=True)
             else:
                 if self.is_train_set_mode:
                     from player_AI import player_AI
-                    computer_player = player_AI(self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui)
+                    computer_player = player_AI(self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui,is_human_intervene=is_human_intervene)
                 else:
                     computer_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5,
                                      n_playout=400)  # set larger n_playout for better performance
