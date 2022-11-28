@@ -295,9 +295,12 @@ def make_new_model():
     return model
 
 # 이건 전체 모델 파일을 불러오는 방식
-def load_saved_model(model_file):
+def load_saved_model(model_file,is_value_net):
     model_file = path_saved_model+ model_file
-    model = tf.keras.models.load_model(model_file)
+    if is_value_net:
+       model = tf.keras.models.load_model(model_file,compile=False)
+    else:
+       model = tf.keras.models.load_model(model_file)
     return model
 
 
@@ -412,10 +415,16 @@ if __name__ == '__main__':
     one_hot_encoding = False
     batch_size = None
     if to_do == 0:
+      type_train = int(input("훈련할 대상 : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
       model = make_new_model()
     elif to_do == 1:
+      type_train = int(input("훈련할 대상 : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
       model_file_name = input(f"이어서 학습할 모델 파일 (기본 경로 : {path_saved_model} )")
-      model = load_saved_model(model_file_name)
+      if type_train == 2:
+          is_value_net = True
+      else:
+          is_value_net = False
+      model = load_saved_model(model_file_name,is_value_net)
     elif to_do == 2:
       model_file_name = input(f"테스트에 사용할 모델 파일 (기본 경로 : {path_saved_model} )")
       model = load_saved_model(model_file_name)
@@ -428,7 +437,6 @@ if __name__ == '__main__':
       quit()
 
     if to_do == 0 or to_do == 1:
-        type_train = int(input("훈련할 대상 : 0(흑 정책망) / 1(백 정책망) / 2(가치망)"))
         if len(csv_file_list) >= 2:
             print("csv 파일 이름 확인")
             print(csv_file_list)
