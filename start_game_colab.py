@@ -6,6 +6,16 @@ from game import Board, Game
 
 # Colab 환경에서 게임 진행
 
+import tensorflow as tf
+
+devices_all = tf.config.list_physical_devices()
+print(f'활성 Device : {devices_all}\n')
+device_name = tf.test.gpu_device_name()
+# GPU를 사용하거나 TPU를 사용하지 않으면 종료 (혹시나 가속기를 안켜놓았을 상황을 방지)
+if device_name != '/device:GPU:0':  # GPU 안쓰는 환경인 경우
+    print("GPU를 가속하지 않으면 텐서플로우를 사용할 수 없습니다")
+    quit()
+
 
 # board_size = int(input("판 크기를 선택해주세요"))
 print("-------------------------------------------")
@@ -71,7 +81,7 @@ game.init_play(gui_board=None,player1=human,player2=computer_player)
 
 while True:
     num = game.do_next(-1, -1,black_white_ai)
-    if num == -20:
-        continue
-    else:
-        print("게임 종료")
+    # if num == -20:
+    #     continue
+    # else:
+    #     print("게임 종료")
