@@ -1,5 +1,0 @@
-('C:\\Users\\vvpas\\Desktop\\기본\\대학\\오픈소스기반기초설계\\프로젝트\\코랩가능\\omokPlay\\build\\gui_select_hard\\locket-0.2.1-py3.8.egg',
- None,
- {'*.py', '*.cp38-win_amd64.pyd', '*.pyc', '*.pyd', 'EGG-INFO', '*.pyw'},
- 'DATA',
- [])
