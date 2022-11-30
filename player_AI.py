@@ -72,16 +72,16 @@ def get_best_idx(probs, board, is_human_intervene, size=15):
             best_move = can_defend_list[best_choice_idx]
             return best_move
 
-        # 특수 알고리즘에 해당 안되면 최대 확률 부분을 찾는다
-        while True:
-            best_index = np.argmax(probs_tmp[0])
-            # 이미 돌이 있는 자리를 선택하거나 금수에 놓은 경우
-            if is_banned_pos(board, best_index):
-                probs_tmp[0][best_index] = -1  # 금수 자리는 선택 불가능 하게 설정
-                continue
-            else:
-                break
-        return best_index
+    # 특수 알고리즘에 해당 안되면 최대 확률 부분을 찾는다
+    while True:
+        best_index = np.argmax(probs_tmp[0])
+        # 이미 돌이 있는 자리를 선택하거나 금수에 놓은 경우
+        if is_banned_pos(board, best_index):
+            probs_tmp[0][best_index] = -1  # 금수 자리는 선택 불가능 하게 설정
+            continue
+        else:
+            break
+    return best_index
 
 
 # 현재 상태에서 놓으면 바로 이길 수 있는 위치 찾기
