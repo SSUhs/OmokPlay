@@ -152,10 +152,10 @@ def load_model_train_set_github(model_type, size):
     model_file = None
     if model_type == 'policy':
         # model_file = f'./model_train/tf_policy_{size}_{train_num}_{black_white_ai}.h5'
-        model_file = f"./OmokPlay/model_train/tf_policy_{size}_2000.h5"
+        model_file = f"./OmokPlay/model/colab_policy.h5"
         model = tf.keras.models.load_model(model_file)
     elif model_type == 'value':
-        model_file = f"./OmokPlay/model_train/tf_value_{size}_2000.h5"
+        model_file = f"./OmokPlay/model/colab_value.h5"
         model = tf.keras.models.load_model(model_file, compile=False)
     else:
         print("잘못된 타입")
