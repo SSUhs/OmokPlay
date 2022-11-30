@@ -262,9 +262,10 @@ class Game(object):
 
 
     def get_move(self,player_in_turn,is_gui,is_computer,row=-1,col=-1,black_white_ai=None):
-        if (not is_gui and not is_computer): # 콘솔모드 + 사람
+        is_console = not is_gui
+        if is_console and not is_computer: # 콘솔모드 + 사람
            move = player_in_turn.get_action_console(self.board)
-        elif (not is_gui) and (is_computer):
+        elif is_console and (is_computer):
            move = player_in_turn.get_action(self.board,black_white_ai)  # AI일 떄는 player_in_turn 인스턴스의 소속 클래스가 MCTSPlayer가 된다
         elif is_gui and is_computer and (not self.board.is_train_set_mode):
             move = player_in_turn.get_action(self.board,is_human_intervene=self.is_human_intervene)

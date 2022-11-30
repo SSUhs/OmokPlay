@@ -7,6 +7,9 @@ import tensorflow as tf
 import keras.backend as K
 import copy
 
+_play_on_colab = False
+_test_mode = False
+
 
 # 금수 or 이미 수가 놓아지지 않은 자리 중에서 가장 최선의 인덱스
 def get_best_idx(probs, board, is_human_intervene, size=15):
@@ -18,15 +21,17 @@ def get_best_idx(probs, board, is_human_intervene, size=15):
     if is_human_intervene:
         # 먼저, 놓자마자 바로 이길 수 있는 좌표가 있으면 해당 좌표를 선택하면 된다
         can_win_list = get_win_list(board, True)  # 바로 이길 수 있는 위치 확인 (0~224 1차원 좌표)
-        print('------------------------------')
-        print(f"이길 수 있는 좌표 리스트 : {can_win_list}")
+
+        if _test_mode:
+            print('------------------------------')
+            print(f"이길 수 있는 좌표 리스트 : {can_win_list}")
         if len(can_win_list) >= 1:
             return random.choice(can_win_list)  # 어차피 리스트에 있는거 아무거나 놔도 이기므로 하나 랜덤으로 골라서 리턴
 
         # 이제 상대가 놓으면 바로 이길 수 있는 자리 탐색
         # can_lost_list나 can_win_list는 금수는 이미 처리하고 리턴됨
         can_lose_list = get_win_list(board, False)  # 상대 입장에서 이기는 거 테스트 (type : (0~224 1차원 좌표))
-        print(f'질 수 있는 좌표 리스트 : {can_lose_list}')
+        if _test_mode: print(f'질 수 있는 좌표 리스트 : {can_lose_list}')
         if len(can_lose_list) >= 1:  # 만약 존재한다면, 둘중에 probs가 높은 쪽을 막도록 작동
             arr_tmp = probs_tmp[0][can_lose_list]
             best_choice_idx = np.argmax(arr_tmp)
@@ -37,12 +42,13 @@ def get_best_idx(probs, board, is_human_intervene, size=15):
 
         can_attack_list_43 = get_next_43(size, arr_list, board, is_my_turn=True)  # 확실한 공격이 가능한 경우
         can_attack_list_open4 = get_next_open4(size, arr_list, board, is_my_turn=True)  #
-        print(f"공격 가능 43 : {can_attack_list_43}")
-        print(f"공격 가능 4open : {can_attack_list_open4}")
         can_attack_list_33 = []
+        if _test_mode:
+            print(f"공격 가능 43 : {can_attack_list_43}")
+            print(f"공격 가능 4open : {can_attack_list_open4}")
         if board.is_you_white():
             can_attack_list_33 = get_next_33(size, arr_list, board, is_my_turn=True)
-            print(f"공격 가능 33 : {can_attack_list_33}")
+            if _test_mode: print(f"공격 가능 33 : {can_attack_list_33}")
         can_attack_list = can_attack_list_43 + can_attack_list_33 + can_attack_list_open4
         if len(can_attack_list) >= 1:
             arr_tmp = probs_tmp[0][can_attack_list]
@@ -52,12 +58,13 @@ def get_best_idx(probs, board, is_human_intervene, size=15):
 
         can_defend_list_43 = get_next_43(size, arr_list, board, is_my_turn=False)  # 상대가 나에게 확실한 공격이 가능한 경우
         can_defend_list_4 = get_next_open4(size, arr_list, board, is_my_turn=False)
-        print(f"방어 필요 43 : {can_defend_list_43}")
-        print(f"방어 필요 4open : {can_defend_list_4}")
+        if _test_mode:
+            print(f"방어 필요 43 : {can_defend_list_43}")
+            print(f"방어 필요 4open : {can_defend_list_4}")
         can_defend_list_33 = []
         if board.is_you_black():
             can_defend_list_33 = get_next_33(size, arr_list, board, is_my_turn=False)
-            print(f"방어 필요 33 : {can_defend_list_33}")
+            if _test_mode: print(f"방어 필요 33 : {can_defend_list_33}")
         can_defend_list = can_defend_list_43 + can_defend_list_33 + can_defend_list_4
         if len(can_defend_list) >= 1:
             arr_tmp = probs_tmp[0][can_defend_list]
@@ -935,9 +942,11 @@ class MCTSPlayer_TrainSet(object):
         else:
             inputs = reshape_to_15_15_1(state)  # 현재 상태. 이 상태를 기반으로 예측
             move, value = self.get_move_not_mcts(board, inputs)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
+        print(f'타입 테스트 : {type(board)} / {board.width} / {type(move)}')
         x, y = convert_to_2nd_loc(board.width, move)
-        print(f"선택 좌표 (0,0부터) : {move} = ({x},{y})")
-        print(f'가치망 value : {value}')
+        if _test_mode:
+            print(f"선택 좌표 (0,0부터) : {move} = ({x},{y})")
+            print(f'가치망 value : {value}')
         return move
 
     def get_move_not_mcts(self, board, input):
@@ -961,15 +970,16 @@ class MCTSPlayer_TrainSet(object):
                 probs_tmp = self.policy_net.predict(inputs)
 
                 can_win_list = get_win_list(board, True)  # 바로 이길 수 있는 위치 확인 (0~224 1차원 좌표)
-                print('------------------------------')
-                print(f"이길 수 있는 좌표 : {can_win_list}")
+                if _test_mode:
+                    print('------------------------------')
+                    print(f"이길 수 있는 좌표 : {can_win_list}")
                 if len(can_win_list) >= 1:
                     return random.choice(can_win_list), 1.0  # 어차피 리스트에 있는거 아무거나 놔도 이기므로 하나 랜덤으로 골라서 리턴
 
                 # 이제 상대가 놓으면 바로 이길 수 있는 자리 탐색
                 # can_lost_list나 can_win_list는 금수는 이미 처리하고 리턴됨
                 can_lose_list = get_win_list(board, False)  # 상대 입장에서 이기는 거 테스트 (type : (0~224 1차원 좌표))
-                print(f'질 수 있는 좌표  : {can_lose_list}')
+                if _test_mode: print(f'질 수 있는 좌표  : {can_lose_list}')
                 if len(can_lose_list) >= 1:
                     arr_tmp = probs_tmp[0][can_lose_list] # 만약 질 수 있는 위치가 두개 이상이라면, 신경망을 통해 나온 결과중 높은 곳으로 지정
                     best_choice_idx = np.argmax(arr_tmp)
@@ -980,12 +990,13 @@ class MCTSPlayer_TrainSet(object):
 
                 can_attack_list_43 = get_next_43(size, arr_list, board, is_my_turn=True)  # 확실한 공격이 가능한 경우
                 can_attack_list_open4 = get_next_open4(size, arr_list, board, is_my_turn=True)  #
-                print(f"공격 가능 43 : {can_attack_list_43}")
-                print(f"공격 가능 4open : {can_attack_list_open4}")
+                if _test_mode:
+                    print(f"공격 가능 43 : {can_attack_list_43}")
+                    print(f"공격 가능 4open : {can_attack_list_open4}")
                 can_attack_list_33 = []
                 if board.is_you_white():
                     can_attack_list_33 = get_next_33(size, arr_list, board, is_my_turn=True)
-                    print(f"공격 가능 33 : {can_attack_list_33}")
+                    if _test_mode: print(f"공격 가능 33 : {can_attack_list_33}")
 
                 can_attack_list = can_attack_list_43 + can_attack_list_33 + can_attack_list_open4
                 if len(can_attack_list) >= 1:
@@ -996,12 +1007,13 @@ class MCTSPlayer_TrainSet(object):
 
                 can_defend_list_43 = get_next_43(size, arr_list, board, is_my_turn=False)  # 상대가 나에게 확실한 공격이 가능한 경우
                 can_defend_list_4 = get_next_open4(size, arr_list, board, is_my_turn=False)
-                print(f"방어 필요 43 : {can_defend_list_43}")
-                print(f"방어 필요 4open : {can_defend_list_4}")
+                if _test_mode:
+                    print(f"방어 필요 43 : {can_defend_list_43}")
+                    print(f"방어 필요 4open : {can_defend_list_4}")
                 can_defend_list_33 = []
                 if board.is_you_black():
                     can_defend_list_33 = get_next_33(size, arr_list, board, is_my_turn=False)
-                    print(f"방어 필요 33 : {can_defend_list_33}")
+                    if _test_mode: print(f"방어 필요 33 : {can_defend_list_33}")
                 can_defend_list = can_defend_list_43 + can_defend_list_33 + can_defend_list_4
                 if len(can_defend_list) >= 1:
                     arr_tmp = probs_tmp[0][can_defend_list]

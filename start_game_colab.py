@@ -64,6 +64,8 @@ computer_player = MCTSPlayer_TrainSet(policy_net=policy_net, value_net=value_net
                                       black_white_ai=black_white_ai, use_mcts=use_mcts)
 human = Human()
 
+player_AI._play_on_colab = True
+player_AI._test_mode = False
 game.board.init_board(start_player=order)
 game.init_play(gui_board=None,player1=human,player2=computer_player)
 
