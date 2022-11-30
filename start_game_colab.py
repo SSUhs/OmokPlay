@@ -68,7 +68,7 @@ game.board.init_board(start_player=order)
 game.init_play(gui_board=None,player1=human,player2=computer_player)
 
 while True:
-    num = game.do_next(-1, -1)
+    num = game.do_next(-1, -1,black_white_ai)
     if num == -20:
         continue
     else:
