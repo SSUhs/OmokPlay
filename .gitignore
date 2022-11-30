@@ -5,3 +5,4 @@ convert_data/dataset
 convert_data/csv_data
 convert_data/convert_renju_policy.py
 convert_data/convert_renju_value.py
+dist/
