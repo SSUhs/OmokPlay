@@ -1,13 +1,65 @@
 import numpy as np
 import copy
+import player_AI
 from time import time
-
+import random
 
 def softmax(x):
     probs = np.exp(x - np.max(x))
     probs /= np.sum(probs)
     return probs
 
+def get_move_by_human_algorithm(board,acts,probs):
+    # 먼저, 놓자마자 바로 이길 수 있는 좌표가 있으면 해당 좌표를 선택하면 된다
+
+    can_win_list = player_AI.get_win_list(board, True)  # 바로 이길 수 있는 위치 확인 (0~224 1차원 좌표)
+    print('------------------------------')
+    print(f"이길 수 있는 좌표 : {can_win_list}")
+    if len(can_win_list) >= 1:
+        return random.choice(can_win_list), 1.0  # 어차피 리스트에 있는거 아무거나 놔도 이기므로 하나 랜덤으로 골라서 리턴
+
+    # 이제 상대가 놓으면 바로 이길 수 있는 자리 탐색
+    # can_lost_list나 can_win_list는 금수는 이미 처리하고 리턴됨
+    can_lose_list = player_AI.get_win_list(board, False)  # 상대 입장에서 이기는 거 테스트 (type : (0~224 1차원 좌표))
+    print(f'질 수 있는 좌표  : {can_lose_list}')
+    if len(can_lose_list) >= 1:
+        arr_tmp = probs_tmp[0][can_lose_list]  # 만약 질 수 있는 위치가 두개 이상이라면, 신경망을 통해 나온 결과중 높은 곳으로 지정
+        best_choice_idx = np.argmax(arr_tmp)
+        best_move = can_lose_list[best_choice_idx]
+        return best_move, value_current
+
+    arr_list = board.states_loc
+
+    can_attack_list_43 = get_next_43(size, arr_list, board, is_my_turn=True)  # 확실한 공격이 가능한 경우
+    can_attack_list_open4 = get_next_open4(size, arr_list, board, is_my_turn=True)  #
+    print(f"공격 가능 43 : {can_attack_list_43}")
+    print(f"공격 가능 4open : {can_attack_list_open4}")
+    can_attack_list_33 = []
+    if board.is_you_white():
+        can_attack_list_33 = get_next_33(size, arr_list, board, is_my_turn=True)
+        print(f"공격 가능 33 : {can_attack_list_33}")
+
+    can_attack_list = can_attack_list_43 + can_attack_list_33 + can_attack_list_open4
+    if len(can_attack_list) >= 1:
+        arr_tmp = probs_tmp[0][can_attack_list]
+        best_choice_idx = np.argmax(arr_tmp)
+        best_move = can_attack_list[best_choice_idx]
+        return best_move, value_current
+
+    can_defend_list_43 = get_next_43(size, arr_list, board, is_my_turn=False)  # 상대가 나에게 확실한 공격이 가능한 경우
+    can_defend_list_4 = get_next_open4(size, arr_list, board, is_my_turn=False)
+    print(f"방어 필요 43 : {can_defend_list_43}")
+    print(f"방어 필요 4open : {can_defend_list_4}")
+    can_defend_list_33 = []
+    if board.is_you_black():
+        can_defend_list_33 = get_next_33(size, arr_list, board, is_my_turn=False)
+        print(f"방어 필요 33 : {can_defend_list_33}")
+    can_defend_list = can_defend_list_43 + can_defend_list_33 + can_defend_list_4
+    if len(can_defend_list) >= 1:
+        arr_tmp = probs_tmp[0][can_defend_list]
+        best_choice_idx = np.argmax(arr_tmp)
+        best_move = can_defend_list[best_choice_idx]
+        return best_move, value_current
 
 class TreeNode(object):
     """ MCTS 트리의 노드.
@@ -139,9 +191,6 @@ class MCTS(object):
         # (action, probability) tuples p and also a score v in [-1, 1]
         # for the current player.
 
-        # 아래 _policy 한번 수행하면 신경망 한번 통과하는 것
-        # 근데 통과 했는데 게임 종료 상황(누구 한명이 이기거나 비긴 상황)이 아니면 expand를 수행한다
-        # leaf_value : evaulation_func2의 결과로 나온 평가 가치
         action_probs, leaf_value = self._policy(state)  # 정책에 따라 행동들의 확률 배열 리턴
         # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
         end, winner = state.game_end()
@@ -194,6 +243,8 @@ class MCTS(object):
         return "MCTS"
 
 
+
+
 class MCTSPlayer(object):
     def __init__(self, policy_value_function,
                  c_puct=5, n_playout=2000, is_selfplay=0, is_test_mode=False):
@@ -208,13 +259,23 @@ class MCTSPlayer(object):
     def reset_player(self):
         self.mcts.update_with_move(-1)
 
-    def get_action(self, board, temp=1e-3, return_prob=0):
+
+
+    def get_action(self, board, temp=1e-3, return_prob=0,is_human_intervene=False):
         # np.zeros : 0으로만 채워진 배열 생성하는 함수
         move_probs = np.zeros(board.width * board.height)
         if board.width * board.height - len(board.states) > 0:  # 보드판이 꽉 안찬 경우
             # acts와 probs에 의해 착수 위치가 정해진다.
             time_get_probs = time()  # probs를 얻는데까지 걸리는 시간
             acts, probs = self.mcts.get_move_probs(board, temp)
+            if is_human_intervene: # 특수상황 알고리즘 개입 (ex : 열린4, 43, 닫힌4 등등)
+                move_al = get_move_by_human_algorithm(board,acts,probs)
+                if move_al is not None:
+                    return move_al
+
+
+
+
             if self.is_test_mode:
                 time_gap = time() - time_get_probs
                 print(f'get_probs 하는데 소요된 시간 : {time_gap}')

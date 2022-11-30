@@ -1,13 +1,13 @@
 import pygame as pg
 import ctypes
+
+import player_AI
 from Human import Human
 import game
 from game import Board, Game
 import pickle
 from mcts_alphaZero import MCTSPlayer
 from new_mcts_alphaZero import MCTSPlayerNew
-
-#
 
 
 ctypes.windll.user32.SetProcessDPIAware()
@@ -19,10 +19,12 @@ diameter = 45
 button_size = 169
 dot_size = 12
 
-img_main = pg.image.load('images/main_page.png')
-img_newgame_black = pg.image.load('images/시작(흑).png')
-img_newgame_white = pg.image.load('images/시작(백).png')
-img_replay = pg.image.load('images/리플레이.png')
+img_main = pg.image.load('images/theme_white_gray/main_page.png')# img_main = pg.image.load('images/main_page.png')
+img_newgame_black = pg.image.load('images/theme_white_gray/게임 시작 (흑).png') # img_newgame_black = pg.image.load('images/시작(흑).png')
+img_newgame_white = pg.image.load('images/theme_white_gray/게임 시작 (백).png') # img_newgame_white = pg.image.load('images/시작(백).png')
+img_replay = pg.image.load('images/theme_white_gray/리플레이.png')
+
+
 
 #icon = pg.image.load('images/icon5.png')
 s = pg.Surface((12,12))
@@ -34,7 +36,7 @@ clock = pg.time.Clock()
 pg.display.set_caption("오목")
 
 class Gui:
-    def __init__(self, board_size,ai_library, hard_gui,is_test_mode,is_train_set_mode):
+    def __init__(self, board_size,ai_library, hard_gui,is_test_mode,is_train_set_mode,is_human_intervene,use_mcts):
         # self.game_org = game.Game()
         self.width_height = board_size
         self.game = game
@@ -55,6 +57,10 @@ class Gui:
         self.y_bt_replay = 0
         self.is_test_mode = is_test_mode
         self.is_train_set_mode = is_train_set_mode
+        self.is_human_intervene = is_human_intervene
+        self.best_policy = None  # 알파고 제로 기반의 경우 여기에 value망까지 포함
+        self.best_value = None
+        self.use_mcts = use_mcts
 
         self.bs = 0
         self.ws = 0
@@ -64,7 +70,6 @@ class Gui:
             model_file =  f'./model/tf_policy_{self.width_height}_{str(hard_gui)}_model'
             self.best_policy = PolicyValueNetTensorflow(self.width_height, self.width_height, model_file,
                                                compile_env='local')  # 코랩에서는 start_game.py 수행 안하기 때문에 compile_env는 local로 고정
-
         self.update_game_view('main')
         # self.model = load_model('./model/policy_black.h5', compile=False)
         # self.model2 = load_model('./model/policy_white.h5', compile=False)
@@ -85,23 +90,24 @@ class Gui:
         self.update_game_view(mode)
 
 
-    def load_game(self, black_white):
-        is_human_intervene = int(input("사람 알고리즘 개입 하는 경우 1, 아닌 경우 0 입력 : "))
-        if is_human_intervene == 0:
-            is_human_intervene = False
-        else:
-            is_human_intervene = True
+    def load_game(self, black_white_human):
+        # is_human_intervene = int(input("사람 알고리즘 개입 하는 경우 1, 아닌 경우 0 입력 : "))
+        # if is_human_intervene == 0:
+        #     is_human_intervene = False
+        # else:
+        #     is_human_intervene = True
         # print(black_white)
         hard_gui = self.hard_gui
         num = 5
+        order = None
         if self.ai_library == 'theano':
             model_file = './model/policy_9_' + str(hard_gui) + ".model"
             gui_board = None
             board_arr = Board(width=self.width_height, height=self.width_height, n_in_row=num,is_train_set_mode=self.is_train_set_mode)
             game = Game(board_arr, is_gui_mode=True)
-            if black_white == 'black':
+            if black_white_human == 'black':
                 order = 0
-            elif black_white == 'white':
+            elif black_white_human == 'white':
                 order = 1
             else:
                 print("없는 모드입니다")
@@ -116,9 +122,7 @@ class Gui:
 
             computer_player = MCTSPlayer(best_policy.policy_value_fn, c_puct=5, n_playout=400)
             human = Human()
-
             import gui_ai_vs_player
-
             game.board.init_board(start_player=order)
             gui_board = gui_ai_vs_player.Gui(game, board_arr, human, computer_player)
             gui_board.run()
@@ -127,48 +131,46 @@ class Gui:
         elif self.ai_library == 'tensorflow':  # 텐서플로우 학습 모델 기반으로 게임 시작
             gui_board = None
             board_arr = Board(width=self.width_height, height=self.width_height, n_in_row=num,is_train_set_mode=self.is_train_set_mode)
-            game = Game(board_arr, is_gui_mode=True)
-            if black_white == 'black':
+            game = Game(board_arr, is_gui_mode=True,is_human_intervene=self.is_human_intervene)
+            asdf
+            if black_white_human == 'black':
                 order = 0
-            elif black_white == 'white':
+            elif black_white_human == 'white':
                 order = 1
             else:
                 print("없는 모드입니다")
                 pg.quit()  # 종료
 
-
-
             # 이미 학습된 model을 불러와서 학습된 policy_value_net을 얻는다
-            if self.is_test_mode:
-                print("테스트  플레이 모드")
-                from player_AI import player_AI
-                if self.is_train_set_mode:
-                    computer_player = player_AI(size=self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui,is_human_intervene=is_human_intervene)
+
+            if self.is_train_set_mode:
+                from player_AI import MCTSPlayer_TrainSet
+                if self.ai_library == 'tensorflow':
+                    self.best_policy = player_AI.load_model_trainset_mode(model_type='policy',size=self.width_height,train_num=self.hard_gui)
+                    self.best_value = player_AI.load_model_trainset_mode(model_type='value',size=self.width_height,train_num=self.hard_gui)
+                    if black_white_human == 'black':
+                        black_white_ai = 'white'
+                    else:
+                        black_white_ai = 'black'
+                    computer_player = MCTSPlayer_TrainSet(self.best_policy,self.best_value, c_puct=5,n_playout=100,is_selfplay=False,is_test_mode=self.is_test_mode,is_human_intervene=self.is_human_intervene,
+                                                          black_white_ai=black_white_ai,use_mcts=self.use_mcts)
                 else:
-                    computer_player = MCTSPlayerNew(self.best_policy.policy_value_fn_new,self.width_height,
-                                                    c_puct=5, n_playout=400,is_test_mode=True)
-            else:
-                if self.is_train_set_mode:
-                    from player_AI import player_AI
-                    computer_player = player_AI(self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui,is_human_intervene=is_human_intervene)
-                else:
-                    computer_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5,
-                                     n_playout=400)  # set larger n_playout for better performance
+                    print("미구현")
+                    quit()
+                # computer_player = player_AI(self.width_height,is_test_mode=self.is_test_mode,black_white_human=black_white,train_num=hard_gui,is_human_intervene=self.is_human_intervene)
             human = Human()
 
             import gui_ai_vs_player
 
             game.board.init_board(start_player=order)
-            gui_board = gui_ai_vs_player.Gui(game, board_arr, human, computer_player,is_test_mode=self.is_test_mode)
+            gui_board = gui_ai_vs_player.Gui(game, board_arr, human, computer_player,is_test_mode=self.is_test_mode,black_white_ai=black_white_ai)
             gui_board.run()
             gui_board.update_game_view()
+            print("pg.quit() 수행")
             pg.quit()
-
         else:
             print("지원 되지 않는 라이브러리입니다")
             quit()
-
-
 
 
     def run(self):
@@ -200,8 +202,6 @@ class Gui:
                     #     self.load_game('black')
                     # elif x > self.x_bt_newgame_white + 51 and x < self.x_bt_newgame_white + rect_white.width - 51 and y > self.y_bt_newgame_white + 82 and y < self.y_bt_newgame_white + rect_white.height -82:
                     #     self.load_game('white')
-
-
 
         pg.quit()
 

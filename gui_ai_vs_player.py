@@ -40,11 +40,14 @@ clock = pg.time.Clock()
 pg.display.set_caption("오목")
 
 # 오류 상수들
-CONST_WRONG_POSITION = 1;
+CONST_WRONG_POSITION = 1
 
 class Gui:
-    def __init__(self, game, board_arr, player1, player2,is_test_mode=False):
+    def __init__(self, game, board_arr, player1, player2,is_test_mode=False,black_white_ai=None):
         # self.game_org = game.Game()
+        if black_white_ai is None:
+            print(black_white_ai,"를 설정해주세요 - gui_ai")
+            quit()
         self.game = game
         self.player1 = player1
         self.player2 = player2
@@ -68,6 +71,7 @@ class Gui:
         self.mark_6 = mark_6
         self.hint = None
         self.is_test_mode = is_test_mode
+        self.black_white_ai = black_white_ai
         if self.is_test_mode:
             self.hint = True
         else:
@@ -76,11 +80,6 @@ class Gui:
         self.bs = 0
         self.ws = 0
         self.update_game_view()
-        #
-        # self.model = load_model('./model/policy_black.h5', compile=False)
-        # self.model2 = load_model('./model/policy_white.h5', compile=False)
-        # self.model3 = load_model('./model/value_black_t3.h5', compile=False)
-        # self.model4 = load_model('./model/value_white_t3.h5', compile=False)
 
     def resize_view(self, event=None):
         if not event is None:
@@ -111,7 +110,7 @@ class Gui:
         self.update_game_view()
         current_player = self.game.board.get_current_player() # 1은 사람, 2는 컴퓨터
         if current_player == 2: # 사용자가 "백"이고 컴퓨터가 "흑"이면 컴퓨터가 먼저 놓기
-            self.game.do_next(-1,-1)  # 컴퓨터 차례이므로 row, col 대입 X
+            self.game.do_next(-1,-1,self.black_white_ai)  # 컴퓨터 차례이므로 row, col 대입 X
         while not done:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -124,7 +123,7 @@ class Gui:
                     row = round((y - 43 * self.width / 800) / (51 * self.width / 800))
                     col = round((x - 43 * self.width / 800) / (51 * self.width / 800))
                     print("row, col : (",row,",",col,")")
-                    move = self.game.do_next(row,col) # 사람이 수행
+                    move = self.game.do_next(row,col,black_white_ai=self.black_white_ai) # 사람이 수행
                     if move == error_const.CONST_UNKNOWN:
                         Tk().wm_withdraw()  # to hide the main window
                         messagebox.showinfo('오류', '알 수 없는 오류')
@@ -132,46 +131,10 @@ class Gui:
                         break
                     elif move == error_const.BANNED_6 or move == error_const.BANNED_33 or move == error_const.BANNED_44:
                         break
-
                     print("AI가 수를 두고 있습니다")
-                    self.game.do_next(row,col) # AI가 수행
+                    self.game.do_next(row,col,self.black_white_ai) # AI가 수행
                     print("AI가 수를 두었습니다")
 
-
-                    # self.update_game_view()
-                    # if 700 * self.width / 800 < x < 780 * self.width / 800 and y < 45 * self.width / 800:
-                    #     if self.hint:
-                    #         self.hint = False
-                    #     else:
-                    #         self.hint = True
-                    #     self.update_game_view()
-                    #     pg.event.clear()
-                    #     break
-                    # elif 50 * self.width / 800 < x < 130 * self.width / 800 and y < 45 * self.width / 800:
-                    #     if not self.new_game:
-                    #         self.game.__init__()
-                    #         self.bs = 0
-                    #         self.ws = 0
-                    #         self.new_game = True
-                    #     else:
-                    #         if self.bs == 0:
-                    #             self.bs = 1
-                    #         else:
-                    #             self.ws = 1
-                    #             self.new_game = False
-                    #     self.update_game_view()
-                    #     pg.event.clear()
-                    #     break
-                    # elif 140 * self.width / 800 < x < 220 * self.width / 800 and y < 45 * self.width / 800:
-                    #     if self.new_game:
-                    #         if self.bs == 0:
-                    #             self.bs = 2
-                    #         else:
-                    #             self.ws = 2
-                    #             self.new_game = False
-                    #     self.update_game_view()
-                    #     pg.event.clear()
-                    #     break
 
                     if self.bs != 0 and self.ws != 0:
                         if self.bs == 1 and self.game.state.check_turn():
@@ -366,17 +329,14 @@ class Gui:
                     forbidden_type = board.forbidden_types[index]
                     # code20221004202931
                     if forbidden_type == error_const.BANNED_33:
-                        print("3x3 가능성 발견 : 금지 이미지 blit")
                         screen.blit(self.mark_33,
                                     (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.diameter / 2),
                                      round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.diameter / 2)))
                     elif forbidden_type == error_const.BANNED_44:
-                        print("4x4 가능성 발견 : 금지 이미지 blit")
                         screen.blit(self.mark_44,
                                     (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.diameter / 2),
                                      round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.diameter / 2)))
                     elif forbidden_type == error_const.BANNED_6:
-                        print("6목 가능성 발견 : 금지 이미지 blit")
                         screen.blit(self.mark_6,
                                     (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.diameter / 2),
                                      round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.diameter / 2)))

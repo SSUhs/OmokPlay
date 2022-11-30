@@ -139,6 +139,21 @@ class Board(object):
     def get_current_player(self):
         return self.current_player
 
+    # stone_to_forbid : 금수를 정할 돌
+    def set_forbidden_new(self,stone_to_forbid):
+        rule = Renju_Rule(self.states_loc, self.width)
+        if stone_to_forbid == 1: # 렌주룰에서는 흑만 막는다
+            self.forbidden_locations, self.forbidden_types = rule.get_forbidden_points(stone=1)
+        elif stone_to_forbid == 2: # 렌주룰에서 백은 금수 X (장목 가능)
+            self.forbidden_locations = []
+            self.forbidden_types = []
+        else:
+            print("잘못된 stone number")
+            quit()
+
+
+
+
     def set_forbidden(self): # 주의!! 얘는 GUI 설정은 안해주므로, 이거 수행 후에 그래픽에는 따로 금지 이미지 넣어야함
         # forbidden_locations : 흑돌 기준에서 금수의 위치
         rule = Renju_Rule(self.states_loc, self.width)
@@ -177,8 +192,10 @@ class Game(object):
         self.player1 = None
         self.player2 = None
         self.is_gui_mode = is_gui_mode
+        self.is_console_mode = not is_gui_mode
         self.gui_board = None
         self.is_initiated_play = False  # init_play()함수 수행 했는지
+        self.is_human_intervene = False
 
     def graphic_console(self, board, player1, player2):  # 콘솔에 출력
         if not self.is_initiated_play:
@@ -241,19 +258,22 @@ class Game(object):
         self.player2 = player2
         self.gui_board = gui_board
         self.is_initiated_play = True
-        print("init play() 수행")
+        # print("init play() 수행")
 
 
-    def get_move(self,player_in_turn,is_gui,is_computer,row=-1,col=-1):
-        if (not is_gui and not is_computer):
+    def get_move(self,player_in_turn,is_gui,is_computer,row=-1,col=-1,black_white_ai=None):
+        if (not is_gui and not is_computer): # 콘솔모드 + 사람
            move = player_in_turn.get_action_console(self.board)
         elif (not is_gui) and (is_computer):
            move = player_in_turn.get_action(self.board)  # AI일 떄는 player_in_turn 인스턴스의 소속 클래스가 MCTSPlayer가 된다
         elif is_gui and is_computer and (not self.board.is_train_set_mode):
-            move = player_in_turn.get_action(self.board)
+            move = player_in_turn.get_action(self.board,is_human_intervene=self.is_human_intervene)
         # GUI + 훈련 셋
         elif is_gui and is_computer and self.board.is_train_set_mode:
-            move = player_in_turn.get_action(self.board)
+            if black_white_ai is None:
+                print(black_white_ai, "를 설정해주세요")
+                quit()
+            move = player_in_turn.get_action(self.board,black_white_ai)
         elif is_gui and (not is_computer):
             move = player_in_turn.get_action_gui(self.board, row, col)
         else:
@@ -263,12 +283,12 @@ class Game(object):
 
     # console 모드의 경우 row, col을 -1을 대입하면 됨
     # 또한 do_next를 실행하는 차례가 컴퓨터일 경우에도 row,col 사용 X
-    def do_next(self, row, col):
+    def do_next(self, row, col,black_white_ai=None):
         gui_board = self.gui_board
         # 흑돌일 때, 금수 위치를 넣어두기
         # gui로 플레이할 때와 콘솔로 플레이할 때는 do_next를 호출하는 선후가 다르기 때문에 따로 설정
 
-        if not self.is_gui_mode:
+        if self.is_console_mode:
             if self.board.is_you_black():
                 self.board.set_forbidden()
             self.graphic_console(self.board, self.player1.player, self.player2.player)  # 콘솔 모드의 경우, 입력 하기 전에 먼저 콘솔 출력
@@ -277,14 +297,16 @@ class Game(object):
         player_in_turn = self.players[current_player]
         move = None
 
-        if not self.is_gui_mode: # 콘솔 모드
+        if self.is_console_mode: # 콘솔 모드
             if current_player == 1:
-                move = self.get_move(player_in_turn,is_gui_mode=False,is_computer=False)
+                move = self.get_move(player_in_turn,is_gui=False,is_computer=False)
             else:
-                move = self.get_move(player_in_turn,is_gui_mode=False,is_computer=True)
+                move = self.get_move(player_in_turn,is_gui=False,is_computer=True)
         else: # GUI 모드
             if current_player == 2:  # 컴퓨터
-                move = self.get_move(player_in_turn,is_gui=True,is_computer=True)
+                if black_white_ai == 'black': # AI가 흑이면 AI가 자리를 찾기 전에 먼저 금수 자리 설정
+                    self.board.set_forbidden_new(1)
+                move = self.get_move(player_in_turn,is_gui=True,is_computer=True,black_white_ai=black_white_ai)
             else:  # 사람
                 move = self.get_move(player_in_turn,is_gui=True,is_computer=False,row=row,col=col)
                 if move == error_const.CONST_WRONG_POSITION or move == error_const.CONST_BANNED_POSITION or move == error_const.CONST_UNKNOWN:
@@ -297,13 +319,14 @@ class Game(object):
         self.board.do_move(move)
 
         if self.is_gui_mode:  # gui_mode의 경우 콘솔 출력은 이동 후에 출력
+            # 현재 이 위치는 이미 돌을 AI or 사람이 돌을 놓은 상태에서 진행되는 부분
             # if self.board.last_loc != -1:
             #     print(f"마지막 돌의 위치 : ({self.board.last_loc[0]},{self.board.last_loc[1]})\n")
-            if self.is_gui_mode:  # 백돌 차례가 끝나고 흑돌차례가 되면 먼저 금지 위치 설정해줘야한다
-                if self.board.is_you_black():
-                    self.board.set_forbidden()
+            # if self.board.is_you_white() and current_player == 1: # 방금 놓은게 컴퓨터고 사람은 흰색일 때
+            # if current_player == 1 and black_white_ai == 'white': # (move후라 current_player변경된 상태) 컴퓨터가 백이고 컴퓨터가 놓았으므로 사람차례에서 흑을 놔야됨
+            # 한턴 끝나면 흑의 금수 설정
+            self.board.set_forbidden_new(1)
             self.graphic_gui(gui_board,self.player1.player, self.player2.player)
-
         end, winner = self.board.game_end()
         if end:
             self.graphic_console(self.board, self.player1.player, self.player2.player)
@@ -312,10 +335,10 @@ class Game(object):
                 print("Game end. Winner is", self.players[winner])
                 if self.players[winner] == 1:
                     Tk().wm_withdraw()  # to hide the main window
-                    messagebox.showinfo('게임 종료', '컴퓨터가 이겼습니다')
+                    messagebox.showinfo('게임 종료', '흑이 승리하였습니다')
                 else:
                     Tk().wm_withdraw()  # to hide the main window
-                    messagebox.showinfo('게임 종료', '당신이 이겼습니다')
+                    messagebox.showinfo('게임 종료', '백이 승리하였습니다')
             else:  # end 값이 -1인 경우, 무승부 ( game_end() 함수에서, 오목 판에 수들이 꽉차면 -1 리턴해줌)
                 Tk().wm_withdraw()  # to hide the main window
                 messagebox.showinfo('게임 종료', '무승부 입니다')

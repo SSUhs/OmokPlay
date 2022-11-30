@@ -121,7 +121,93 @@ class Renju_Rule(object):
         if cnt >= 2:
             # print("double three")
             return True
-        return False
+        else: # 대각선 33을 못막는 오류가 있어서 수정
+            self.set_stone(x,y,stone)
+            if self.check_double3_new(x,y,stone):
+                self.set_stone(x,y,empty)
+                return True
+            else:
+                self.set_stone(x,y,empty)
+                return False
+
+    # dir 1 : 오른쪽
+    # dir -1 : 왼쪽
+    # dir 2 : 위쪽
+    # dir -2 : 아래쪽
+    # dir 3 : 대각 오른쪽 위
+    # dir -3 : 대각 왼쪽 아래
+    # dir 4 : 대각 오른쪽 아래
+    # dir -4 : 대각 왼쪽 위
+    # (x,y)에서 dir방향으로 이동 했을 때 어떤 돌인지 (-1 : 막혀있는 공간 / 0 : 빈공간 / 1 : 흑 / 2 : 백)
+    # diff 증분
+    # ex) diff = 1이고 dir이 -1이면 오른쪽  diff = -1이고 dir이 1이여도 동일
+    def get_stone_diff(self, arr_list, y, x, diff, dir):
+        size = self.board_size
+        if diff < 0 and dir > 0:
+            diff = -diff
+            dir = -dir
+        elif diff < 0 and dir < 0:
+            print("diff와 dir이 둘다 음수일 수는 없습니다")
+            quit()
+
+        if dir == 1:  # 오른쪽
+            if x + diff >= size: return -1
+            return arr_list[y][x + diff]
+        elif dir == -1:  # 왼쪽
+            if x - diff < 0: return -1
+            return arr_list[y][x - diff]
+        elif dir == 2:  # 위쪽
+            if y - diff < 0: return -1
+            return arr_list[y - diff][x]
+        elif dir == -2:  # 아래쪽
+            if y + diff >= size: return -1
+            return arr_list[y + diff][x]
+        elif dir == 3:  # 대각 오른쪽 위
+            if y - diff < 0 or x + diff >= size: return -1
+            return arr_list[y - diff][x + diff]
+        elif dir == -3:  # 대각 왼쪽 아래
+            if y + diff >= size or x - diff < 0: return -1
+            return arr_list[y + diff][x - diff]
+        elif dir == 4:  # 대각 오른쪽 아래
+            if y + diff >= size or x + diff >= size: return -1
+            return arr_list[y + diff][x + diff]
+        elif dir == -4:  # 대각 왼쪽 위
+            if y - diff < 0 or x - diff < 0: return -1
+            return arr_list[y - diff][x - diff]
+        else:
+            print("존재하지 않는 방향")
+            quit()
+
+    def check_double3_new(self,x,y,stone):
+        empty = 0
+        is_left_right_3 = False # d
+        is_up_down_3 = False  # a
+        is_left_cross_3 = False  # b
+        is_right_cross_3 =  False # c
+
+        arr_list = self.board
+        if self.get_stone_diff(arr_list,y,x,1,1) == stone and self.get_stone_diff(arr_list,y,x,1,-1) == stone \
+            and self.get_stone_diff(arr_list,y,x,2,1) == empty and self.get_stone_diff(arr_list,y,x,2,-1) == empty:
+            is_left_right_3 = True
+
+        if self.get_stone_diff(arr_list,y,x,1,2) == stone and self.get_stone_diff(arr_list,y,x,1,-2) == stone \
+            and self.get_stone_diff(arr_list,y,x,2,2) == empty and self.get_stone_diff(arr_list,y,x,2,-2) == empty:
+            is_up_down_3 = True
+
+        if self.get_stone_diff(arr_list,y,x,1,3) == stone and self.get_stone_diff(arr_list,y,x,1,-3) == stone \
+            and self.get_stone_diff(arr_list,y,x,2,3) == empty and self.get_stone_diff(arr_list,y,x,2,-3) == empty:
+            is_left_cross_3 = True
+
+        if self.get_stone_diff(arr_list,y,x,1,4) == stone and self.get_stone_diff(arr_list,y,x,1,-4) == stone \
+            and self.get_stone_diff(arr_list,y,x,2,4) == empty and self.get_stone_diff(arr_list,y,x,2,-4) == empty:
+            is_right_cross_3 = True
+
+        tf_list = [is_left_right_3,is_up_down_3,is_right_cross_3,is_left_cross_3]
+        if tf_list.count(True) >= 3:
+            return True
+        else:
+            return False
+
 
     def double_four(self, x, y, stone):
         cnt = 0
@@ -153,7 +239,7 @@ class Renju_Rule(object):
         forbidden_types = []  # ex : 3,3  4,4  6,6 중에 어떤건지
         for y in range(len(self.board)):
             for x in range(len(self.board[0])):
-                if self.board[y][x]:
+                if self.board[y][x]: # 이미 돌이 놔져있는 곳은 스킵
                     continue
                 is_forbidden_point, err_code = self.forbidden_point(x, y, stone)
                 if is_forbidden_point:

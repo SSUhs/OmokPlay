@@ -35,9 +35,9 @@ class Human(object):
 
     def get_action_console(self, board):  # 콘솔 or Colab용 진행 액션
         try:
-            print("돌을 둘 좌표를 입력하세요.")
+            print("돌을 둘 좌표를 입력하세요 (쉼표로 구분)")
             location = input()
-            if isinstance(location, str): location = [int(n, 10) for n in location.split(",")]
+            if isinstance(location, str): location = [int(n, board.width+1) for n in location.split(",")]
             move = board.location_to_move(location)
         except Exception as e:
             move = error_const.CONST_UNKNOWN
@@ -48,7 +48,6 @@ class Human(object):
         elif board.is_you_black() and tuple(location) in board.forbidden_locations:
             print("금수 자리에 돌을 놓을 수 없습니다.")
             move = self.get_action_console(board)
-
         return move
 
     def __str__(self):
