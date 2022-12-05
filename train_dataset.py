@@ -21,7 +21,7 @@ path_saved_weights = '/content/drive/MyDrive/saved_data/weights/'
 
 
 # auto_rotate : 회전데이터 (12배) 자동 추가 >> 메인메모리 상에서 처리하기 때문에 램 부족할 수 있음
-def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train,auto_rotate):
+def convert_load_dataset(csv_file_name1, is_one_hot_encoding,type_train,auto_rotate,csv_file_name2=None):
     board_size = 15
     data_x_p_black = []  # 흑 정책망 input
     data_x_p_white = []  # 백 정책망 input
@@ -32,75 +32,83 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train,auto_rota
     data_y_p_black = None
     data_y_p_white = None
     data_y_v = None
-    csv_file_name = path_google_drive_main+'csv/'+csv_file_name
+    if csv_file_name2 is not None:
+        range_csv = 2
+    else:
+        range_csv = 1
+    csv_file_name1 = path_google_drive_main+'csv/'+csv_file_name1
+    csv_file_name2 = path_google_drive_main+'csv/'+csv_file_name2
+    csv_file_list = [csv_file_name1,csv_file_name2]
+
 
     if type_train >= 3:
         print(f"존재 하지 않는 type_train : {type_train}")
         quit()
 
-
-    print("\n데이터 셋 로딩 시작..")
-    with open(csv_file_name, 'r') as f:
-        next(f, None)
-        reader = csv.reader(f)
-        count_read = 0
-        skip_count = 0
-        # 헤더 : move 위치 / black_value / 누가 돌을 놓을차례(흑1, 백2) / 상태~
-        for row in reader: # row는 문자열 리스트
-            count_read += 1
-            # if float(row[1]) <= -100: # 승부 판별 불가능
-            #     skip_count+=1
-            #     continue
-            if type_train == 0: # 흑,백 정책망 학습
-                # if float(row[1]) <= 0.5 and int(float(row[2]) == 1):  # 흑이 이기거나 비기는 경우면서 흑이 돌을 놓을 차례인 경우
-                if auto_rotate:
-                    label = int(float(row[0]))  # 정답 라벨
-                    board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]), board_size=board_size)  # 2차원 형태로 state 변경
-                    rotate_12dir_states = get_rotate_board_12dir(board_2nd)  # 12번 뒤집은 state
-                    board_2nd = None
-                    rotate_12dir_labels = get_rotate_label(label, board_size)
-                    for i in range(len(rotate_12dir_states)):
-                        data_x_p_black.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
-                        labels_p_black.append(int(rotate_12dir_labels[i]))
-                else: # 자동 뒤집기 X
-                    labels_p_black.append(int(float(row[0])))
-                    data_x_p_black.append(row[3:])
-            elif type_train == 1: # 백 정책망 학습
-                # if float(row[1]) >= 0.5 and int(float(row[2]) == 2):  # 백이 이기거나 비기는 경우면서 백이 돌을 놓을 차례인 경우
-                # 일단 전부 다 학습
-                if auto_rotate:
-                    label = int(float(row[0]))  # 정답 라벨
-                    board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]), board_size=board_size)  # 2차원 형태로 state 변경
-                    rotate_12dir_states = get_rotate_board_12dir(board_2nd)  # 12번 뒤집은 state
-                    rotate_12dir_labels = get_rotate_label(label, board_size)
-                    board_2nd = None
-                    for i in range(len(rotate_12dir_states)):
-                        data_x_p_white.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
-                        labels_p_white.append(int(rotate_12dir_labels[i]))
-                else:
-                    labels_p_white.append(int(float(row[0])))
-                    data_x_p_white.append(row[3:])
-            elif type_train == 2: # 가치망
-                if auto_rotate:
-                    board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]), board_size=board_size)  # 2차원 형태로 state 변경
-                    rotate_12dir_states = get_rotate_board_12dir(board_2nd)  # 12번 뒤집은 state
-                    board_2nd = None
-                    for i in range(len(rotate_12dir_states)):
-                        data_x_v.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
-                        labels_v.append(float(row[1]))
-                else:
-                    if float(row[1]) <= 0.3:
-                        labels_v.append(-1.0)
-                        data_x_v.append(row[3:])
-                    elif float(row[1]) >= 0.8:
-                        labels_v.append(1.0)
-                        data_x_v.append(row[3:])
+    for csv_count in range(range_csv):
+        print("\n데이터 셋 로딩 시작..")
+        read_file = csv_file_list[csv_count]
+        with open(read_file, 'r') as f:
+            next(f, None)
+            reader = csv.reader(f)
+            count_read = 0
+            skip_count = 0
+            # 헤더 : move 위치 / black_value / 누가 돌을 놓을차례(흑1, 백2) / 상태~
+            for row in reader: # row는 문자열 리스트
+                count_read += 1
+                # if float(row[1]) <= -100: # 승부 판별 불가능
+                #     skip_count+=1
+                #     continue
+                if type_train == 0: # 흑,백 정책망 학습
+                    # if float(row[1]) <= 0.5 and int(float(row[2]) == 1):  # 흑이 이기거나 비기는 경우면서 흑이 돌을 놓을 차례인 경우
+                    if auto_rotate:
+                        label = int(float(row[0]))  # 정답 라벨
+                        board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]), board_size=board_size)  # 2차원 형태로 state 변경
+                        rotate_12dir_states = get_rotate_board_12dir(board_2nd)  # 12번 뒤집은 state
+                        board_2nd = None
+                        rotate_12dir_labels = get_rotate_label(label, board_size)
+                        for i in range(len(rotate_12dir_states)):
+                            data_x_p_black.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
+                            labels_p_black.append(int(rotate_12dir_labels[i]))
+                    else: # 자동 뒤집기 X
+                        labels_p_black.append(int(float(row[0])))
+                        data_x_p_black.append(row[3:])
+                elif type_train == 1: # 백 정책망 학습
+                    # if float(row[1]) >= 0.5 and int(float(row[2]) == 2):  # 백이 이기거나 비기는 경우면서 백이 돌을 놓을 차례인 경우
+                    # 일단 전부 다 학습
+                    if auto_rotate:
+                        label = int(float(row[0]))  # 정답 라벨
+                        board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]), board_size=board_size)  # 2차원 형태로 state 변경
+                        rotate_12dir_states = get_rotate_board_12dir(board_2nd)  # 12번 뒤집은 state
+                        rotate_12dir_labels = get_rotate_label(label, board_size)
+                        board_2nd = None
+                        for i in range(len(rotate_12dir_states)):
+                            data_x_p_white.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
+                            labels_p_white.append(int(rotate_12dir_labels[i]))
                     else:
-                        pass
-                        # labels_v.append(0.0)
+                        labels_p_white.append(int(float(row[0])))
+                        data_x_p_white.append(row[3:])
+                elif type_train == 2: # 가치망
+                    if auto_rotate:
+                        board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]), board_size=board_size)  # 2차원 형태로 state 변경
+                        rotate_12dir_states = get_rotate_board_12dir(board_2nd)  # 12번 뒤집은 state
+                        board_2nd = None
+                        for i in range(len(rotate_12dir_states)):
+                            data_x_v.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
+                            labels_v.append(float(row[1]))
+                    else:
+                        if float(row[1]) <= 0.3:
+                            labels_v.append(-1.0)
+                            data_x_v.append(row[3:])
+                        elif float(row[1]) >= 0.8:
+                            labels_v.append(1.0)
+                            data_x_v.append(row[3:])
+                        else:
+                            pass
+                            # labels_v.append(0.0)
 
-            if count_read % 8000 == 0:
-                print("현재까지 읽은 row :",count_read)
+                if count_read % 8000 == 0:
+                    print("현재까지 읽은 row :",count_read)
 
     print(f"\n불러온 row : {count_read}")
     if len(data_x_p_black) >= 1:
@@ -258,12 +266,12 @@ def get_not_sequential_model():
     return model_
 
 # pv_type : 'seperate' >> policy, value 분리망
-def get_dataset(csv_name,is_one_hot_encoding,pv_type,type_train,auto_rotate):
+def get_dataset(csv_name,is_one_hot_encoding,pv_type,type_train,auto_rotate,csv_name2=None):
     print(f"policy value type : {pv_type}")
     print(f"데이터 회전 데이터 자동 추가 : {auto_rotate}")
     
     if pv_type == 'seperate':
-        data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= convert_load_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding,type_train=type_train,auto_rotate=auto_rotate)
+        data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= convert_load_dataset(csv_name, is_one_hot_encoding=is_one_hot_encoding,type_train=type_train,auto_rotate=auto_rotate,csv_file_name2=csv_name2)
     else:
         print("미구현")
     print("데이터 로딩 성공")
@@ -318,14 +326,14 @@ def save_pickle(save_path,model):
     pickle.dump(net_params, open(save_path, 'wb'), protocol=2)
 
 
-def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_train):
+def train_model(model,csv_name,is_one_hot_encoding,batch_size,auto_rotate,type_train,csv_name2=None):
     name = csv_name[:-4]  # ~~~.csv에서 .csv자르기
     checkpoint_path = name+'.ckpt'
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=path_saved_weights+checkpoint_path,save_weights_only=True,verbose=1,mode='auto')
     plateau = ReduceLROnPlateau(monitor='val_acc', factor=0.2, patience=5, verbose=1, mode='auto')
     model.summary()
 
-    data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train,auto_rotate=auto_rotate)
+    data_x_p_black,data_x_p_white,data_y_p_black,data_y_p_white,data_x_v,data_y_v= get_dataset(csv_name,is_one_hot_encoding=is_one_hot_encoding,pv_type='seperate',type_train=type_train,auto_rotate=auto_rotate,csv_name2=csv_name2)
 
     if type_train == 0:
         data_y_p_black = to_categorical(data_y_p_black)
@@ -411,6 +419,10 @@ if __name__ == '__main__':
         csv_file_list = []
         for i in range(13):
             csv_file_list.append(f"renju_rotate_{i}.csv")
+    elif csv_file_all == '1':
+        csv_file_list = []
+        csv_file_list.append(f"renju_rotate_0.csv")
+        csv_file_list.append(f"renju_rotate_1.csv")
     else:
         csv_file_list = csv_file_all.split(' and ')
 
@@ -439,7 +451,9 @@ if __name__ == '__main__':
       quit()
 
     if to_do == 0 or to_do == 1:
-        if len(csv_file_list) >= 2:
+        if csv_file_all == '1':
+            model = train_model(model,csv_file_list[0],is_one_hot_encoding=one_hot_encoding,batch_size=512,auto_rotate=auto_rotate,type_train=type_train,csv_name2=csv_file_list[1])
+        elif len(csv_file_list) >= 2:
             print("csv 파일 이름 확인")
             print(csv_file_list)
         for i in range(len(csv_file_list)):
