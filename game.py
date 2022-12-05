@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+import csv
+from datetime import datetime
 from time import time
 from constant import error_const
-from renju_rule import Renju_Rule
+from rule.renju_rule.renju_rule import Renju_Rule
 from IPython.display import clear_output
 from tkinter import messagebox
 from tkinter import *
 import os
+
+
 
 
 class Board(object):
@@ -84,12 +88,36 @@ class Board(object):
 
         return square_state[:, ::-1, :]
 
-    def do_move(self, move):
-        self.states[move] = self.current_player
+
+    # do_move가 수행되기 전에 금수는 되어있어야함!!
+    # stone : 흑이 1 백이 2
+    def do_move(self, move,stone):
+        self.states[move] = stone
         loc = self.move_to_location(move)
-        self.states_loc[loc[0]][loc[1]] = 1 if self.is_you_black() else 2
+        self.states_loc[loc[0]][loc[1]] = stone
+        # self.states_loc[loc[0]][loc[1]] = 1 if self.is_you_black() else 2
         self.current_player = (self.players[0] if self.current_player == self.players[1] else self.players[1])
         self.last_move, self.last_loc = move, loc
+
+
+    def do_undo(self,last_move,before_move):
+        if last_move != self.last_move:
+            print("오류 : last_move가 일치하지 않습니다")
+            quit()
+        self.states[last_move] = 0 # 빈 자리로 변경
+        loc = self.move_to_location(last_move)
+        self.states_loc[loc[0]][loc[1]] = 0
+        self.current_player = (self.players[0] if self.current_player == self.players[1] else self.players[1])
+        if before_move == None: # 이전 움직임이 없을 경우
+            self.last_move = -1
+            self.last_loc = -1
+        else:
+            self.last_move = before_move
+            self.last_loc = self.move_to_location(before_move)
+
+
+
+
 
     # 무승부의 경우 -1 리턴하고, 한명이라도 승리한 경우 승리자 번호 (0,1이였나 1,2였나) 리턴
     def has_a_winner(self):
@@ -105,31 +133,31 @@ class Board(object):
         for m in moved:
             h = m // width
             w = m % width
-            player = states[m]
+            stone_color = states[m]
 
             if (w in range(width - n + 1) and
                     len(set(states.get(i, -1) for i in range(m, m + n))) == 1):
-                return True, player
+                return True, stone_color
 
             if (h in range(height - n + 1) and
                     len(set(states.get(i, -1) for i in range(m, m + n * width, width))) == 1):
-                return True, player
+                return True, stone_color
 
             if (w in range(width - n + 1) and h in range(height - n + 1) and
                     len(set(states.get(i, -1) for i in range(m, m + n * (width + 1), width + 1))) == 1):
-                return True, player
+                return True, stone_color
 
             if (w in range(n - 1, width) and h in range(height - n + 1) and
                     len(set(states.get(i, -1) for i in range(m, m + n * (width - 1), width - 1))) == 1):
-                return True, player
+                return True, stone_color
 
         return False, -1
 
-    # return : 첫번째 리턴 값은 게임이 끝났냐 안끝났냐고, 두번째 리턴은 승리 했냐 패배했냐 무승부 했냐를 리턴함
+    # return : 게임이 끝났으면 (승,패,무승부) True 리턴 / 이긴 돌의 색 리턴 (흑 1 / 백 2 / 무승부 또는 게임이 안끝난 경우 -1)
     def game_end(self):
-        win, winner = self.has_a_winner()
+        win, winner_stone = self.has_a_winner()
         if win:
-            return True, winner
+            return True, winner_stone
         # len(self.states)는 예를 들어 흑 백 다 합쳐서 3번 놨다면 len(self.states)는 3이다
         # 따라서, 오목판 꽉 찼으면 (True,-1) 리턴
         elif len(self.states) == self.width * self.height:
@@ -140,6 +168,8 @@ class Board(object):
         return self.current_player
 
     # stone_to_forbid : 금수를 정할 돌
+    # 주의 : 이 함수는 멤버를 수정하기 때문에 금수 위치가 변경될 수 있음
+    #       현재 인스턴스의 states를 기준으로 하기 때문에, 노드 확장으로 다음 예측에는 사용 X
     def set_forbidden_new(self,stone_to_forbid):
         rule = Renju_Rule(self.states_loc, self.width)
         if stone_to_forbid == 1: # 렌주룰에서는 흑만 막는다
@@ -150,17 +180,16 @@ class Board(object):
         else:
             print("잘못된 stone number")
             quit()
-
-
-
+        self.forbidden_moves = [self.location_to_move(loc) for loc in self.forbidden_locations]
 
     def set_forbidden(self): # 주의!! 얘는 GUI 설정은 안해주므로, 이거 수행 후에 그래픽에는 따로 금지 이미지 넣어야함
         # forbidden_locations : 흑돌 기준에서 금수의 위치
         rule = Renju_Rule(self.states_loc, self.width)
-        if self.order == 0: # order가 0이면 플레이어가 선공
-            self.forbidden_locations, self.forbidden_types = rule.get_forbidden_points(stone=1)
-        else:
-            self.forbidden_locations, self.forbidden_types = rule.get_forbidden_points(stone=2)
+        self.forbidden_locations, self.forbidden_types = rule.get_forbidden_points(stone=1)
+        # if self.order == 0: # order가 0이면 플레이어가 선공
+        #     self.forbidden_locations, self.forbidden_types = rule.get_forbidden_points(stone=1)
+        # else:
+        #     self.forbidden_locations, self.forbidden_types = rule.get_forbidden_points(stone=2)
         self.forbidden_moves = [self.location_to_move(loc) for loc in self.forbidden_locations]
 
 
@@ -186,7 +215,7 @@ class Board(object):
 
 
 class Game(object):
-    def __init__(self, board, is_gui_mode, **kwargs):
+    def __init__(self, board, is_gui_mode,game_mode,recorded_game=None,**kwargs):
         self.board = board
         self.players = None
         self.player1 = None
@@ -196,6 +225,10 @@ class Game(object):
         self.gui_board = None
         self.is_initiated_play = False  # init_play()함수 수행 했는지
         self.is_human_intervene = False
+        self.game_mode = game_mode
+        self.record_list = []
+        self.recorded_game = recorded_game
+
 
     def graphic_console(self, board, player1, player2):  # 콘솔에 출력
         if not self.is_initiated_play:
@@ -246,7 +279,8 @@ class Game(object):
             print(f"마지막 돌의 위치 : ({board.last_loc[0]},{board.last_loc[1]})\n")
 
     def graphic_gui(self, gui_board, player1, player2):  # GUI로 출력
-        gui_board.update_game_view(player1, player2)
+        # gui_board.update_game_view(player1, player2)
+        gui_board.update_game_view()
 
     def init_play(self, gui_board, player1, player2, is_shown=1):
         p1, p2 = self.board.players
@@ -262,6 +296,7 @@ class Game(object):
 
 
     def get_move(self,player_in_turn,is_gui,is_computer,row=-1,col=-1,black_white_ai=None):
+        move = None
         is_console = not is_gui
         if is_console and not is_computer: # 콘솔모드 + 사람
            move = player_in_turn.get_action_console(self.board)
@@ -284,17 +319,20 @@ class Game(object):
 
     # console 모드의 경우 row, col을 -1을 대입하면 됨
     # 또한 do_next를 실행하는 차례가 컴퓨터일 경우에도 row,col 사용 X
-    def do_next(self, row, col,black_white_ai=None):
+    # stone : 이번 차례 돌
+    def do_next(self, row=None, col=None,stone=None,black_white_ai=None):
         gui_board = self.gui_board
         # 흑돌일 때, 금수 위치를 넣어두기
         # gui로 플레이할 때와 콘솔로 플레이할 때는 do_next를 호출하는 선후가 다르기 때문에 따로 설정
-
+        if stone == None:
+            print("stone은 None일 수 없습니다")
+            quit()
         if self.is_console_mode:
-            if self.board.is_you_black():
+            if stone == 1:
                 self.board.set_forbidden()
             self.graphic_console(self.board, self.player1.player, self.player2.player)  # 콘솔 모드의 경우, 입력 하기 전에 먼저 콘솔 출력
 
-        current_player = self.board.get_current_player() # 1은 사람, 2는 컴퓨터
+        current_player = self.board.get_current_player() # AI vs Player 모드 : 1은 사람, 2는 컴퓨터
         player_in_turn = self.players[current_player]
         move = None
 
@@ -304,37 +342,35 @@ class Game(object):
             else:
                 move = self.get_move(player_in_turn,is_gui=False,is_computer=True)
         else: # GUI 모드
-            if current_player == 2:  # 컴퓨터
-                if black_white_ai == 'black': # AI가 흑이면 AI가 자리를 찾기 전에 먼저 금수 자리 설정
-                    self.board.set_forbidden_new(1)
-                move = self.get_move(player_in_turn,is_gui=True,is_computer=True,black_white_ai=black_white_ai)
-            else:  # 사람
-                move = self.get_move(player_in_turn,is_gui=True,is_computer=False,row=row,col=col)
+            if self.game_mode == 'ai_vs_player':
+                if current_player == 2:  # 컴퓨터
+                    if black_white_ai == 'black' and stone==1:  # AI가 흑이면 AI가 자리를 찾기 전에 먼저 금수 자리 설정
+                        self.board.set_forbidden_new(1)
+                    move = self.get_move(player_in_turn, is_gui=True, is_computer=True, black_white_ai=black_white_ai)
+                else:  # 사람
+                    move = self.get_move(player_in_turn, is_gui=True, is_computer=False, row=row, col=col)
+                    if move == error_const.CONST_WRONG_POSITION or move == error_const.CONST_BANNED_POSITION or move == error_const.CONST_UNKNOWN:
+                        return move  # 잘못된 경우이므로 종료
+            elif self.game_mode == 'player_vs_player':
+                move = self.get_move(player_in_turn, is_gui=True, is_computer=False, row=row, col=col)
                 if move == error_const.CONST_WRONG_POSITION or move == error_const.CONST_BANNED_POSITION or move == error_const.CONST_UNKNOWN:
                     return move  # 잘못된 경우이므로 종료
 
-        # if current_player == 1:
-        #     print("사람이 고른 자리 :",move)
-        # else:
-        #     print("AI가 고른 자리 :",move)
-        self.board.do_move(move)
+        self.board.do_move(move,stone)
+        self.record_move(move)
 
         if self.is_gui_mode:  # gui_mode의 경우 콘솔 출력은 이동 후에 출력
             # 현재 이 위치는 이미 돌을 AI or 사람이 돌을 놓은 상태에서 진행되는 부분
-            # if self.board.last_loc != -1:
-            #     print(f"마지막 돌의 위치 : ({self.board.last_loc[0]},{self.board.last_loc[1]})\n")
-            # if self.board.is_you_white() and current_player == 1: # 방금 놓은게 컴퓨터고 사람은 흰색일 때
-            # if current_player == 1 and black_white_ai == 'white': # (move후라 current_player변경된 상태) 컴퓨터가 백이고 컴퓨터가 놓았으므로 사람차례에서 흑을 놔야됨
             # 한턴 끝나면 흑의 금수 설정
             self.board.set_forbidden_new(1)
             self.graphic_gui(gui_board,self.player1.player, self.player2.player)
-        end, winner = self.board.game_end()
+
+        end, winner_stone = self.board.game_end()
         if end:
             self.graphic_console(self.board, self.player1.player, self.player2.player)
             self.graphic_gui(gui_board,self.player1.player, self.player2.player)
-            if winner != -1:
-                print("Game end. Winner is", self.players[winner])
-                if self.players[winner] == 1:
+            if winner_stone != -1:
+                if winner_stone == 1:
                     Tk().wm_withdraw()  # to hide the main window
                     messagebox.showinfo('게임 종료', '흑이 승리하였습니다')
                 else:
@@ -344,16 +380,48 @@ class Game(object):
                 Tk().wm_withdraw()  # to hide the main window
                 messagebox.showinfo('게임 종료', '무승부 입니다')
                 print("Game end. Tie")
-            return winner
+            self.save_csv_data(winner_stone)
+            return error_const.CONST_GAME_FINISH
         else:
             return error_const.CONST_SUCCESS  # 다시 반복
 
 
 
+    def record_move(self, move):
+        if move < 0: # 오류는 기록 X
+            return
+        self.record_list.append(move)
+        return
+
+    def save_csv_data(self,winner_stone):
+        if self.game_mode == 'replay':
+            return
+        current_time = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        output_csv_name = f'saved_csv/{current_time}.csv'
+        winner = None
+        if winner_stone == -1:
+            winner = 'Draw'
+        elif winner_stone == 1:
+            winner = 'Black'
+        elif winner_stone == 2:
+            winner = 'White'
+        else:
+            print(f"잘못된 인자 : {winner_stone}")
+            quit()
+        # f_csv = open(output_csv_name, 'w', encoding='utf-8', newline='')
+        f_csv = open(output_csv_name, 'w', encoding='utf-8',newline='')
+        f_csv_writer = csv.writer(f_csv)
+        f_csv_writer.writerow(['Game Mode : ',self.game_mode])
+        f_csv_writer.writerow(['Board Size : ',self.board.width])
+        f_csv_writer.writerow(['Winner : ',winner])
+        f_csv_writer.writerow(self.record_list)
+        print(f"CSV 저장 : {output_csv_name}")
 
     # 이 함수는 "1판" 자가 대전 시간이다
     # 따라서, playout이 400이면 이 함수는 400번 호출됨
     def start_self_play(self, player, is_shown=0, temp=1e-3,is_test_mode=False):
+        print("자가 학습 수정중")
+        quit()
         """ 스스로 자가 대국하여 학습 데이터(state, mcts_probs, z) 생성 """
         """ 이 함수는 "1판" 자가 대전 """
         self.board.init_board()
@@ -362,8 +430,13 @@ class Game(object):
         before_time = time()
         while True:
             # 흑돌일 때, 금수 위치 확인하기
-            if self.board.is_you_black(): self.board.set_forbidden()
-            if is_shown: self.graphic_console(self.board, p1, p2)
+            if self.board.is_you_black():
+                stone = 1
+                self.board.set_forbidden()
+            else:
+                stone =2
+            if is_shown:
+                self.graphic_console(self.board, p1, p2)
 
             move, move_probs = player.get_action(self.board, temp=temp, return_prob=1)
             # store the data
@@ -372,23 +445,31 @@ class Game(object):
             current_players.append(self.board.current_player)
 
             # perform a move
-            self.board.do_move(move)
+            self.board.do_move(move,stone)
 
-            end, winner = self.board.game_end()
+            end, winner_stone = self.board.game_end()
             if end:
                 # winner from the perspective of the current player of each state
                 winners_z = np.zeros(len(current_players))
-                if winner != -1:
-                    winners_z[np.array(current_players) == winner] = 1.0
-                    winners_z[np.array(current_players) != winner] = -1.0
+                if winner_stone != -1:
+                    print("리턴 값이 바뀌어서 이 부분 수정 필요")
+                    quit()
+                    # winners_z[np.array(current_players) == winner] = 1.0
+                    # winners_z[np.array(current_players) != winner] = -1.0
                 # reset MCTS root node
                 player.reset_player()
                 if is_shown:
                     self.graphic_console(self.board, p1, p2)
-                    if winner != -1:
-                        print("Game end. Winner is player:", winner)
+                    if winner_stone != -1:
+                        win_color = None
+                        if winner_stone == 1:
+                            win_color = 'Black'
+                        elif winner_stone == 2:
+                            win_color = 'White'
+                        print("Game end. Winner is player : ", win_color)
                     else:
                         print("Game end. Tie")
 
                 if is_test_mode: print(f"자가대전 \'1\'판 하는데 소요된 시간 : {time()-before_time}")
-                return winner, zip(states, mcts_probs, winners_z)
+                return None
+                # return winner, zip(states, mcts_probs, winners_z)

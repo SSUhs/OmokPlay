@@ -1,16 +1,14 @@
 import sys
 import random
 import numpy as np
-import re  # 정규표현식
 from game import Board, Game
 from pandas import DataFrame, Series
-from collections import defaultdict, deque
+from collections import deque
 from mcts_alphaZero import MCTSPlayer
 from new_mcts_alphaZero import MCTSPlayerNew
 from datetime import datetime
 import pickle
 from time import time
-from time import gmtime
 from save_data_helper import save_data_helper
 
 sys.setrecursionlimit(10 ** 8)
@@ -70,11 +68,11 @@ class TrainPipeline():
         # policy-value net에서 학습 시작
         if ai_lib == 'theano':
             self.train_num = 0  # 현재 학습 횟수
-            from policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
+            from policy_value_net.policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
             self.policy_value_net = PolicyValueNetTheano(self.board_width, self.board_height)
         elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
             self.train_num = start_num
-            from policy_value_net_tensorflow import PolicyValueNetTensorflow
+            from policy_value_net.policy_value_net_tensorflow import PolicyValueNetTensorflow
             self.make_tensorflow_checkpoint_auto(start_num)
             if ai_lib == 'tensorflow':
                 self.policy_value_net = PolicyValueNetTensorflow(self.board_width, self.board_height,
@@ -97,14 +95,14 @@ class TrainPipeline():
                     print("\ntrain_num이 0이 아닌 상황에서 learning_rate 데이터가 존재하지 않거나 로딩에 실패하였습니다")
         elif ai_lib == 'tfkeras':  # tensorflow keras
             self.train_num = start_num
-            from policy_value_net_tf_keras import PolicyValueNetTensorflowKeras
+            from policy_value_net.policy_value_net_tf_keras import PolicyValueNetTensorflowKeras
             self.policy_value_net = PolicyValueNetTensorflowKeras(self.board_width, self.board_height,
                                                                   compile_env='colab',
                                                                   model_file=model_file, keras_init_num=start_num,
                                                                   keras_lr_data=keras_lr_data)
         elif ai_lib == 'keras':  # keras
             self.train_num = start_num
-            from policy_value_net_keras import PolicyValueNetKeras
+            from policy_value_net.policy_value_net_keras import PolicyValueNetKeras
             self.policy_value_net = PolicyValueNetKeras(self.board_width, self.board_height,
                                                         compile_env='colab',
                                                         model_file=model_file, init_num=start_num)

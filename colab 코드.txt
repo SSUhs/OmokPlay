@@ -1,4 +1,0 @@
-from google.colab import drive 
-drive.mount('/content/drive')
-!git clone https://github.com/SSUhs/OmokPlay.git 
-%run OmokPlay/train_local.py

@@ -1,153 +1,18 @@
 # train set을 사용하는 플레이어
-import random
-
-import numpy as np
 from time import time
 import tensorflow as tf
 import keras.backend as K
-import copy
-
-_play_on_colab = False
-_test_mode = False
-
-
-# 금수 or 이미 수가 놓아지지 않은 자리 중에서 가장 최선의 인덱스
-def get_best_idx(probs, board, is_human_intervene, size=15):
-    probs_tmp = copy.deepcopy(probs)  # 아마 ndarray(1,225)??
-    # if self.is_test_mode:
-    #     self.print_states_probs(probs_tmp)
-
-    # 특수상황에서 사람의 알고리즘 강제 개입 하는 경우
-    if is_human_intervene:
-        # 먼저, 놓자마자 바로 이길 수 있는 좌표가 있으면 해당 좌표를 선택하면 된다
-        can_win_list = get_win_list(board, True)  # 바로 이길 수 있는 위치 확인 (0~224 1차원 좌표)
-
-        if _test_mode:
-            print('------------------------------')
-            print(f"이길 수 있는 좌표 리스트 : {can_win_list}")
-        if len(can_win_list) >= 1:
-            return random.choice(can_win_list)  # 어차피 리스트에 있는거 아무거나 놔도 이기므로 하나 랜덤으로 골라서 리턴
-
-        # 이제 상대가 놓으면 바로 이길 수 있는 자리 탐색
-        # can_lost_list나 can_win_list는 금수는 이미 처리하고 리턴됨
-        can_lose_list = get_win_list(board, False)  # 상대 입장에서 이기는 거 테스트 (type : (0~224 1차원 좌표))
-        if _test_mode: print(f'질 수 있는 좌표 리스트 : {can_lose_list}')
-        if len(can_lose_list) >= 1:  # 만약 존재한다면, 둘중에 probs가 높은 쪽을 막도록 작동
-            arr_tmp = probs_tmp[0][can_lose_list]
-            best_choice_idx = np.argmax(arr_tmp)
-            best_move = can_lose_list[best_choice_idx]
-            return best_move
-
-        arr_list = board.states_loc
-
-        can_attack_list_43 = get_next_43(size, arr_list, board, is_my_turn=True)  # 확실한 공격이 가능한 경우
-        can_attack_list_open4 = get_next_open4(size, arr_list, board, is_my_turn=True)  #
-        can_attack_list_33 = []
-        if _test_mode:
-            print(f"공격 가능 43 : {can_attack_list_43}")
-            print(f"공격 가능 4open : {can_attack_list_open4}")
-        if board.is_you_white():
-            can_attack_list_33 = get_next_33(size, arr_list, board, is_my_turn=True)
-            if _test_mode: print(f"공격 가능 33 : {can_attack_list_33}")
-        can_attack_list = can_attack_list_43 + can_attack_list_33 + can_attack_list_open4
-        if len(can_attack_list) >= 1:
-            arr_tmp = probs_tmp[0][can_attack_list]
-            best_choice_idx = np.argmax(arr_tmp)
-            best_move = can_attack_list[best_choice_idx]
-            return best_move
-
-        can_defend_list_43 = get_next_43(size, arr_list, board, is_my_turn=False)  # 상대가 나에게 확실한 공격이 가능한 경우
-        can_defend_list_4 = get_next_open4(size, arr_list, board, is_my_turn=False)
-        if _test_mode:
-            print(f"방어 필요 43 : {can_defend_list_43}")
-            print(f"방어 필요 4open : {can_defend_list_4}")
-        can_defend_list_33 = []
-        if board.is_you_black():
-            can_defend_list_33 = get_next_33(size, arr_list, board, is_my_turn=False)
-            if _test_mode: print(f"방어 필요 33 : {can_defend_list_33}")
-        can_defend_list = can_defend_list_43 + can_defend_list_33 + can_defend_list_4
-        if len(can_defend_list) >= 1:
-            arr_tmp = probs_tmp[0][can_defend_list]
-            best_choice_idx = np.argmax(arr_tmp)
-            best_move = can_defend_list[best_choice_idx]
-            return best_move
-
-    # 특수 알고리즘에 해당 안되면 최대 확률 부분을 찾는다
-    while True:
-        best_index = np.argmax(probs_tmp[0])
-        # 이미 돌이 있는 자리를 선택하거나 금수에 놓은 경우
-        if is_banned_pos(board, best_index):
-            probs_tmp[0][best_index] = -1  # 금수 자리는 선택 불가능 하게 설정
-            continue
-        else:
-            break
-    return best_index
-
-
-# 현재 상태에서 놓으면 바로 이길 수 있는 위치 찾기
-# my_turn : True면 현재 상태에서 내가 놓을 거, False면 상대의 경우로 따지는 것
-#           (my_turn을 False로 하면, 상대 입장에서 놓으면 이길 수 있는 리스트를 획득 가능)
-def get_win_list(board, my_turn, size=15):
-    is_black = board.is_you_black()
-    stone = None  # 흑이면 1 백이면 2
-    if my_turn:  # 내 차례인데 is_black >> "흑"
-        if is_black:
-            stone = 1
-        else:
-            stone = 2
-    else:  # 내 차례가 아닌데 예측하는 경우
-        if is_black:
-            stone = 2
-        else:
-            stone = 1
-
-    # arr_list : ndarray(15,15) 형태를 list()로
-    arr_list = board.states_loc
-
-    win_list = []  # 0~224의 좌표
-    for y in range(size):
-        for x in range(size):
-            if arr_list[y][x] == stone:
-                tf, x_new, y_new = check_right_5_can_win(arr_list, y, x, stone)
-                if tf: win_list.append(convert_xy_to_1nd(x_new, y_new, size))
-
-                tf, x_new, y_new = check_left_5_can_win(arr_list, y, x, stone)
-                if tf: win_list.append(convert_xy_to_1nd(x_new, y_new, size))
-
-                tf, x_new, y_new = check_down_5_can_win(arr_list, y, x, stone)
-                if tf: win_list.append(convert_xy_to_1nd(x_new, y_new, size))
-
-                tf, x_new, y_new = check_up_5_can_win(arr_list, y, x, stone)
-                if tf: win_list.append(convert_xy_to_1nd(x_new, y_new, size))
-
-                tf, x_new, y_new = check_down_cross_right_5_can_win(arr_list, y, x, stone)
-                if tf: win_list.append(convert_xy_to_1nd(x_new, y_new, size))
-
-                tf, x_new, y_new = check_up_cross_left_5_can_win(arr_list, y, x, stone)
-                if tf: win_list.append(convert_xy_to_1nd(x_new, y_new, size))
-
-                tf, x_new, y_new = check_down_cross_left_5_can_win(arr_list, y, x, stone)
-                if tf: win_list.append(convert_xy_to_1nd(x_new, y_new, size))
-
-                tf, x_new, y_new = check_up_cross_right_5_can_win(arr_list, y, x, stone)
-                if tf: win_list.append(convert_xy_to_1nd(x_new, y_new, size))
-
-    return_list = []
-    # 안되는 좌표인지 체크
-    for i in range(len(win_list)):
-        if not is_banned_pos(board, win_list[i], my_turn):  # 내 차례를 보는건지 상대 차례를 보는건지
-            return_list.append(win_list[i])
-    return return_list
+from rule.renju_rule.renju_helper import *
 
 
 def load_model_trainset_mode(model_type, size, train_num):
     model = None
     model_file = None
     if model_type == 'policy':
-        model_file = f'./model_train/tf_policy_{size}_{train_num}.h5'  # 현재 흑백 통합
+        model_file = f'./model_train/tf_policy_{size}.h5'  # 현재 흑백 통합
         model = tf.keras.models.load_model(model_file)
     elif model_type == 'value':
-        model_file = f'./model_train/tf_value_{size}_{train_num}.h5'  # 현재 흑백 통합
+        model_file = f'./model_train/tf_value_{size}.h5'  # 현재 흑백 통합
         model = tf.keras.models.load_model(model_file, compile=False)
     else:
         print("잘못된 타입")
@@ -178,191 +43,7 @@ def reshape_to_15_15_1(data):
     return K.reshape(data, [-1, 15, 15, 1])
 
 
-# 1차원 좌표를 2차원으로
-# 시작 좌표 : (0,0)
-# 15x15
-def convert_xy_to_1nd(x, y, board_size):
-    return board_size * y + x
 
-
-# arr_list : list(ndarray(15,15)) 형태
-# 하나 더 놓으면 이길 수 있는 위치 찾기 (좌우 방향)
-# stone : 1이면 흑 white면 2
-# return : (있는지 + 있다면 x y좌표)
-def check_right_5_can_win(arr_list, y, x, stone, reverse_dir=False):
-    length = 0  # 이게 4가 되어야 5개중 4개가 놓인 상태이므로 이기는 것
-    not_count = 0
-    ans_x = None
-    ans_y = None
-    stone_reverse = None
-    if stone == 1:
-        stone_reverse = 2
-    else:
-        stone_reverse = 1
-    gap = 6
-    add = 1
-    if reverse_dir:
-        gap = -6
-        add = -1
-
-    for s in range(x, x + gap, add):  # 6목도 고려해서 6까지
-        if s >= 15 or s < 0:  # 좌표 초과
-            break
-        if arr_list[y][s] == stone:
-            length += 1
-            continue
-        elif arr_list[y][s] == stone_reverse:  # 상대 돌 만나면 종료
-            not_count += 1
-            break
-        else:  # 놓아야 할 자리
-            if not_count == 0:
-                ans_x = s
-                ans_y = y
-            not_count += 1
-    if length == 4 and not_count <= 2 and (ans_x is not None):
-        return True, ans_x, ans_y
-    elif length == 5 and stone == 2 and not_count == 1 and (ans_x is not None):  # 백이면서 6개중에 1개만 비어있고, 하나 놓으면 6목이 되는 경우
-        return True, ans_x, ans_y
-    else:
-        return False, None, None
-
-
-def check_left_5_can_win(arr_list, y, x, stone):
-    return check_right_5_can_win(arr_list, y, x, stone, reverse_dir=True)
-
-
-# arr_list : list(ndarray(15,15)) 형태
-# 하나 더 놓으면 이길 수 있는 위치 찾기 (아래 방향)
-# stone : 1이면 흑 white면 2
-# return : (있는지 + 있다면 x y좌표)
-def check_down_5_can_win(arr_list, y, x, stone, reverse_dir=False):
-    length = 0
-    not_count = 0
-    ans_x = None
-    ans_y = None
-    end_for = y + 6
-    stone_reverse = None
-    if stone == 1:
-        stone_reverse = 2
-    else:
-        stone_reverse = 1
-    add = 1
-    if reverse_dir:
-        end_for = y - 6
-        add = -1
-    for s in range(y, end_for, add):
-        if s >= 15 or s < 0:
-            break
-        if arr_list[s][x] == stone:
-            length += 1
-            continue
-        elif arr_list[s][x] == stone_reverse:  # 상대 돌 만나면 종료
-            not_count += 1
-            break
-        else:
-            if not_count == 0:
-                ans_x = x
-                ans_y = s
-            not_count += 1
-    if length == 4 and not_count <= 2 and (ans_x is not None):  # 흑 or 백인 상황에서 5개중 1개만 비어있는 경우 하나 놓으면 이김
-        return True, ans_x, ans_y
-    elif length == 5 and stone == 2 and not_count == 1 and (ans_x is not None):  # 백이면서 6개중에 1개만 비어있고, 하나 놓으면 6목이 되는 경우
-        return True, ans_x, ans_y
-    else:
-        return False, None, None
-
-
-# arr_list : list(ndarray(15,15)) 형태
-# 하나 더 놓으면 이길 수 있는 위치 찾기 (대각선 오른쪽 방향)
-# stone : 1이면 흑 white면 2
-# return : (있는지 + 있다면 x y좌표)
-def check_down_cross_right_5_can_win(arr_list, y, x, stone, reverse_dir=False):
-    length = 0
-    not_count = 0
-    ans_x = None
-    ans_y = None
-    stone_reverse = None
-    if stone == 1:
-        stone_reverse = 2
-    else:
-        stone_reverse = 1
-    for i in range(6):
-        if reverse_dir: i = - i
-        if y + i >= 15 or x + i >= 15 or x + i < 0 or y + i < 0:  # 좌표 초과
-            break
-        elif arr_list[y + i][x + i] == stone:
-            length += 1
-        elif arr_list[y + i][x + i] == stone_reverse:
-            not_count += 1
-            break
-        else:  # 돌이 없을 때 : 해당 위치가 놓을 자리
-            if not_count == 0:
-                ans_x = x + i
-                ans_y = y + i
-            not_count += 1
-        if reverse_dir: i = - i
-    if length == 4 and not_count <= 2 and (ans_x is not None):
-        return True, ans_x, ans_y
-    elif length == 5 and stone == 2 and not_count == 1 and (ans_x is not None):
-        return True, ans_x, ans_y
-    else:
-        return False, None, None
-
-
-# arr_list : list(ndarray(15,15)) 형태
-# 하나 더 놓으면 이길 수 있는 위치 찾기 (대각선 왼쪽 방향)
-# stone : 1이면 흑 white면 2
-# return : (있는지 + 있다면 x y좌표)
-def check_down_cross_left_5_can_win(arr_list, y, x, stone, reverse_dir=False):
-    length = 0
-    not_count = 0
-    ans_x = None
-    ans_y = None
-    stone_reverse = None
-    if stone == 1:
-        stone_reverse = 2
-    else:
-        stone_reverse = 1
-    for i in range(6):
-        if reverse_dir: i = -i
-        if y + i < 0 or y - i < 0 or y + i >= 15 or x - i >= 15:  # 좌표 초과
-            break
-        elif arr_list[y + i][x - i] == stone:
-            length += 1
-        elif arr_list[y + i][x - i] == stone_reverse:
-            not_count += 1
-            break
-        else:  # 돌이 없을 때 : 해당 위치가 놓을 자리
-            if not_count == 0:
-                ans_x = x - i
-                ans_y = y + i
-            not_count += 1
-        if reverse_dir: i = -i
-    if length == 4 and not_count <= 2 and (ans_x is not None):
-        return True, ans_x, ans_y
-    elif length == 5 and stone == 2 and not_count == 1 and (ans_x is not None):
-        return True, ans_x, ans_y
-    else:
-        return False, None, None
-
-
-def check_up_cross_right_5_can_win(arr_list, y, x, stone):
-    return check_down_cross_left_5_can_win(arr_list, y, x, stone, reverse_dir=True)
-
-
-def check_up_cross_left_5_can_win(arr_list, y, x, stone):
-    return check_down_cross_right_5_can_win(arr_list, y, x, stone, reverse_dir=True)
-
-
-def check_up_5_can_win(arr_list, y, x, stone):
-    return check_down_5_can_win(arr_list, y, x, stone, reverse_dir=True)
-
-
-def get_enemy_stone(stone):
-    if stone == 1:
-        return 2
-    else:
-        return 1
 
 
 def softmax(x):
@@ -370,302 +51,6 @@ def softmax(x):
     probs /= np.sum(probs)
     return probs
 
-
-# 이미 수가 놓아진 자리 or 금수 자리
-# index : 0~224의 1차원화 좌표
-# my_turn : 내 차례가 아니라 상대 차례를 예측 하는 경우, 흑백을 뒤집어야함
-def is_banned_pos(board, index, my_turn=True):
-    is_black = None
-    if my_turn:
-        is_black = board.is_you_black()
-    else:
-        is_black = not board.is_you_black()
-    if (index in board.states) or (is_black and (index in board.forbidden_moves)):
-        return True
-    else:
-        return False
-
-
-# dir 1 : 오른쪽
-# dir -1 : 왼쪽
-# dir 2 : 위쪽
-# dir -2 : 아래쪽
-# dir 3 : 대각 오른쪽 위
-# dir -3 : 대각 왼쪽 아래
-# dir 4 : 대각 오른쪽 아래
-# dir -4 : 대각 왼쪽 위
-# (x,y)에서 dir방향으로 이동 했을 때 어떤 돌인지 (-1 : 막혀있는 공간 / 0 : 빈공간 / 1 : 흑 / 2 : 백)
-# diff 증분
-# ex) diff = 1이고 dir이 -1이면 오른쪽  diff = -1이고 dir이 1이여도 동일
-def gnd(size, arr_list, y, x, diff, dir):
-    if diff < 0 and dir > 0:
-        diff = -diff
-        dir = -dir
-    elif diff < 0 and dir < 0:
-        print("diff와 dir이 둘다 음수일 수는 없습니다")
-        quit()
-
-    if dir == 1:  # 오른쪽
-        if x + diff >= size: return -1
-        return arr_list[y][x + diff]
-    elif dir == -1:  # 왼쪽
-        if x - diff < 0: return -1
-        return arr_list[y][x - diff]
-    elif dir == 2:  # 위쪽
-        if y - diff < 0: return -1
-        return arr_list[y - diff][x]
-    elif dir == -2:  # 아래쪽
-        if y + diff >= size: return -1
-        return arr_list[y + diff][x]
-    elif dir == 3:  # 대각 오른쪽 위
-        if y - diff < 0 or x + diff >= size: return -1
-        return arr_list[y - diff][x + diff]
-    elif dir == -3:  # 대각 왼쪽 아래
-        if y + diff >= size or x - diff < 0: return -1
-        return arr_list[y + diff][x - diff]
-    elif dir == 4:  # 대각 오른쪽 아래
-        if y + diff >= size or x + diff >= size: return -1
-        return arr_list[y + diff][x + diff]
-    elif dir == -4:  # 대각 왼쪽 위
-        if y - diff < 0 or x - diff < 0: return -1
-        return arr_list[y - diff][x - diff]
-    else:
-        print("존재하지 않는 방향")
-        quit()
-
-
-def get_dir_move_1nd(size, arr_list, y, x, diff, dir):
-    new_x = x
-    new_y = y
-    if dir == 1:  # 오른쪽
-        new_x += diff
-    elif dir == -1:  # 왼쪽
-        new_x -= diff
-    elif dir == 2:  # 위쪽
-        new_y -= diff
-    elif dir == -2:  # 아래쪽
-        new_y += diff
-    elif dir == 3:  # 대각 오른쪽 위
-        new_x += diff
-        new_y -= diff
-    elif dir == -3:  # 대각 왼쪽 아래
-        new_x -= diff
-        new_y += diff
-    elif dir == 4:  # 대각 오른쪽 아래
-        new_x += diff
-        new_y += diff
-    elif dir == -4:  # 대각 왼쪽 위
-        new_x -= diff
-        new_y -= diff
-    else:
-        print("존재하지 않는 방향")
-        quit()
-    return convert_xy_to_1nd(new_x, new_y, size)
-
-
-# arr_list : list(ndarray(15,15)) 형태
-# 하나 더 놓으면 열린 3이 되는 좌표 "리스트" 리턴
-# stone : 1이면 흑 white면 2
-# return : (있는지 + 있다면 x y좌표)
-def get_next_open3(size, arr_list, board, is_my_turn):
-    list_move = []
-    empty = 0
-    stone = None
-    if is_my_turn:
-        if board.is_you_black():
-            stone = 1
-            enemy_stone = 2
-        else:
-            stone = 2
-            enemy_stone = 1
-    else:
-        if board.is_you_black():
-            stone = 2
-            enemy_stone = 1
-        else:
-            stone = 1
-            enemy_stone = 2
-    # enemy_stone = get_enemy_stone(stone) # 흰색이면 백
-    for y in range(size):
-        for x in range(size):
-            if arr_list[y][x] == stone:
-                for dir in range(-4, 5, 1):  # -4번부터 5번까지 (단 0은 continue)
-                    if dir == 0:
-                        continue
-                    if gnd(size, arr_list, y, x, 1, dir) == stone \
-                            and gnd(size, arr_list, y, x, 1, -dir) == empty \
-                            and gnd(size, arr_list, y, x, 2, dir) == empty \
-                            and gnd(size, arr_list, y, x, 3, dir) == empty:
-                        list_move.append(get_dir_move_1nd(size, arr_list, y, x, 2, dir))
-
-                    if gnd(size, arr_list, y, x, 1, dir) == empty \
-                            and gnd(size, arr_list, y, x, 1, -dir) == empty \
-                            and gnd(size, arr_list, y, x, 2, dir) == stone \
-                            and gnd(size, arr_list, y, x, 3, dir) == empty:
-                        list_move.append(get_dir_move_1nd(size, arr_list, y, x, 1, dir))
-    return list_move
-
-
-# 설명은 get_next_open3 확인
-def get_next_open4(size, arr_list, board, is_my_turn):
-    list_move = []
-    empty = 0
-    stone = None
-    if is_my_turn:
-        if board.is_you_black():
-            stone = 1
-        else:
-            stone = 2
-    else:
-        if board.is_you_black():
-            stone = 2
-        else:
-            stone = 1
-
-    # enemy_stone = get_enemy_stone(stone) # 흰색이면 백
-    for y in range(size):
-        for x in range(size):
-            if arr_list[y][x] == stone:
-                for dir in range(-4, 5, 1):  # -4번부터 5번까지 (단 0은 continue)
-                    if dir == 0:
-                        continue
-                    s_r1 = gnd(size, arr_list, y, x, 1, -dir)
-                    s_1 = gnd(size, arr_list, y, x, 1, dir)
-                    s_2 = gnd(size, arr_list, y, x, 2, dir)
-                    s_3 = gnd(size, arr_list, y, x, 3, dir)
-                    s_4 = gnd(size, arr_list, y, x, 4, dir)
-                    if s_r1 == empty:
-                        if s_1 == empty and s_2 == stone and s_3 == stone and s_4 == empty:
-                            list_move.append(get_dir_move_1nd(size, arr_list, y, x, 1, dir))
-                        if s_1 == stone and s_2 == stone and s_3 == empty:
-                            list_move.append(get_dir_move_1nd(size, arr_list, y, x, 3, dir))
-                        if s_1 == stone and s_2 == stone and s_3 == empty and s_4 == empty:
-                            list_move.append(get_dir_move_1nd(size, arr_list, y, x, 2, dir))
-
-    return_list = []
-    for i in range(len(list_move)):
-        if not is_banned_pos(board, list_move[i], my_turn=is_my_turn):  # 내 차례를 보는건지 상대 차례를 보는건지
-            return_list.append(list_move[i])
-    return return_list
-
-
-# 한쪽만 닫힌 경우
-def get_next_closed4(size, arr_list, board, is_my_turn):
-    list_move = []
-    empty = 0
-    stone = None
-    if is_my_turn:
-        if board.is_you_black():
-            stone = 1
-            enemy_stone = 2
-        else:
-            stone = 2
-            enemy_stone = 1
-    else:
-        if board.is_you_black():
-            stone = 2
-            enemy_stone = 1
-        else:
-            stone = 1
-            enemy_stone = 2
-    closed = -1  # 공간 넘어가는 부분
-    for y in range(size):
-        for x in range(size):
-            if arr_list[y][x] == enemy_stone or arr_list[y][x] == closed:
-                for dir in range(-4, 5, 1):  # -4번부터 5번까지 (단 0은 continue)
-                    if dir == 0:
-                        continue
-                    s_1 = gnd(size, arr_list, y, x, 1, dir)
-                    s_2 = gnd(size, arr_list, y, x, 2, dir)
-                    s_3 = gnd(size, arr_list, y, x, 3, dir)
-                    s_4 = gnd(size, arr_list, y, x, 4, dir)
-                    s_5 = gnd(size, arr_list, y, x, 4, dir)
-                    if s_1 == stone and s_2 == empty and s_3 == stone and s_4 == stone and s_5 == empty:
-                        list_move.append(get_dir_move_1nd(size, arr_list, y, x, 2, dir))
-                    if s_1 == empty and s_2 == stone and s_3 == stone and s_4 == stone and s_5 == empty:
-                        list_move.append(get_dir_move_1nd(size, arr_list, y, x, 1, dir))
-                    if s_1 == stone and s_2 == stone and s_3 == empty and s_4 == stone and s_5 == empty:
-                        list_move.append(get_dir_move_1nd(size, arr_list, y, x, 3, dir))
-                    if s_1 == stone and s_2 == stone and s_3 == stone and s_4 == empty:
-                        list_move.append(get_dir_move_1nd(size, arr_list, y, x, 4, dir))
-
-    return_list = []
-    for i in range(len(list_move)):
-        if not is_banned_pos(board, list_move[i], is_my_turn):  # 내 차례를 보는건지 상대 차례를 보는건지
-            return_list.append(list_move[i])
-    return return_list
-
-
-# move list (0~224)
-def get_next_4(size, arr_list, board, is_my_turn):
-    list_1 = get_next_open4(size, arr_list, board, is_my_turn)
-    list_2 = get_next_closed4(size, arr_list, board, is_my_turn)
-    list_3 = list_1 + list_2
-    return list_3
-
-
-# 다음에 놓으면 4,3 이 되는 수
-# 어떤 자리에 놓았을 때 (열린4+닫힌4)랑 열린3이 동시에 주어지는 경우
-def get_next_43(size, arr_list, board, is_my_turn):
-    stone = None
-    if is_my_turn:
-        if board.is_you_black():
-            stone = 1
-            enemy_stone = 2
-        else:
-            stone = 2
-            enemy_stone = 1
-    else:
-        if board.is_you_black():
-            stone = 2
-            enemy_stone = 1
-        else:
-            stone = 1
-            enemy_stone = 2
-    list_4 = get_next_4(size, arr_list, board, is_my_turn)
-    list_3_open = get_next_open3(size, arr_list, board, is_my_turn)
-    list_ans = list(set(list_4).intersection(list_3_open))
-    return_list = []
-    for i in range(len(list_ans)):
-        if not is_banned_pos(board, list_ans[i], is_my_turn):  # 내 차례를 보는건지 상대 차례를 보는건지
-            return_list.append(list_ans[i])
-    return list_ans
-
-
-def get_next_33(size, arr_list, board, is_my_turn):
-    stone = None
-    if is_my_turn:
-        if board.is_you_black():
-            stone = 1
-            enemy_stone = 2
-        else:
-            stone = 2
-            enemy_stone = 1
-    else:
-        if board.is_you_black():
-            stone = 2
-            enemy_stone = 1
-        else:
-            stone = 1
-            enemy_stone = 2
-    list_3_open = get_next_open3(size, arr_list, board, is_my_turn)
-    set_3 = set(list_3_open)
-    list_33 = []
-    return_list = []
-    if len(set_3) != len(list_3_open):
-        tmp_list = list(set_3)
-        list_33 = [i for i in list_3_open if i not in tmp_list]
-
-    for i in range(len(list_33)):
-        if not is_banned_pos(board, list_33[i], is_my_turn):  # 내 차례를 보는건지 상대 차례를 보는건지
-            return_list.append(list_33[i])
-    return return_list
-
-
-def convert_to_2nd_loc(size, index):  # 2차원 좌표로 변경
-    y = index // size
-    x = index - y * size
-    return x, y
 
     # class player_AI():
     # def __init__(self, size, is_test_mode, black_white_human, train_num, is_sequential_model=True, use_mcts_search=True,is_self_play=False,is_human_intervene=False):
@@ -729,8 +114,8 @@ def convert_to_2nd_loc(size, index):  # 2차원 좌표로 변경
     #     for i in range(len(list_print)):
     #         print(list_print[i])
 
-    def set_player_ind(self, p):
-        self.player = p
+def set_player_ind(self, p):
+    self.player = p
 
 
 class TreeNode(object):
@@ -762,16 +147,13 @@ class TreeNode(object):
 
         # 예를들어 {1,2,6,8,13} {0.4231,0.832,~~~} 이런식이라면,
         # 현재 노드에서 1번으로 확장하면 해당 노드의 가중치는 0.4231이 되는 것
-        for_count = 0
         for action, prob in action_priors:
-            for_count +=1
             if is_you_black and action in forbidden_moves:
                 continue
-            if action not in self._children:  #  code20221130141219
-                if prob < 0.001: # 확률이 너무 낮은 부분은 확장하지 않음
+            if action not in self._children:  #  code20221130141219 #
+                if prob < 0.1: # 확률이 너무 낮은 부분은 확장하지 않음
                     continue
                 self._children[action] = TreeNode(self, prob,self.depth+1)
-        print(f'for_count : {for_count}')
 
     def select(self, c_puct):
         # 자식 노드 중에서 가장 적절한 노드를 선택 한다 (action값)
@@ -795,6 +177,7 @@ class TreeNode(object):
         self._Q += 1.0 * (leaf_value - self._Q) / self._n_visits
 
     # 자식 노드부터 부모 노드까지 가치값 업데이트
+    # 부모 노드로 갈 때마다 -1 곱해주는 이유 : 흑 돌의 부모 노드는 백돌이고 백돌의 부모 노드는 흑돌 (승 패가 뒤집힌다)
     def update_recursive(self, leaf_value):
         """Like a call to update(), but applied recursively for all ancestors."""
         # If it is not root, this node's parent should be updated first.
@@ -847,16 +230,16 @@ class MCTSTrainSet(object):
     # 이 함수는 사용자와의 대결에도 사용 된다
     # 각 상태에서 끝까지 플레이 해본다
     # 이 함수가 n_playout 만큼 돌아가는 것 (디폴트 : 400번)
-    def _playout(self, state, black_white_ai):
+    # stone : play_out을 수행하는 돌 색깔
+    def _playout(self, state, stone,black_white_ai):
         node = self._root
         while (1):
             # 리프 노드가 나올 때까지 계속 진행
-            # 확장은 여기서 안하고 아래 쪽에 node_expand 에서 진행한다
             if node.is_leaf():
                 break
             action, node = node.select(self._c_puct)
-            state.do_move(action)  # 리프노드가 나올 때 까지 move
-
+            stone_tmp = 1 if state.is_you_black() else 2
+            state.do_move(action,stone_tmp)  # 리프노드가 나올 때 까지 move
         set_all = set(range(state.width * state.height))
         set_state_keys = set(state.states.keys())
         legal_positions = list(set_all - set_state_keys)
@@ -864,30 +247,30 @@ class MCTSTrainSet(object):
         inputs = reshape_to_15_15_1(np_states)  # 현재 상태. 이 상태를 기반으로 예측
         act_probs = self.policy_net.predict(inputs)
         leaf_value = self.value_net.predict(inputs)[0][0]
-        if black_white_ai == 'white':
+        if black_white_ai == 'white': # 가치망은 흑을 기준으로 나와 있으므로 뒤집어야함
             leaf_value = -leaf_value
         legal_arr = act_probs[0][legal_positions]  # 얘는 수를 놓을 때마다 사이즈가 줄어 듦  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
         action_probs = zip(legal_positions, legal_arr)
         # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
-        end, winner = state.game_end()
-        if not end:  #
-            node.expand(action_probs, state.forbidden_moves, state.is_you_black())
+        end, winner_stone = state.game_end()
+        if not end: #
+            forbidden_moves = get_forbidden_new(state,1) # 현재 노드 상태에서의 금수 위치
+            node.expand(action_probs, forbidden_moves, state.is_you_black())
         else:
             # for end state，return the "true" leaf_value
             # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
-            if winner == -1:  # tie (무승부)
+            if winner_stone == -1:  # tie (무승부)
                 leaf_value = 0.0  # 무승부의 경우 leaf_value를 0으로 조정
             else:
-                leaf_value = (
-                    1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
+                leaf_value = (1.0 if winner_stone == stone else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
         node.update_recursive(-leaf_value)
 
     # 여기서 state는 game.py의 board 객체
-    def get_move_probs(self, state, black_white_ai, temp=1e-3):
+    def get_move_probs(self, state, stone, black_white_ai, temp=1e-3):
         for n in range(self._n_playout):
             state_copy = copy.deepcopy(state)
-            self._playout(state_copy, black_white_ai)
-            print(f"playout : {n}번 수행")
+            self._playout(state_copy,stone, black_white_ai)
+            # print(f"playout : {n}번 수행")
 
         act_visits = [(act, node._n_visits) for act, node in self._root._children.items()]
         # print([(state.move_to_location(m),v) for m,v in act_visits])
@@ -941,96 +324,100 @@ class MCTSPlayer_TrainSet(object):
             move, value = self.get_move_mcts(board, black_white_ai)  # mcts를 사용해서 추가 예측
         else:
             inputs = reshape_to_15_15_1(state)  # 현재 상태. 이 상태를 기반으로 예측
-            move, value = self.get_move_not_mcts(board, inputs)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
-        print(f'타입 테스트 : {type(board)} / {board.width} / {type(move)}')
+            move, value = self.get_move_not_mcts(board, inputs,black_white_ai)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
         x, y = convert_to_2nd_loc(board.width, move)
-        if _test_mode:
+        if self.is_test_mode:
             print(f"선택 좌표 (0,0부터) : {move} = ({x},{y})")
             print(f'가치망 value : {value}')
         return move
 
-    def get_move_not_mcts(self, board, input):
+
+
+    def get_move_not_mcts(self, board, input,black_white_ai):
         probs = self.policy_net.predict(input)
         value = self.value_net.predict(input)
-        return get_best_idx(probs, board, is_human_intervene=self.is_human_intervene), value
+        size = board.width
+
+        stone = get_stone_color(black_white_ai)
+        enemy_stone = get_enemy_stone(stone)
+
+        if self.is_human_intervene:
+            move_intervene = get_human_intervene_move(probs, board,black_white_ai,size=board.width)
+            if move_intervene is not None:
+                if stone == 1 and move_intervene in board.forbidden_moves:
+                    print("오류 : 금수가 제거되지 않은 상태로 move리턴됨")
+                    quit()
+                if self.is_test_mode:
+                    print(f"방어 및 공격 로직에 따라 결정 : {convert_to_2nd_loc(size,move_intervene)}")
+                return move_intervene,value
+
+        # 특수 알고리즘에 해당 안되면 최대 확률 부분을 찾는다
+
+        while True:
+            best_index = np.argmax(probs[0])
+            # 이미 돌이 있는 자리를 선택하거나 금수에 놓은 경우
+            if is_banned_pos_new(board, best_index, stone):
+                probs[0][best_index] = -1  # 금수 자리는 선택 불가능 하게 설정
+                continue
+            elif self.is_human_intervene: # 만약 내가 지금 놓을려는 자리가 다음에 내가 바로 4를 만드는 경우가 아닌데 열린 3이 존재하면 그때는 열린3을 막는방향으로
+                arr_list = board.states_loc
+                x_best,y_best = convert_to_2nd_loc(size,best_index)
+                is_my_open4 = is_4_when_do(size,arr_list,stone,x_best,y_best) # best_index자리에 놨을 때 내가 주도권 가지는지
+                if not is_my_open4: # 만약 내가 주도권을 가질 상황이 아닌데 상대한테 현재 열린 3이 존재하면
+                    enemy_open_3_list = get_next_open4(size,arr_list,board,enemy_stone)  # 열린 3은 하나 놓으면 열린4
+                    if len(enemy_open_3_list) >= 1: # 존재한다면 이건 강제로 막지 않으면 패배
+                        if self.is_test_mode: print(f"AI가 원래 선택한 자리 : ({x_best},{y_best})")
+                        while True:
+                            arr_tmp = probs[0][enemy_open_3_list] # 여러개라면 확률이 제일 높은 걸 고른다
+                            new_best_choice = np.argmax(arr_tmp)
+                            new_best_move = enemy_open_3_list[new_best_choice]
+                            if probs[0][new_best_move] < -0.99: # 모든 방어 자리가 나의 금수인 경우, 어차피 지는 상황이므로 원래 고른거 반환
+                                return best_index,value
+                            elif is_banned_pos_new(board, new_best_move, stone): # 혹시나 방어해야되는 자리가 금수 자리인 경우
+                                probs[0][new_best_move] = -1
+                                continue
+                            else:
+                                break
+                        return new_best_move, value
+                    else: # 상대 열린3 없으면 넘김
+                        break
+                else:
+                    break
+            else:
+                break
+        return best_index, value
 
     # MCTS 기반
     def get_move_mcts(self, board, black_white_ai):
         # np.zeros : 0으로만 채워진 배열 생성하는 함수
         size = board.width
+        stone = get_stone_color(black_white_ai)
+        enemy_stone = get_enemy_stone(stone)
         if board.width * board.height - len(board.states) > 0:  # 보드판이 꽉 안찬 경우
             move = None
             inputs = reshape_to_15_15_1(board.get_states_by_numpy())  # 현재 상태. 이 상태를 기반으로 예측
             value_current = self.value_net.predict(inputs)[0]
             if black_white_ai == 'white':  # 백이면 가치망 뒤집는다
                 value_current = -value_current
+                
+            # 인간의 알고리즘 개입
             if self.is_human_intervene:
                 # 먼저, 놓자마자 바로 이길 수 있는 좌표가 있으면 해당 좌표를 선택하면 된다
-
                 probs_tmp = self.policy_net.predict(inputs)
+                move_intervene = get_human_intervene_move(probs_tmp,board,black_white_ai,size)
+                if move_intervene is not None:
+                    return move_intervene,value_current
 
-                can_win_list = get_win_list(board, True)  # 바로 이길 수 있는 위치 확인 (0~224 1차원 좌표)
-                if _test_mode:
-                    print('------------------------------')
-                    print(f"이길 수 있는 좌표 : {can_win_list}")
-                if len(can_win_list) >= 1:
-                    return random.choice(can_win_list), 1.0  # 어차피 리스트에 있는거 아무거나 놔도 이기므로 하나 랜덤으로 골라서 리턴
-
-                # 이제 상대가 놓으면 바로 이길 수 있는 자리 탐색
-                # can_lost_list나 can_win_list는 금수는 이미 처리하고 리턴됨
-                can_lose_list = get_win_list(board, False)  # 상대 입장에서 이기는 거 테스트 (type : (0~224 1차원 좌표))
-                if _test_mode: print(f'질 수 있는 좌표  : {can_lose_list}')
-                if len(can_lose_list) >= 1:
-                    arr_tmp = probs_tmp[0][can_lose_list] # 만약 질 수 있는 위치가 두개 이상이라면, 신경망을 통해 나온 결과중 높은 곳으로 지정
-                    best_choice_idx = np.argmax(arr_tmp)
-                    best_move = can_lose_list[best_choice_idx]
-                    return best_move, value_current
-
-                arr_list = board.states_loc
-
-                can_attack_list_43 = get_next_43(size, arr_list, board, is_my_turn=True)  # 확실한 공격이 가능한 경우
-                can_attack_list_open4 = get_next_open4(size, arr_list, board, is_my_turn=True)  #
-                if _test_mode:
-                    print(f"공격 가능 43 : {can_attack_list_43}")
-                    print(f"공격 가능 4open : {can_attack_list_open4}")
-                can_attack_list_33 = []
-                if board.is_you_white():
-                    can_attack_list_33 = get_next_33(size, arr_list, board, is_my_turn=True)
-                    if _test_mode: print(f"공격 가능 33 : {can_attack_list_33}")
-
-                can_attack_list = can_attack_list_43 + can_attack_list_33 + can_attack_list_open4
-                if len(can_attack_list) >= 1:
-                    arr_tmp = probs_tmp[0][can_attack_list]
-                    best_choice_idx = np.argmax(arr_tmp)
-                    best_move = can_attack_list[best_choice_idx]
-                    return best_move, value_current
-
-                can_defend_list_43 = get_next_43(size, arr_list, board, is_my_turn=False)  # 상대가 나에게 확실한 공격이 가능한 경우
-                can_defend_list_4 = get_next_open4(size, arr_list, board, is_my_turn=False)
-                if _test_mode:
-                    print(f"방어 필요 43 : {can_defend_list_43}")
-                    print(f"방어 필요 4open : {can_defend_list_4}")
-                can_defend_list_33 = []
-                if board.is_you_black():
-                    can_defend_list_33 = get_next_33(size, arr_list, board, is_my_turn=False)
-                    if _test_mode: print(f"방어 필요 33 : {can_defend_list_33}")
-                can_defend_list = can_defend_list_43 + can_defend_list_33 + can_defend_list_4
-                if len(can_defend_list) >= 1:
-                    arr_tmp = probs_tmp[0][can_defend_list]
-                    best_choice_idx = np.argmax(arr_tmp)
-                    best_move = can_defend_list[best_choice_idx]
-                    return best_move, value_current
-
+            # 사람이 개입할 자리가 없거나 사람 개입이 False인 경우
             # acts와 probs에 의해 착수 위치가 정해진다.
             time_get_probs = time()  # probs를 얻는데까지 걸리는 시간
-            acts, probs = self.mcts.get_move_probs(board, black_white_ai)
-            # probs = self.model.predict(input)  # 위치별 확률
+            acts, probs = self.mcts.get_move_probs(board,stone, black_white_ai)
             if self.is_test_mode:
                 time_gap = time() - time_get_probs
                 print(f'get_probs 하는데 소요된 시간 : {time_gap}')
             if self._is_selfplay:
                 # (자가 학습을 할 때는) Dirichlet 노이즈를 추가하여 탐색
-                print("강화 학습은 구현중")
+                print("강화 학습은 구현 X")
                 # move = np.random.choice(acts, p=0.75 * probs + 0.25 * np.random.dirichlet(0.3 * np.ones(len(probs))))
                 # time_update_with_move = time()
                 # self.mcts.update_with_move(move)
@@ -1038,6 +425,26 @@ class MCTSPlayer_TrainSet(object):
                 #     print(f'update_with_move 하는데 소요된 시간 : {time() - time_update_with_move}')
             else:  # 플레이어와 대결하는 경우
                 move = np.random.choice(acts, p=probs)
+                if self.is_human_intervene:  # 만약 내가 지금 놓을려는 자리가 다음에 내가 바로 4를 만드는 경우가 아닌데 열린 3이 존재하면 그때는 열린3을 막는방향으로
+                    arr_list = board.states_loc
+                    x_best, y_best = convert_to_2nd_loc(size, move)
+                    is_my_open4 = is_4_when_do(size, arr_list, stone, x_best, y_best)  # best_index자리에 놨을 때 내가 주도권 가지는지
+                    if not is_my_open4:  # 만약 내가 주도권을 가질 상황이 아닌데 상대한테 현재 열린 3이 존재하면
+                        enemy_open_3_list = get_next_open4(size, arr_list, board, enemy_stone)  # 열린 3은 하나 놓으면 열린4
+                        if len(enemy_open_3_list) >= 1:  # 존재한다면 이건 강제로 막지 않으면 패배
+                            probs_new = self.policy_net.predict(inputs) # 확률 배열
+                            while True:
+                                arr_tmp = probs_new[0][enemy_open_3_list]  # 여러개라면 확률이 제일 높은 걸 고른다
+                                new_best_choice = np.argmax(arr_tmp)
+                                new_best_move = enemy_open_3_list[new_best_choice]
+                                if probs_new[0][new_best_move] < -0.99:  # 모든 방어 자리가 나의 금수인 경우, 어차피 지는 상황이므로 원래 고른거 반환
+                                    return move, value_current
+                                if is_banned_pos_new(board, new_best_move, stone):  # 혹시나 방어해야되는 자리가 금수 자리인 경우
+                                    probs_new[0][new_best_move] = -1 # -1로 조정
+                                    continue
+                                else:
+                                    break
+                            return new_best_move, value_current
                 print("mcts ai가 고른 자리 : ", move)
                 # 점검
                 self.mcts.update_with_move(-1)

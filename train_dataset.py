@@ -80,7 +80,7 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train,auto_rota
                 else:
                     labels_p_white.append(int(float(row[0])))
                     data_x_p_white.append(row[3:])
-            elif type_train == 2:
+            elif type_train == 2: # 가치망
                 if auto_rotate:
                     board_2nd = convert_1nd_board_to_2nd(np.array(row[3:]), board_size=board_size)  # 2차원 형태로 state 변경
                     rotate_12dir_states = get_rotate_board_12dir(board_2nd)  # 12번 뒤집은 state
@@ -89,14 +89,16 @@ def convert_load_dataset(csv_file_name, is_one_hot_encoding,type_train,auto_rota
                         data_x_v.append(list(convert_2nd_board_to_1nd(rotate_12dir_states[i])))
                         labels_v.append(float(row[1]))
                 else:
-                    if 0.4 <= float(row[1]) == 0.5:
+                    if float(row[1]) <= 0.3:
                         labels_v.append(-1.0)
-                    elif float(row[1]) >= 0.9:
+                        data_x_v.append(row[3:])
+                    elif float(row[1]) >= 0.8:
                         labels_v.append(1.0)
+                        data_x_v.append(row[3:])
                     else:
-                        labels_v.append(0.0)
-                    # labels_v.append(float(row[1]))
-                    data_x_v.append(row[3:])
+                        pass
+                        # labels_v.append(0.0)
+
             if count_read % 8000 == 0:
                 print("현재까지 읽은 row :",count_read)
 

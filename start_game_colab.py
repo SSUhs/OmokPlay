@@ -48,7 +48,7 @@ n_in_row = 5
 
 board_arr = Board(width=board_size, height=board_size, n_in_row=5,
                   is_train_set_mode=is_train_set_mode)
-game = Game(board_arr, is_gui_mode=False, is_human_intervene=is_human_intervene)
+game = Game(board_arr, is_gui_mode=False, is_human_intervene=is_human_intervene,game_mode='ai_vs_player')
 
 
 order = None

@@ -154,7 +154,7 @@ class MCTS(object):
 
 
     # num_reads = _n_playout??
-    def UCT_search(self, state_b, num_reads):
+    def UCT_search(self, state_b,stone, num_reads):
         beforeTime = time()
         self._root = TreeNode(None, DummyNode(),self.board_size)
         for _ in range(num_reads):
@@ -163,14 +163,14 @@ class MCTS(object):
             leaf = root.select_leaf(state)  # leaf : 노드 객체
             # child_priors가 결국 (82,)가 되든 (81,)가 되든 해야됨
             child_priors, value_estimate = self._policy(state)  # NeuralNet.evaluate(leaf.game_state)
-            end, winner = state.game_end()
+            end, winner_stone = state.game_end()
             if end:  # 누군가 이기거나 draw
                 # for end state，return the "true" leaf_value
                 # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
-                if winner == -1:  # tie (무승부)
+                if winner_stone == -1:  # tie (무승부)
                     value_estimate = 0.0  # 무승부의 경우 leaf_value를 0으로 조정 (value_estimate = leaf_value)
                 else:
-                    value_estimate = (1.0 if winner == state.get_current_player() else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
+                    value_estimate = (1.0 if winner_stone == stone else -1.0)  # 우승자가 자신이라면, leaf_value는 1로, 패배자라면 -1로
                 leaf.backup(value_estimate)
                 continue  # continue한다는건 한판 더 한다는 것
             else:  # 게임에서 못이긴 경우
