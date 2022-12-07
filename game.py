@@ -230,7 +230,7 @@ class Game(object):
         self.recorded_game = recorded_game
 
 
-    def graphic_console(self, board, player1, player2):  # 콘솔에 출력
+    def graphic_console(self, board, player1, player2,stone,black_white_ai):  # 콘솔에 출력
         if not self.is_initiated_play:
             print("init_play()함수를 먼저 호출해야합니다")
             return
@@ -240,16 +240,16 @@ class Game(object):
 
         clear_output(wait=True)
         os.system('cls')
-
         print()
-        if board.order == 0:
-            print("흑돌(●) : 플레이어")
-            print("백돌(○) : AI")
-        else:
+
+        if black_white_ai == 'black':
             print("흑돌(●) : AI")
             print("백돌(○) : 플레이어")
-        print("--------------------------------\n")
+        else:
+            print("흑돌(●) : 플레이어")
+            print("백돌(○) : AI")
 
+        print("--------------------------------\n")
         if board.current_player == 1:
             print("당신의 차례입니다.\n")
         else:
@@ -264,14 +264,22 @@ class Game(object):
             for j in range(width):
                 loc = i * width + j
                 p = board.states.get(loc, -1)
-                if p == player1:
-                    print('●' if board.order == 0 else '○', end='')
-                elif p == player2:
-                    print('○' if board.order == 0 else '●', end='')
+                if p == 1: # 흑돌
+                    print('●',end='')
+                elif p == 2:
+                    print('○',end='')
                 elif board.is_you_black() and (i, j) in board.forbidden_locations:
-                    print('Ⅹ', end='')
+                    print('Ⅹ',end='')
                 else:
                     print('　', end='')
+                # if p == player1:
+                #     print('●' if board.order == 0 else '○', end='')
+                # elif p == player2:
+                #     print('○' if board.order == 0 else '●', end='')
+                # elif board.is_you_black() and (i, j) in board.forbidden_locations:
+                #     print('Ⅹ', end='')
+                # else:
+                #     print('　', end='')
             print()
         if board.last_loc != -1:
             print(f"마지막 돌의 위치 : ({board.last_loc[0]},{board.last_loc[1]})\n")
@@ -329,7 +337,7 @@ class Game(object):
         if self.is_console_mode:
             if stone == 1:
                 self.board.set_forbidden()
-            self.graphic_console(self.board, self.player1.player, self.player2.player)  # 콘솔 모드의 경우, 입력 하기 전에 먼저 콘솔 출력
+            self.graphic_console(self.board, self.player1.player, self.player2.player,stone,black_white_ai)  # 콘솔 모드의 경우, 입력 하기 전에 먼저 콘솔 출력
 
         current_player = self.board.get_current_player() # AI vs Player 모드 : 1은 사람, 2는 컴퓨터
         player_in_turn = self.players[current_player]
