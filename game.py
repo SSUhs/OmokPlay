@@ -230,7 +230,7 @@ class Game(object):
         self.recorded_game = recorded_game
 
 
-    def graphic_console(self, board, player1, player2,stone,black_white_ai):  # 콘솔에 출력
+    def graphic_console(self, board, player1, player2,stone,black_white_ai): # 콘솔에 출력
         if not self.is_initiated_play:
             print("init_play()함수를 먼저 호출해야합니다")
             return
@@ -385,7 +385,7 @@ class Game(object):
                     messagebox.showinfo('게임 종료', '무승부 입니다')
                 self.save_csv_data(winner_stone)
             else:
-                self.graphic_console(self.board, self.player1.player, self.player2.player)
+                self.graphic_console(self.board, self.player1.player, self.player2.player,stone,black_white_ai)
                 if winner_stone -1:
                     print("무승부입니다")
                 elif winner_stone == 1:

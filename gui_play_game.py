@@ -231,135 +231,7 @@ class Gui:
                         print(f'{next_next_stone_str} 공격 open4 : {can_next_defend_list_4}')
                         print(f'{next_next_stone_str} 공격 : {can_next_defend_list_33}')
 
-            # if self.bs != 0 and self.ws != 0:
-            #     if self.bs == 2 and self.game.state.check_turn():
-            #         #self.game.next(predict_p(self.model, self.game.state))
-            #         # self.game.next(mcts_action(self.model, self.model2, self.model3, self.model4, self.game.state))
-            #         if self.game.end >= 1:
-            #             self.new_game = False
-            #             self.bs = 0
-            #             self.ws = 0
-            #         self.update_game_view()
-            #         for event in pg.event.get():
-            #             if event.type == pg.QUIT:
-            #                 done = True
-            #             elif event.type == pg.VIDEORESIZE:
-            #                 self.width, self.height = event.dict['size']
-            #                 self.diameter = int(self.width / 800 * diameter)
-            #                 self.button_size = int(self.width / 800 * button_size)
-            #                 self.dot_size = int(self.width / 800 * dot_size)
-            #                 self.board_img_15 = pg.transform.smoothscale(board_img_15, (self.width, self.height))
-            #                 self.stone_black = pg.transform.smoothscale(stone_black, (self.diameter, self.diameter))
-            #                 self.stone_white = pg.transform.smoothscale(stone_white, (self.diameter, self.diameter))
-            #                 self.mark_33 = pg.transform.smoothscale(mark_33, (self.diameter, self.diameter))
-            #                 self.mark_44 = pg.transform.smoothscale(mark_44, (self.diameter, self.diameter))
-            #                 self.mark_6 = pg.transform.smoothscale(mark_6, (self.diameter, self.diameter))
-            #                 self.button_1 = pg.transform.smoothscale(button_1, (self.button_size, self.button_size))
-            #                 self.button_2 = pg.transform.smoothscale(button_2, (self.button_size, self.button_size))
-            #                 self.button_3 = pg.transform.smoothscale(button_3, (self.button_size, self.button_size))
-            #                 self.button_4 = pg.transform.smoothscale(button_4, (self.button_size, self.button_size))
-            #                 self.button_5 = pg.transform.smoothscale(button_5, (self.button_size, self.button_size))
-            #                 self.button_6 = pg.transform.smoothscale(button_6, (self.button_size, self.button_size))
-            #                 self.button_7 = pg.transform.smoothscale(button_7, (self.button_size, self.button_size))
-            #                 self.update_game_view()
-            #             elif event.type == pg.MOUSEBUTTONDOWN:
-            #                 print("마우스 좌클릭 - B지점")
-            #                 x, y = event.pos
-            #                 row = round((y - 43 * self.width / 800) / (51 * self.width / 800))
-            #                 col = round((x - 43 * self.width / 800) / (51 * self.width / 800))
-            #                 self.game.do_next(row,col)
-            #
-            #                 # 힌트 버튼
-            #                 if 700 * self.width / 800 < x < 780 * self.width / 800 and y < 45 * self.width / 800:
-            #                     if self.hint:
-            #                         self.hint = False
-            #                     else:
-            #                         self.hint = True
-            #                 # 새 게임 버튼 ? 다시 시작?
-            #                 elif 50 * self.width / 800 < x < 130 * self.width / 800 and y < 45 * self.width / 800:
-            #                     if not self.new_game:
-            #                         self.game.__init__()
-            #                         self.bs = 0
-            #                         self.ws = 0
-            #                         self.new_game = True
-            #                     else:
-            #                         if self.bs == 0:
-            #                             self.bs = 1
-            #                         else:
-            #                             self.ws = 1
-            #                             self.new_game = False
-            #                 elif 140 * self.width / 800 < x < 220 * self.width / 800 and y < 45 * self.width / 800:
-            #                     if self.new_game:
-            #                         if self.bs == 0:
-            #                             self.bs = 2
-            #                         else:
-            #                             self.ws = 2
-            #                             self.new_game = False
-            #
-            #                 self.update_game_view()
-            #
-            #     elif self.ws == 2 and not self.game.state.check_turn():
-            #         #self.game.next(predict_p(self.model, self.model2, self.game.state))
-            #         # self.game.next(mcts_action(self.model, self.model2, self.model3, self.model4, self.game.state))
-            #         if self.game.end >= 1:
-            #             self.new_game = False
-            #             self.bs = 0
-            #             self.ws = 0
-            #         self.update_game_view()
-            #         for event in pg.event.get():
-            #             if event.type == pg.QUIT:
-            #                 done = True
-            #             elif event.type == pg.VIDEORESIZE:
-            #                 self.width, self.height = event.dict['size']
-            #                 self.diameter = int(self.width / 800 * diameter)
-            #                 self.button_size = int(self.width / 800 * button_size)
-            #                 self.dot_size = int(self.width / 800 * dot_size)
-            #
-            #                 self.board_img_15 = pg.transform.smoothscale(board_img_15, (self.width, self.height))
-            #                 self.stone_black = pg.transform.smoothscale(stone_black, (self.diameter, self.diameter))
-            #                 self.stone_white = pg.transform.smoothscale(stone_white, (self.diameter, self.diameter))
-            #                 self.mark_33 = pg.transform.smoothscale(mark_33, (self.diameter, self.diameter))
-            #                 self.mark_44 = pg.transform.smoothscale(mark_44, (self.diameter, self.diameter))
-            #                 self.mark_6 = pg.transform.smoothscale(mark_6, (self.diameter, self.diameter))
-            #                 self.button_1 = pg.transform.smoothscale(button_1, (self.button_size, self.button_size))
-            #                 self.button_2 = pg.transform.smoothscale(button_2, (self.button_size, self.button_size))
-            #                 self.button_3 = pg.transform.smoothscale(button_3, (self.button_size, self.button_size))
-            #                 self.button_4 = pg.transform.smoothscale(button_4, (self.button_size, self.button_size))
-            #                 self.button_5 = pg.transform.smoothscale(button_5, (self.button_size, self.button_size))
-            #                 self.button_6 = pg.transform.smoothscale(button_6, (self.button_size, self.button_size))
-            #                 self.button_7 = pg.transform.smoothscale(button_7, (self.button_size, self.button_size))
-            #                 self.update_game_view()
-            #             elif event.type == pg.MOUSEBUTTONDOWN:
-            #                 x, y = event.pos
-            #                 row = round((y - 43 * self.width / 800) / (51 * self.width / 800))
-            #                 col = round((x - 43 * self.width / 800) / (51 * self.width / 800))
-            #
-            #                 if 700 * self.width / 800 < x < 780 * self.width / 800 and y < 45 * self.width / 800:
-            #                     if self.hint:
-            #                         self.hint = False
-            #                     else:
-            #                         self.hint = True
-            #                 elif 50 * self.width / 800 < x < 130 * self.width / 800 and y < 45 * self.width / 800:
-            #                     if not self.new_game:
-            #                         self.game.__init__()
-            #                         self.bs = 0
-            #                         self.ws = 0
-            #                         self.new_game = True
-            #                     else:
-            #                         if self.bs == 0:
-            #                             self.bs = 1
-            #                         else:
-            #                             self.ws = 1
-            #                             self.new_game = False
-            #                 elif 140 * self.width / 800 < x < 220 * self.width / 800 and y < 45 * self.width / 800:
-            #                     if self.new_game:
-            #                         if self.bs == 0:
-            #                             self.bs = 2
-            #                         else:
-            #                             self.ws = 2
-            #                             self.new_game = False
-            #                 self.update_game_view()
-        # pg.quit()
+
 
     # 보드 크기에 따라 놓고자 하는 돌의 row,col을 받아서 (x,y) 좌표 자동 조정
     def get_correct_stone_xy(self, row, col):
@@ -474,8 +346,6 @@ class Gui:
             pg.draw.rect(screen, color, recent_rect, 2)
             # pg.draw.rect(screen, color, [round(self.width / 2 - (7 - col) * 51 * self.width / 800 - 20 / 2),
             #                              round(self.height / 2 - (7 - row) * 51 * self.height / 800 - 21 / 2), 21, 21], 2)
-
-        # if self.hint:
         #     print("확률 설명은 구현중")
         #     # if self.game.state.check_turn():
         #     #     print("현재 흑이 이길 확률 : 구현중")
@@ -483,21 +353,6 @@ class Gui:
         #     # else:
         #     #     print("현재 백이 이길 확률 : 구현중")
         #     #     # print('현재 백이 이길 확률 :', round((float(get_value(self.model3, self.model4, self.game.state)) * 100 + 100) / 2, 2), '%')
-        #     # screen.blit(self.button_2, (680 * self.width / 800, -37 * self.width / 800))
-        #     # p, m = get_policy(self.model, self.model2, self.game.state)
-        #     # m = 1 / m
-        #     # n = 0
-        #     # for i in self.game.legal_actions:
-        #     #     row = i // game.width
-        #     #     col = i % game.width
-        #     #     s.set_alpha(256 * p[n] * m)
-        #     #     n += 1
-        #     #     screen.blit(s,
-        #     #                 (round(self.width / 2 - (7 - col) * 51 * self.width / 800 - self.dot_size / 2),
-        #     #                  round(self.height / 2 - (7 - row) * 51 * self.height / 800 - self.dot_size / 2)))
-        # else:
-        #     print("")
-        #     # screen.blit(self.button_1, (680 * self.width / 800, -37 * self.width / 800))
 
         pg.display.flip()
 
