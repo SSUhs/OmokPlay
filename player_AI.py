@@ -335,6 +335,7 @@ class MCTSPlayer_TrainSet(object):
 
 
     def get_move_not_mcts(self, board, input,black_white_ai):
+        print(f"code20221207145614 : {type(input)} / {len(input)}")
         probs = self.policy_net.predict(input)
         value = self.value_net.predict(input)
         size = board.width
