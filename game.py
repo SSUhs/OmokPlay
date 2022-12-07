@@ -296,11 +296,12 @@ class Game(object):
     def get_move(self,player_in_turn,is_gui,is_computer,row=-1,col=-1,black_white_ai=None):
         move = None
         is_console = not is_gui
-        if is_console and not is_computer: # 콘솔모드 + 사람
-           move = player_in_turn.get_action_console(self.board)
-        elif is_console and (is_computer):
-           move = player_in_turn.get_action(self.board,black_white_ai)  # AI일 떄는 player_in_turn 인스턴스의 소속 클래스가 MCTSPlayer가 된다
-        elif is_gui and is_computer and (not self.board.is_train_set_mode):
+        if is_console:
+            if is_computer:
+                move = player_in_turn.get_action(self.board, black_white_ai)  # AI일 떄는 player_in_turn 인스턴스의 소속 클래스가 MCTSPlayer가 된다
+            else: # 콘솔 + 사람
+                move = player_in_turn.get_action_console(self.board)
+        if is_gui and is_computer and (not self.board.is_train_set_mode):
             move = player_in_turn.get_action(self.board,is_human_intervene=self.is_human_intervene,black_white_ai=black_white_ai)
         # GUI + 훈련 셋
         elif is_gui and is_computer and self.board.is_train_set_mode:
@@ -322,7 +323,7 @@ class Game(object):
         gui_board = self.gui_board
         # 흑돌일 때, 금수 위치를 넣어두기
         # gui로 플레이할 때와 콘솔로 플레이할 때는 do_next를 호출하는 선후가 다르기 때문에 따로 설정
-        if stone == None:
+        if stone is None:
             print("stone은 None일 수 없습니다")
             quit()
         if self.is_console_mode:
@@ -335,10 +336,8 @@ class Game(object):
         move = None
 
         if self.is_console_mode: # 콘솔 모드
-            if current_player == 1:
-                move = self.get_move(player_in_turn,is_gui=False,is_computer=False)
-            else:
-                move = self.get_move(player_in_turn,is_gui=False,is_computer=True)
+            is_computer = False if current_player == 1 else True
+            move = self.get_move(player_in_turn, is_gui=False, is_computer=is_computer,black_white_ai=black_white_ai)
         else: # GUI 모드
             if self.game_mode == 'ai_vs_player':
                 if current_player == 2:  # 컴퓨터
@@ -355,11 +354,11 @@ class Game(object):
                     return move  # 잘못된 경우이므로 종료
 
         self.board.do_move(move,stone)
-        self.record_move(move)
 
         if self.is_gui_mode:  # gui_mode의 경우 콘솔 출력은 이동 후에 출력
             # 현재 이 위치는 이미 돌을 AI or 사람이 돌을 놓은 상태에서 진행되는 부분
             # 한턴 끝나면 흑의 금수 설정
+            self.record_move(move)
             self.board.set_forbidden_new(1)
             self.graphic_gui(gui_board,self.player1.player, self.player2.player)
 

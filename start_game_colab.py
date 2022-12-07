@@ -80,9 +80,11 @@ player_AI._play_on_colab = True
 player_AI._test_mode = False
 game.board.init_board(start_player=order)
 game.init_play(gui_board=None,player1=human,player2=computer_player)
+stone = 1
 
 while True:
-    num = game.do_next(-1, -1,black_white_ai)
+    num = game.do_next(-1, -1,stone=stone,black_white_ai=black_white_ai)
+    stone = 2 if stone == 1 else 1
     # if num == -20:
     #     continue
     # else:
