@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9c17503f-f20c-4177-ace6-0e5e37d35edd" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/anaconda3/Lib/site-packages/pygame/__init__.pyi" root0="SKIP_INSPECTION" />
+    <setting file="file://$USER_HOME$/AppData/Local/JetBrains/PyCharmCE2021.1/python_stubs/-1208688045/builtins.py" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="ProjectId" id="2FdHhq1LJTmfCWVPpRovLme2EvP" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\vvpas\Desktop\기본\대학\오픈소스기반기초설계\프로젝트\코랩가능\omokPlay" />
+      <recent name="C:\Users\vvpas\Desktop\기본\대학\오픈소스기반기초설계\프로젝트\코랩가능\omokPlay\convert_data" />
+      <recent name="C:\Users\vvpas\Desktop\기본\대학\오픈소스기반기초설계\프로젝트\코랩가능\omokPlay\model" />
+      <recent name="C:\Users\vvpas\Desktop\기본\대학\오픈소스기반기초설계\프로젝트\코랩가능\omok_AI-master" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\vvpas\Desktop\기본\대학\오픈소스기반기초설계\프로젝트\코랩가능\omokPlay\rule\renju_rule" />
+      <recent name="C:\Users\vvpas\Desktop\기본\대학\오픈소스기반기초설계\프로젝트\코랩가능\omokPlay\policy_value_net" />
+      <recent name="C:\Users\vvpas\Desktop\기본\대학\오픈소스기반기초설계\프로젝트\코랩가능\omokPlay\convert_data" />
+      <recent name="C:\Users\vvpas\Desktop\기본\대학\오픈소스기반기초설계\프로젝트\코랩가능\omokPlay" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.gui_main">
+    <configuration name="gui_main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="omok_AI-master" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gui_main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="gui_select_hard" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="omok_AI-master" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gui_select_hard.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="gui_setting" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="omok_AI-master" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gui_setting.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="gui_test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="omok_AI-master" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gui_test.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="setting" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="omok_AI-master" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/setting" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/setting/setting.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.gui_main" />
+        <item itemvalue="Python.gui_setting" />
+        <item itemvalue="Python.gui_test" />
+        <item itemvalue="Python.setting" />
+        <item itemvalue="Python.gui_select_hard" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9c17503f-f20c-4177-ace6-0e5e37d35edd" name="Default Changelist" comment="" />
+      <created>1664815163396</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1664815163396</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$USER_HOME$/AppData/Local/Temp/BNZ.634e6241125a364f/gui.py</url>
+          <line>24</line>
+          <option name="timeStamp" value="98" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/policy_value_net/policy_value_net_theano.py</url>
+          <line>63</line>
+          <option name="timeStamp" value="125" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/mcts_alphaZero.py</url>
+          <line>291</line>
+          <option name="timeStamp" value="154" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/convert_data/convert_renju_value.py</url>
+          <line>151</line>
+          <option name="timeStamp" value="210" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/convert_data/convert_renju_policy.py</url>
+          <line>99</line>
+          <option name="timeStamp" value="239" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/convert_data/convert_dataset.py</url>
+          <line>276</line>
+          <option name="timeStamp" value="243" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/convert_data/convert_dataset.py</url>
+          <line>347</line>
+          <option name="timeStamp" value="260" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/convert_data/convert_dataset.py</url>
+          <line>345</line>
+          <option name="timeStamp" value="261" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/convert_data/convert_dataset.py</url>
+          <line>161</line>
+          <option name="timeStamp" value="297" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/game.py</url>
+          <line>189</line>
+          <option name="timeStamp" value="393" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/game.py</url>
+          <line>191</line>
+          <option name="timeStamp" value="394" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/player_AI.py</url>
+          <line>379</line>
+          <option name="timeStamp" value="402" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/player_AI.py</url>
+          <line>377</line>
+          <option name="timeStamp" value="403" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/player_AI.py</url>
+          <line>376</line>
+          <option name="timeStamp" value="404" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/player_AI.py</url>
+          <line>372</line>
+          <option name="timeStamp" value="405" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/player_AI.py</url>
+          <line>359</line>
+          <option name="timeStamp" value="406" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/rule/renju_rule/renju_helper.py</url>
+          <line>316</line>
+          <option name="timeStamp" value="422" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/game.py</url>
+          <line>409</line>
+          <option name="timeStamp" value="425" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/gui_play_game.py</url>
+          <line>376</line>
+          <option name="timeStamp" value="434" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/gui_play_game.py</url>
+          <line>383</line>
+          <option name="timeStamp" value="435" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/policy_value_net/policy_value_net_tensorflow.py</url>
+          <line>117</line>
+          <option name="timeStamp" value="437" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/policy_value_net/policy_value_net_tensorflow.py</url>
+          <line>90</line>
+          <option name="timeStamp" value="438" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/policy_value_net/policy_value_net_tensorflow.py</url>
+          <line>198</line>
+          <option name="timeStamp" value="439" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/gui_play_game.py</url>
+          <line>375</line>
+          <option name="timeStamp" value="446" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/player_AI.py</url>
+          <line>259</line>
+          <option name="timeStamp" value="448" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/player_AI.py</url>
+          <line>155</line>
+          <option name="timeStamp" value="455" />
+        </line-breakpoint>
+      </breakpoints>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
