@@ -1,17 +1,21 @@
 import numpy as np
 import copy
-import player_AI
 from time import time
-import random
+
 
 def softmax(x):
     probs = np.exp(x - np.max(x))
     probs /= np.sum(probs)
     return probs
 
-def get_move_by_human_algorithm(board,acts,probs):
+
+def get_move_by_human_algorithm(board, acts, probs):
+    print(board, acts, probs)
     print("구현 X")
     quit()
+    return None, None, None
+
+
 #     # 먼저, 놓자마자 바로 이길 수 있는 좌표가 있으면 해당 좌표를 선택하면 된다
 #
 #     can_win_list = player_AI.get_win_list(board, True)  # 바로 이길 수 있는 위치 확인 (0~224 1차원 좌표)
@@ -151,9 +155,9 @@ class TreeNode(object):
 class MCTS(object):
     """An implementation of Monte Carlo Tree Search."""
 
-    def __init__(self, policy_value_fn, c_puct=5, n_playout=10000,is_test_mode=False):
+    def __init__(self, policy_value_fn, c_puct=5, n_playout=10000, is_test_mode=False):
         """
-        policy_value_fn: a function that takes in a board_img state and outputs
+        policy_value_fn: a function that takes in a board_img_15 state and outputs
             a list of (action, probability) tuples and also a score in [-1, 1]
             (i.e. the expected value of the end game score from the current
             player's perspective) for the current player.
@@ -165,20 +169,19 @@ class MCTS(object):
         self._policy = policy_value_fn
         self._c_puct = c_puct
         self._n_playout = n_playout
-        self.is_test_mode=is_test_mode
-
+        self.is_test_mode = is_test_mode
 
     # state : 현재 상태에서 deepcopy 된 state
     # 이 함수는 사용자와의 대결에도 사용 된다
     # 각 상태에서 끝까지 플레이 해본다
     # 이 함수가 n_playout 만큼 돌아가는 것 (디폴트 : 400번)
-    def _playout(self, state,stone):
+    def _playout(self, state, stone):
         """Run a single playout from the root to the leaf, getting a value at
         the leaf and propagating it back through its parents.
         State is modified in-place, so a copy must be provided.
         """
         node = self._root
-        while (1):
+        while 1:
             # 리프 노드가 나올 때까지 계속 진행
             # 확장은 여기서 안하고 아래 쪽에 node_expand 에서 진행한다
             if node.is_leaf():
@@ -188,7 +191,8 @@ class MCTS(object):
             # 현재 state 객체는 _playout 함수 실행하기 전에 deepcopy를 해놓은 state
             # 따라서 전달받은 state 상황에서 do_move를 리프노드가 나올 때 까지 쭉 수행해보는 것
             # 다 이동 하면 현재 while 문이 종료되고, policy에 의해 판별
-            state.do_move(action)  # 리프노드가 나올 때 까지 move
+            stone_tmp = 1 if state.is_you_black() else 2
+            state.do_move(action, stone_tmp)  # 리프노드가 나올 때 까지 move
 
         # Evaluate the leaf using a network which outputs a list of
         # (action, probability) tuples p and also a score v in [-1, 1]
@@ -210,7 +214,7 @@ class MCTS(object):
         node.update_recursive(-leaf_value)
 
     # 여기서 state는 game.py의 board 객체
-    def get_move_probs(self, state, stone,temp=1e-3):
+    def get_move_probs(self, state, stone, temp=1e-3):
         # 이 for 문은 AI가 돌리는 for문
         # _n_playout 횟수가 찰 때까지 playout 수행
         # 따라서, _n_playout가 높을 수록 수행 횟수가 많아 지므로, 소요 시간이 늘어나고 성능은 늘어남
@@ -219,7 +223,7 @@ class MCTS(object):
         for n in range(self._n_playout):
             state_copy = copy.deepcopy(state)
             # state를 완전히 복사해서 play
-            self._playout(state_copy,stone)
+            self._playout(state_copy, stone)
 
         act_visits = [(act, node._n_visits) for act, node in self._root._children.items()]
         # print([(state.move_to_location(m),v) for m,v in act_visits])
@@ -245,15 +249,14 @@ class MCTS(object):
         return "MCTS"
 
 
-
-
 class MCTSPlayer(object):
     def __init__(self, policy_value_function,
                  c_puct=5, n_playout=2000, is_selfplay=0, is_test_mode=False):
         # 여기서 policy_value_function을 가져오기 때문에 어떤 라이브러리를 선택하냐에 따라 MCTS속도가 달라짐
-        self.mcts = MCTS(policy_value_function, c_puct, n_playout,is_test_mode=is_test_mode)
+        self.mcts = MCTS(policy_value_function, c_puct, n_playout, is_test_mode=is_test_mode)
         self._is_selfplay = is_selfplay
         self.is_test_mode = is_test_mode
+        self.player = None
 
     def set_player_ind(self, p):
         self.player = p
@@ -261,17 +264,16 @@ class MCTSPlayer(object):
     def reset_player(self):
         self.mcts.update_with_move(-1)
 
-
-
-    def get_action(self, board, stone,temp=1e-3, return_prob=0,is_human_intervene=False):
+    def get_action(self, board, black_white_ai, temp=1e-3, return_prob=0, is_human_intervene=False):
+        stone = 1 if black_white_ai == 'black' else 2
         # np.zeros : 0으로만 채워진 배열 생성하는 함수
         move_probs = np.zeros(board.width * board.height)
         if board.width * board.height - len(board.states) > 0:  # 보드판이 꽉 안찬 경우
             # acts와 probs에 의해 착수 위치가 정해진다.
             time_get_probs = time()  # probs를 얻는데까지 걸리는 시간
-            acts, probs = self.mcts.get_move_probs(board, stone,temp)
-            if is_human_intervene: # 특수상황 알고리즘 개입 (ex : 열린4, 43, 닫힌4 등등)
-                move_al = get_move_by_human_algorithm(board,acts,probs)
+            acts, probs = self.mcts.get_move_probs(board, stone, temp)
+            if is_human_intervene:  # 특수상황 알고리즘 개입 (ex : 열린4, 43, 닫힌4 등등)
+                move_al = get_move_by_human_algorithm(board, acts, probs)
                 if move_al is not None:
                     return move_al
 
@@ -285,15 +287,16 @@ class MCTSPlayer(object):
                 move = np.random.choice(acts, p=0.75 * probs + 0.25 * np.random.dirichlet(0.3 * np.ones(len(probs))))
                 time_update_with_move = time()
                 self.mcts.update_with_move(move)
-                if self.is_test_mode: print(f'update_with_move 하는데 소요된 시간 : {time() - time_update_with_move}')
-            else: # 플레이어와 대결하는 경우
+                if self.is_test_mode:
+                    print(f'update_with_move 하는데 소요된 시간 : {time() - time_update_with_move}')
+            else:  # 플레이어와 대결하는 경우
                 # np.random.choice(튜플, int size, boolean replace, array probs) :
                 # 아래에서는 size 파라미터를 전달 안했기 때문에 한개만 고른다
                 # 플레이어 대결 모드에서는, probs 배열속 남은 자리에서 오직 선택된 하나만 1의 확률을 가지고 나머지는 0을 가지기 떄문에 무조건 정해진 한 위치만 뽑힌다
                 # 따라서 아래에 random 키워드가 있다고 해서 이게 임의로 뽑는건 아니다
                 # 위에 probs를 할당 받을 때 이미 어디를 고를지는 이미 정해져있다
                 # 자가 대결의 경우, 플레이어 대결과는 다르게 np.random.choice()를 수행할 때 dirichlet 노이즈를 통해서 랜덤성을 부여한다
-                move = np.random.choice(acts, p=probs)  #link2210172129
+                move = np.random.choice(acts, p=probs)  # link2210172129
                 self.mcts.update_with_move(-1)
 
             if return_prob:
@@ -302,7 +305,7 @@ class MCTSPlayer(object):
                 return move
 
         else:
-            print("WARNING: the board_img is full")
+            print("WARNING: the board_img_15 is full")
 
     def __str__(self):
         return "MCTS {}".format(self.player)

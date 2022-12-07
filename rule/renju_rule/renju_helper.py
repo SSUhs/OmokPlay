@@ -413,9 +413,7 @@ def get_next_33(size, arr_list, board, stone):
     return list(set(return_list)) # 중복 제거 후 리턴
 
 
-
-
-def get_human_intervene_move(probs, board, black_white_ai,size=15):
+def get_human_intervene_move(probs, board, black_white_ai,size):
     stone = get_stone_color(black_white_ai)
     enemy_stone = get_enemy_stone(stone)
     probs_tmp = copy.deepcopy(probs)  # 아마 ndarray(1,225)??
@@ -423,7 +421,7 @@ def get_human_intervene_move(probs, board, black_white_ai,size=15):
     #     self.print_states_probs(probs_tmp)
 
     # 먼저, 놓자마자 바로 이길 수 있는 좌표가 있으면 해당 좌표를 선택하면 된다
-    can_win_list = get_win_list(board,stone)  # 바로 이길 수 있는 위치 확인 (0~224 1차원 좌표)
+    can_win_list = get_win_list(board,stone,size)  # 바로 이길 수 있는 위치 확인 (0~224 1차원 좌표)
 
 
     if _test_mode:
@@ -435,7 +433,7 @@ def get_human_intervene_move(probs, board, black_white_ai,size=15):
 
     # 이제 상대가 놓으면 바로 이길 수 있는 자리 탐색
     # can_lost_list나 can_win_list는 금수는 이미 처리하고 리턴됨
-    can_lose_list = get_win_list(board, enemy_stone)  # 상대 입장에서 이기는 거 테스트 (type : (0~224 1차원 좌표))
+    can_lose_list = get_win_list(board, enemy_stone, size)  # 상대 입장에서 이기는 거 테스트 (type : (0~224 1차원 좌표))
     if _test_mode: print(f'질 수 있는 좌표 리스트 : {can_lose_list}')
     if len(can_lose_list) >= 1:  # 만약 존재한다면, 둘중에 probs가 높은 쪽을 막도록 작동
         arr_tmp = probs_tmp[0][can_lose_list]
@@ -500,7 +498,6 @@ def get_human_intervene_move(probs, board, black_white_ai,size=15):
 
 # 1차원 좌표를 2차원으로
 # 시작 좌표 : (0,0)
-# 15x15
 def convert_xy_to_1nd(x, y, board_size):
     return board_size * y + x
 
@@ -537,7 +534,7 @@ def get_forbidden_new(board,stone_to_forbidden):
     return forbidden_moves
 
 # 현재 상태에서 놓으면 바로 이길 수 있는 위치 찾기
-def get_win_list(board, stone,size=15):
+def get_win_list(board, stone,size):
     # arr_list : ndarray(15,15) 형태를 list()로
     arr_list = board.states_loc
 
@@ -582,6 +579,7 @@ def get_win_list(board, stone,size=15):
 # stone : 1이면 흑 white면 2
 # return : (있는지 + 있다면 x y좌표)
 def check_right_5_can_win(arr_list, y, x, stone, reverse_dir=False):
+    board_size = len(arr_list)
     length = 0  # 이게 4가 되어야 5개중 4개가 놓인 상태이므로 이기는 것
     not_count = 0
     ans_x = None
@@ -598,7 +596,7 @@ def check_right_5_can_win(arr_list, y, x, stone, reverse_dir=False):
         add = -1
 
     for s in range(x, x + gap, add):  # 6목도 고려해서 6까지
-        if s >= 15 or s < 0:  # 좌표 초과
+        if s >= board_size or s < 0:  # 좌표 초과
             break
         if arr_list[y][s] == stone:
             length += 1
@@ -628,6 +626,7 @@ def check_left_5_can_win(arr_list, y, x, stone):
 # stone : 1이면 흑 white면 2
 # return : (있는지 + 있다면 x y좌표)
 def check_down_5_can_win(arr_list, y, x, stone, reverse_dir=False):
+    board_size = len(arr_list)
     length = 0
     not_count = 0
     ans_x = None
@@ -643,7 +642,7 @@ def check_down_5_can_win(arr_list, y, x, stone, reverse_dir=False):
         end_for = y - 6
         add = -1
     for s in range(y, end_for, add):
-        if s >= 15 or s < 0:
+        if s >= board_size or s < 0:
             break
         if arr_list[s][x] == stone:
             length += 1
@@ -669,6 +668,7 @@ def check_down_5_can_win(arr_list, y, x, stone, reverse_dir=False):
 # stone : 1이면 흑 white면 2
 # return : (있는지 + 있다면 x y좌표)
 def check_down_cross_right_5_can_win(arr_list, y, x, stone, reverse_dir=False):
+    board_size = len(arr_list)
     length = 0
     not_count = 0
     ans_x = None
@@ -680,7 +680,7 @@ def check_down_cross_right_5_can_win(arr_list, y, x, stone, reverse_dir=False):
         stone_reverse = 1
     for i in range(6):
         if reverse_dir: i = - i
-        if y + i >= 15 or x + i >= 15 or x + i < 0 or y + i < 0:  # 좌표 초과
+        if y + i >= board_size or x + i >= board_size or x + i < 0 or y + i < 0:  # 좌표 초과
             break
         elif arr_list[y + i][x + i] == stone:
             length += 1
@@ -706,6 +706,7 @@ def check_down_cross_right_5_can_win(arr_list, y, x, stone, reverse_dir=False):
 # stone : 1이면 흑 white면 2
 # return : (있는지 + 있다면 x y좌표)
 def check_down_cross_left_5_can_win(arr_list, y, x, stone, reverse_dir=False):
+    board_size = len(arr_list)
     length = 0
     not_count = 0
     ans_x = None
@@ -717,7 +718,7 @@ def check_down_cross_left_5_can_win(arr_list, y, x, stone, reverse_dir=False):
         stone_reverse = 1
     for i in range(6):
         if reverse_dir: i = -i
-        if y + i < 0 or y - i < 0 or y + i >= 15 or x - i >= 15:  # 좌표 초과
+        if y + i < 0 or y - i < 0 or y + i >= board_size or x - i >= board_size:  # 좌표 초과
             break
         elif arr_list[y + i][x - i] == stone:
             length += 1

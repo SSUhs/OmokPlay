@@ -1,7 +1,6 @@
 import player_AI
 from Human import Human
 from player_AI import MCTSPlayer_TrainSet
-import game
 from game import Board, Game
 
 # Colab 환경에서 게임 진행

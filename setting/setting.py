@@ -6,7 +6,7 @@ config = configparser.ConfigParser()
 
 
 def load_setting_file():
-    if os.path.isfile('setting/config.ini'):
+    if not os.path.isfile('setting/config.ini'): # 파일이 없을 때
         make_new_config()
 
 
@@ -20,29 +20,32 @@ def read_config(key):
     if key == 'board_size':
         board_size = int(config['option']['board_size'])
         return board_size
-    elif key == 'ai_hard':
-        ai_hard = int(config['option']['ai_hard'])
-        return ai_hard
-    elif key == 'use_mcts':
-        use_mcts = bool(config['option']['use_mcts'])
-        return use_mcts
-    elif key == 'mcts_playout':
-        mcts_playout = int(config['option']['mcts_playout'])
-        return mcts_playout
+    # elif key == 'ai_hard':
+    #     ai_hard = int(config['option']['ai_hard'])
+    #     return ai_hard
+    # elif key == 'use_mcts':
+    #     use_mcts = bool(config['option']['use_mcts'])
+    #     return use_mcts
+    # elif key == 'mcts_playout':
+    #     mcts_playout = int(config['option']['mcts_playout'])
+    #     return mcts_playout
     else:
         print("존재하지 않는 키")
 
 
 
-def make_new_config():
+def make_new_config(): # 기본 값으로 생성
     config['option'] = {}
     config['option']['board_size'] = '15'
-    config['option']['ai_hard'] = '4'  # 4,3,2,1
-    config['option']['use_mcts'] = 'True'
-    config['option']['mcts_playout'] = '100'
+    # config['option']['ai_hard'] = '4'  # 4,3,2,1
+    # config['option']['use_mcts'] = 'True'
+    # config['option']['mcts_playout'] = '100'
 
-def save_config():
+def save_config(board_size):
     # 설정파일 저장
+    config['option'] = {}
+    config['option']['board_size'] = str(board_size)
     with open('setting/config.ini', 'w', encoding='utf-8') as configfile:
+
         config.write(configfile)
 

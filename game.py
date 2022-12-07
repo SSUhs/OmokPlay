@@ -303,7 +303,7 @@ class Game(object):
         elif is_console and (is_computer):
            move = player_in_turn.get_action(self.board,black_white_ai)  # AI일 떄는 player_in_turn 인스턴스의 소속 클래스가 MCTSPlayer가 된다
         elif is_gui and is_computer and (not self.board.is_train_set_mode):
-            move = player_in_turn.get_action(self.board,is_human_intervene=self.is_human_intervene)
+            move = player_in_turn.get_action(self.board,is_human_intervene=self.is_human_intervene,black_white_ai=black_white_ai)
         # GUI + 훈련 셋
         elif is_gui and is_computer and self.board.is_train_set_mode:
             if black_white_ai is None:

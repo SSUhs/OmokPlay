@@ -71,9 +71,9 @@ class PolicyValueNetNumpy():
 
     def policy_value_fn(self, board):
         """
-        input: board_img
+        input: board_img_15
         output: a list of (action, probability) tuples for each available
-        action and the score of the board_img state
+        action and the score of the board_img_15 state
         """
         legal_positions = list(set(range(self.board_width*self.board_height)) - set(board.states.keys()))
         current_state = board.current_state()

@@ -1,2 +1,2 @@
-model_checkpoint_path: "/content/drive/MyDrive/policy_9_50.model"
-all_model_checkpoint_paths: "/content/drive/MyDrive/policy_9_50.model"
+model_checkpoint_path: "./model/tf_policy_13_14990_model"
+all_model_checkpoint_paths: "/model/tf_policy_13_14990_model"

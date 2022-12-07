@@ -22,7 +22,7 @@ list_batch_size = []  # 22.11.08 오전 1시 새로 추가
 class TrainPipeline():
     def __init__(self, board_width, board_height, train_environment, ai_lib, model_file=None,
                  start_num=0, tf_lr_data=None, keras_lr_data=None, is_test_mode=False,
-                 is_new_MCTS=False,is_train_set_mode=False):  # model_file : 텐서플로우 모델 파일
+                 is_new_MCTS=False, is_train_set_mode=False):  # model_file : 텐서플로우 모델 파일
         # 훈련 환경 : train_environment = 1 >> 코랩 / = 2 >> 로컬에서 학습
         self.train_environment = train_environment
         self.tf_lr_data = tf_lr_data
@@ -36,7 +36,8 @@ class TrainPipeline():
         # 게임(오목)에 대한 변수들
         self.board_width, self.board_height = board_width, board_height
         self.n_in_row = 5
-        self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row,is_train_set_mode=is_train_set_mode)
+        self.board = Board(width=self.board_width, height=self.board_height, n_in_row=self.n_in_row,
+                           is_train_set_mode=is_train_set_mode)
         self.game = Game(self.board, is_gui_mode=False)
 
         # 학습에 대한 변수들
@@ -67,9 +68,10 @@ class TrainPipeline():
 
         # policy-value net에서 학습 시작
         if ai_lib == 'theano':
-            self.train_num = 0  # 현재 학습 횟수
-            from policy_value_net.policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
-            self.policy_value_net = PolicyValueNetTheano(self.board_width, self.board_height)
+            pass
+            # self.train_num = 0  # 현재 학습 횟수
+            # from policy_value_net.policy_value_net_theano import PolicyValueNetTheano  # Theano and Lasagne
+            # self.policy_value_net = PolicyValueNetTheano(self.board_width, self.board_height)
         elif ai_lib == 'tensorflow' or ai_lib == 'tensorflow-1.15gpu':
             self.train_num = start_num
             from policy_value_net.policy_value_net_tensorflow import PolicyValueNetTensorflow
@@ -153,7 +155,8 @@ class TrainPipeline():
         # 아래 for문을 다 돌면 자가대전을 n_games만큼 돈 것
         # 기본 한판 하게 되어있음
         for i in range(n_games):
-            winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp, is_test_mode=self.is_test_mode)
+            winner, play_data = self.game.start_self_play(self.mcts_player, temp=self.temp,
+                                                          is_test_mode=self.is_test_mode)
             play_data = list(play_data)[:]
             self.episode_len = len(play_data)
             play_data = self.get_equi_data(play_data)  # 데이터를 뒤집어서 경우의 수를 더 확대
@@ -193,8 +196,7 @@ class TrainPipeline():
 
         return loss
 
-
-    def run_train_set(self,train_set_length,data_x,data_y):
+    def run_train_set(self, train_set_length, data_x, data_y):
         print(f'\n\n{self.board_width}x{self.board_width} 사이즈는 구글 드라이브 자동 백업이 {self.check_freq}마다 수행됩니다')
         print("[progress] ", end='', flush=True)
         # Loop all batches for training
@@ -220,7 +222,6 @@ class TrainPipeline():
         #     avg_cost += sess.run(cost, feed_dict=data) * len(batch_x) / train_data_len
         #
         # print("", end='\r', flush=True)
-
 
     def run(self):
         if self.is_train_set_mode:
@@ -270,7 +271,9 @@ class TrainPipeline():
                     self.policy_value_net.save_model(
                         f'./save/model_{self.board_width}/policy_{self.board_width}_{self.train_num}.model')
                     pickle.dump(self,
-                                open(f'./save/model_{self.board_width}/train_{self.board_width}_{self.train_num}.pickle', 'wb'),
+                                open(
+                                    f'./save/model_{self.board_width}/train_{self.board_width}_{self.train_num}.pickle',
+                                    'wb'),
                                 protocol=2)
                 else:
                     print("존재하지 않는 환경입니다")

@@ -5,18 +5,18 @@ Tested in Tensorflow 1.4 and 1.5
 
 @author: Xiang Zhong
 """
-# import tensorflow as tf
 import numpy as np
 # import tensorflow.compat.v1 as tf # 코랩에서 쓰는 경우, 버전 2로 하면 placeholder이 작동 안하므로 변경해줘야함
-# import tensorflow as tf
 # tf.disable_v2_behavior()
-import check_tensorflow
+# import check_tensorflow
 
 
+
+already_read = False
 class PolicyValueNetTensorflow():
     def __init__(self, board_width, board_height, model_file=None,compile_env='local', init_num=0):
         self.compile_env=compile_env  # local  / colab
-        check_tensorflow.check_tf(compile_env) # 적합한 텐서플로우 버전인지 확인
+        # check_tensorflow.check_tf(compile_env) # 적합한 텐서플로우 버전인지 확인
         if self.compile_env == 'local':  # GPU가 사용 안되는 컴퓨터
             print("환경 : local")
             import os
@@ -24,12 +24,10 @@ class PolicyValueNetTensorflow():
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'  # GPU 경고 제거
             import tensorflow.compat.v1 as tf
             tf.disable_v2_behavior()
+            tf.reset_default_graph()
+            # import tensorflow.compat.v1 as tf
         elif self.compile_env == 'colab': # 코랩
             print("환경 : colab")
-            import tensorflow.compat.v1 as tf
-            tf.disable_v2_behavior()
-        elif self.compile_env == 'colab-1.15gpu':  # 코랩 테스트용
-            import tensorflow as tf
         else:
             print("잘못된 환경")
             quit()
@@ -117,9 +115,12 @@ class PolicyValueNetTensorflow():
         self.session.run(init)
 
         # For saving and restoring
-        self.saver = tf.train.Saver()
         if model_file is not None:
-            self.restore_model(model_file,init_num)
+            self.saver = tf.train.Saver()
+            self.restore_model(model_file,init_num,self.board_width)
+        else:
+            self.saver = tf.train.Saver()
+
 
     def policy_value(self, state_batch):
         """
@@ -188,7 +189,13 @@ class PolicyValueNetTensorflow():
     def save_model(self, model_path):
         self.saver.save(self.session, model_path)
 
-    def restore_model(self, model_path,init_num):
+    def restore_model(self, model_path,init_num,board_width=None):
+        if self.compile_env == 'local': # 체크 포인트 자동 작성
+            f = open("./model/checkpoint", 'w')
+            f.write(f"model_checkpoint_path: \"./model/tf_policy_{board_width}_{init_num}_model\"\n")
+            f.write(f"all_model_checkpoint_paths: \"/model/tf_policy_{board_width}_{init_num}_model\"")
+            f.close()
+        print(model_path)
         self.saver.restore(self.session, model_path)
 
 

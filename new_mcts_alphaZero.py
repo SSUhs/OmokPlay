@@ -131,7 +131,7 @@ class MCTS(object):
 
     def __init__(self, policy_value_fn, c_puct=5, n_playout=10000, is_test_mode=False, board_size=None):
         """
-        policy_value_fn: a function that takes in a board_img state and outputs
+        policy_value_fn: a function that takes in a board_img_15 state and outputs
             a list of (action, probability) tuples and also a score in [-1, 1]
             (i.e. the expected value of the end game score from the current
             player's perspective) for the current player.
@@ -272,7 +272,7 @@ class MCTSPlayerNew(object):
             else:
                 return move
         else:
-            print("WARNING: the board_img is full")
+            print("WARNING: the board_img_15 is full")
 
     def __str__(self):
         return "MCTS {}".format(self.player)

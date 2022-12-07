@@ -31,13 +31,22 @@ img_ai_vs_player = pg.image.load(
     'images/theme_white_gray/AI_VS_플레이어.png')  # img_ai_vs_player = pg.image.load('images/시작(흑).png')
 img_player2 = pg.image.load('images/theme_white_gray/2인 플레이.png')
 img_replay = pg.image.load('images/theme_white_gray/리플레이.png')
-img_setting = pg.image.load('images/theme_white_gray/환경 설정.png')
 img_player_black = pg.image.load('images/theme_white_gray/플레이어-흑.png')
 img_player_white = pg.image.load('images/theme_white_gray/플레이어-백.png')
 img_back = pg.image.load('images/theme_white_gray/뒤로가기.png')
 img_upper = pg.image.load('images/theme_white_gray/상_버튼.png')
 img_middle = pg.image.load('images/theme_white_gray/중_버튼.png')
 img_lower = pg.image.load('images/theme_white_gray/하_버튼.png')
+img_setting = pg.image.load('images/theme_white_gray/판 크기 설정.png')
+img_cur_15x15 = pg.image.load('images/theme_white_gray/current_size_15.png')
+img_cur_13x13 = pg.image.load('images/theme_white_gray/current_size_13.png')
+img_cur_11x11 = pg.image.load('images/theme_white_gray/current_size_11.png')
+img_cur_9x9 = pg.image.load('images/theme_white_gray/current_size_9.png')
+img_button_15 = pg.image.load('images/theme_white_gray/button_15.png')
+img_button_13 = pg.image.load('images/theme_white_gray/button_13.png')
+img_button_11 = pg.image.load('images/theme_white_gray/button_11.png')
+img_button_9 = pg.image.load('images/theme_white_gray/button_9.png')
+
 
 # img_newgame_white = pg.image.load('images/theme_white_gray/게임 시작 (백).png') # img_newgame_white = pg.image.load('images/시작(백).png')
 
@@ -84,6 +93,14 @@ class Gui:
         self.img_replay = img_replay
         self.img_player2 = img_player2
         self.img_setting = img_setting
+        self.img_15x15 = img_button_15
+        self.img_13x13 = img_button_13
+        self.img_11x11 = img_button_11
+        self.img_9x9 = img_button_9
+        self.img_cur_15x15 = img_cur_15x15
+        self.img_cur_13x13 = img_cur_13x13
+        self.img_cur_11x11 = img_cur_11x11
+        self.img_cur_9x9 = img_cur_9x9
         self.img_upper = img_upper
         self.img_middle = img_middle
         self.img_lower = img_lower
@@ -109,36 +126,53 @@ class Gui:
         # self.model3 = load_model('./model/value_black_t3.h5', compile=False)
         # self.model4 = load_model('./model/value_white_t3.h5', compile=False)
 
+    def get_img_current_size(self):
+        img_current = None
+        if self.width_height == 15:
+            img_current = self.img_cur_15x15
+        elif self.width_height == 13:
+            img_current = self.img_cur_13x13
+        elif self.width_height == 11:
+            img_current = self.img_cur_11x11
+        elif self.width_height == 9:
+            img_current = self.img_cur_9x9
+        else:
+            print("잘못된 크기")
+            quit()
+        return img_current
+
+
+
+
     # 설정 변경
     def load_setting(self):
         setting.load_setting_file()
         ai_library = 'tensorflow'
-        is_test_mode = True
+        is_test_mode = False
         board_size = int(setting.read_config('board_size'))
-        is_train_set_mode = True if board_size == 15 else False
-        hard = setting.read_config('ai_hard')
-        is_human_intervene = None
-        use_mcts = None
-        if hard == 4 or hard == 3:
-            use_mcts = True
-            is_human_intervene = True
-        elif hard == 3:
-            use_mcts = False
-            is_human_intervene = True
-        elif hard == 2:
-            use_mcts = False
-            is_human_intervene = False
-        else:
-            print("없는 난이도")
-            quit()
-        self.width_height = board_size
-        self.use_mcts = use_mcts
+        self.change_board_size(board_size)
+        # hard = setting.read_config('ai_hard')
+        # is_human_intervene = None
+        # use_mcts = None
+        # if hard == 4 or hard == 3:
+        #     use_mcts = True
+        #     is_human_intervene = True
+        # elif hard == 3:
+        #     use_mcts = False
+        #     is_human_intervene = True
+        # elif hard == 2:
+        #     use_mcts = False
+        #     is_human_intervene = False
+        # else:
+        #     print("없는 난이도")
+        #     quit()
+        # self.use_mcts = use_mcts
+        # self.hard_gui = hard
         self.ai_library = ai_library
-        self.hard_gui = hard
         self.is_test_mode = is_test_mode
-        self.is_train_set_mode = is_train_set_mode
-        self.is_human_intervene = is_human_intervene
-        self.load_model(False)
+        # self.is_train_set_mode = is_train_set_mode
+        # self.is_human_intervene = is_human_intervene
+
 
     def resize_view(self, event=None):
         if not event is None:
@@ -151,6 +185,14 @@ class Gui:
         self.img_player2 = pg.transform.smoothscale(img_player2, (button_width, button_height))
         self.img_replay = pg.transform.smoothscale(img_replay, (button_width, button_height))
         self.img_setting = pg.transform.smoothscale(img_setting, (button_width, button_height))
+        self.img_15x15 = pg.transform.smoothscale(img_button_15, (button_width, button_height))
+        self.img_13x13 = pg.transform.smoothscale(img_button_13, (button_width, button_height))
+        self.img_11x11 = pg.transform.smoothscale(img_button_11, (button_width, button_height))
+        self.img_9x9 = pg.transform.smoothscale(img_button_9, (button_width, button_height))
+        self.img_cur_15x15 = pg.transform.smoothscale(img_cur_15x15, (button_width, button_height))
+        self.img_cur_13x13 = pg.transform.smoothscale(img_cur_13x13, (button_width, button_height))
+        self.img_cur_11x11 = pg.transform.smoothscale(img_cur_11x11, (button_width, button_height))
+        self.img_cur_9x9 = pg.transform.smoothscale(img_cur_9x9, (button_width, button_height))
         self.img_player_black = pg.transform.smoothscale(img_player_black, (button_width, button_height))
         self.img_player_white = pg.transform.smoothscale(img_player_white, (button_width, button_height))
         self.img_back = pg.transform.smoothscale(img_back, (button_width, button_height))
@@ -209,7 +251,7 @@ class Gui:
             screen = pg.display.set_mode((self.width, self.height), pg.HIDDEN)
             pg.display.flip()
             # pg.quit()
-        if game_mode == 'ai_vs_player':
+        elif game_mode == 'ai_vs_player':
             if self.ai_library == 'tensorflow':  # 텐서플로우 학습 모델 기반으로 게임 시작
                 board_arr = Board(width=self.width_height, height=self.width_height, n_in_row=num,
                                   is_train_set_mode=self.is_train_set_mode)
@@ -241,8 +283,20 @@ class Gui:
                     gui_board.update_game_view()
                     # pg.quit()
                 else:
-                    print(f"{game_mode}는 존재하지 않는 모드입니다")
-                    quit()
+                    from mcts_alphaZero import MCTSPlayer
+                    board_arr = Board(width=self.width_height, height=self.width_height, n_in_row=num,
+                                      is_train_set_mode=self.is_train_set_mode)
+                    game = Game(board_arr, is_gui_mode=True, is_human_intervene=self.is_human_intervene,
+                                game_mode='ai_vs_player')
+                    computer_player = MCTSPlayer(self.best_policy.policy_value_fn, c_puct=5, n_playout=400)
+                    human = Human()
+                    game.board.init_board(start_player=order)
+                    gui_board = gui_play_game.Gui(game, board_arr, human, computer_player, game_mode=game_mode,black_white_ai=black_white_ai)
+                    gui_board.run()
+                    gui_board.update_game_view()
+                    screen = pg.display.set_mode((self.width, self.height), pg.HIDDEN)
+                    pg.display.flip()
+
             elif self.ai_library == 'theano':
                 from mcts_alphaZero import MCTSPlayer
                 gui_board = None
@@ -271,6 +325,9 @@ class Gui:
             else:
                 print("지원 되지 않는 라이브러리입니다")
                 quit()
+        else:
+            print(f"{game_mode}는 존재하지 않는 모드입니다")
+            quit()
 
     def run(self):
         done = False
@@ -295,36 +352,48 @@ class Gui:
 
     def update_game_view(self):
         mode = self.current_frame
-        screen = pg.display.set_mode((self.width, self.height), pg.HWSURFACE | pg.DOUBLEBUF | pg.RESIZABLE)
+        # screen = pg.display.set_mode((self.width, self.height), pg.HWSURFACE | pg.DOUBLEBUF | pg.RESIZABLE)
+        screen = pg.display.set_mode((self.width, self.height), pg.HWSURFACE | pg.DOUBLEBUF)
         screen.blit(self.main_image, (0, 0))
         if mode == 'main':
             x_start = (self.width - self.button_size) / 2
-            y_bt_ai_vs_player = 100
-            y_bt_player2 = 200
-            y_bt_replay = 300
-            y_bt_setting = 400
+            y_lb_cur_size = 30
+            y_bt_ai_vs_player = 150
+            y_bt_player2 = 250
+            y_bt_replay = 350
+            y_bt_setting = 450
+            screen.blit(self.get_img_current_size(),(x_start,y_lb_cur_size))
             screen.blit(self.img_ai_vs_player, (x_start, y_bt_ai_vs_player))
             screen.blit(self.img_replay, (x_start, y_bt_replay))
             screen.blit(self.img_player2, (x_start, y_bt_player2))
-            # screen.blit(self.img_setting,(x_start,y_bt_setting))
+            screen.blit(self.img_setting,(x_start,y_bt_setting))
         elif mode == 'select_hard':
             x_start = (self.width - self.button_size) / 2
-            y_start = 100
+            y_start = 150
             screen.blit(self.img_upper, (x_start, y_start))
             screen.blit(self.img_middle, (x_start, y_start + 100))
             screen.blit(self.img_lower, (x_start, y_start + 200))
             screen.blit(self.img_back, (x_start, y_start + 300))
         elif mode == 'select_stone':
             x_start = (self.width - self.button_size) / 2
-            y_start = 100
+            y_start = 150
             screen.blit(self.img_player_black, (x_start, y_start))
             screen.blit(self.img_player_white, (x_start, y_start + 100))
             screen.blit(self.img_back, (x_start, y_start + 200))
+        elif mode == 'setting':
+            x_start = (self.width - self.button_size) / 2
+            y_start = 150
+            screen.blit(self.img_15x15, (x_start, y_start))
+            screen.blit(self.img_13x13, (x_start, y_start + 100))
+            screen.blit(self.img_11x11, (x_start, y_start + 200))
+            screen.blit(self.img_9x9, (x_start, y_start + 300))
+            screen.blit(self.img_back, (x_start, y_start + 400))
         else:
             print("없는 모드")
             quit()
 
         pg.display.flip()
+
 
     def load_model(self, is_reload):
         # if not is_reload and self.best_policy is not None: # 재로딩도 아니고 이미 모델이 로딩된 경우
@@ -334,9 +403,9 @@ class Gui:
         hard_gui = self.hard_gui
         if self.ai_library == 'tensorflow' and not self.is_train_set_mode:
             from policy_value_net.policy_value_net_tensorflow import PolicyValueNetTensorflow
-            model_file = f'./model/tf_policy_{self.width_height}_{str()}_model'
+            model_file = f'./model/tf_policy_{self.width_height}_{self.hard_gui}_model'
             self.best_policy = PolicyValueNetTensorflow(self.width_height, self.width_height, model_file,
-                                                        compile_env='local')  # 코랩에서는 start_game.py 수행 안하기 때문에 compile_env는 local로 고정
+                                                        compile_env='local',init_num=hard_gui)
         elif self.ai_library == 'tensorflow' and self.is_train_set_mode:
             self.best_policy = player_AI.load_model_trainset_mode(model_type='policy', size=self.width_height,
                                                                   train_num=self.hard_gui)
@@ -359,58 +428,142 @@ class Gui:
         if self.current_frame == 'main':
             if not start_x <= x <= end_x:
                 return
-            if 103 <= y <= 183:
+            if 153 <= y <= 233:
                 self.current_frame = 'select_hard'
                 self.update_game_view()
-            elif 203 <= y <= 283:
+            elif 253 <= y <= 333:
                 self.load_game(game_mode='player_vs_player')
                 self.update_game_view()
-            elif 303 <= y <= 383:
+            elif 353 <= y <= 433:
                 self.load_game(game_mode='replay')
                 self.update_game_view()
-            elif 403 <= y <= 483:
-                pass
-                # self.current_frame = 'setting'
-                # self.update_game_view()
+            elif 453 <= y <= 533:
+                self.current_frame = 'setting'
+                self.update_game_view()
         elif self.current_frame == 'select_hard':
             if not start_x <= x <= end_x:
                 return
-            if 103 <= y <= 183:  # 상
-                self.is_human_intervene = True
-                self.use_mcts = True
+            if 153 <= y <= 233:  # 상
+                self.change_hard('상')
                 self.current_frame = 'select_stone'
                 self.update_game_view()
-            elif 203 <= y <= 283:  # 중
-                self.is_human_intervene = True
-                self.use_mcts = False
+            elif 253 <= y <= 333:  # 중
+                self.change_hard('중')
                 self.current_frame = 'select_stone'
                 self.update_game_view()
-            elif 303 <= y <= 383:  # 하
-                self.is_human_intervene = False
-                self.use_mcts = False
+            elif 353 <= y <= 433:  # 하
+                self.change_hard('하')
                 self.current_frame = 'select_stone'
                 self.update_game_view()
-            elif 403 <= y <= 483:  # 뒤로가기
+            elif 453 <= y <= 533:  # 뒤로가기
                 self.current_frame = 'main'
                 self.update_game_view()
         elif self.current_frame == 'select_stone':
             if not start_x <= x <= end_x:
                 return
-            if 103 <= y <= 183:
+            if 153 <= y <= 233:
                 self.load_game('black', game_mode='ai_vs_player')
                 self.update_game_view()
-            elif 203 <= y <= 283:
+            elif 253 <= y <= 333:
                 self.load_game('white', game_mode='ai_vs_player')
                 self.update_game_view()
-            elif 303 <= y <= 383:  # 뒤로가기
+            elif 353 <= y <= 433:  # 뒤로가기
                 self.current_frame = 'select_hard'
                 self.update_game_view()
-
+        elif self.current_frame == 'setting':
+            if not start_x <= x <= end_x:
+                return
+            if 153 <= y <= 233:
+                self.change_setting('size',15)
+                self.current_frame = 'main'
+                self.update_game_view()
+            elif 253 <= y <= 333:
+                self.change_setting('size',13)
+                self.current_frame = 'main'
+                self.update_game_view()
+            elif 353 <= y <= 433:
+                self.change_setting('size',11)
+                self.current_frame = 'main'
+                self.update_game_view()
+            elif 453 <= y <= 533:
+                self.change_setting('size',9)
+                self.current_frame = 'main'
+                self.update_game_view()
+            elif 553 <= y <= 633: # 뒤로가기
+                self.current_frame = 'main'
+                self.update_game_view()
     def load_saved_game_csv(self):
         Tk().wm_withdraw()  # to hide the main window
         filename = filedialog.askopenfilename(title="Select file", filetypes=(("CSV Files", "*.csv"),))
         print(filename)
         return filename
+
+
+    def change_setting(self,type,arg):
+        if type == 'size':
+            setting.save_config(arg)
+            self.change_board_size(arg)
+        else:
+            print("없는 경우")
+            quit()
+        return
+
+    def change_board_size(self, board_size):
+        board_size = int(board_size)
+        self.width_height = board_size
+        self.is_train_set_mode = True if board_size == 15 else False
+
+    def change_hard(self,hard):
+        if self.is_train_set_mode and self.ai_library == 'tensorflow' and self.width_height == 15:
+            if hard == '상':
+                self.is_human_intervene = True
+                self.use_mcts = True
+            elif hard == '중':
+                self.is_human_intervene = True
+                self.use_mcts = False
+            elif hard == '하':
+                self.is_human_intervene = False
+                self.use_mcts = False
+            else:
+                print("없는 난이도 - change_hard")
+                quit()
+            self.load_model(True)
+        elif self.ai_library == 'tensorflow' and self.width_height == 13:
+            if hard == '상':
+                self.hard_gui = 14990
+            elif hard == '중':
+                self.hard_gui = 12010
+            elif hard == '하':
+                self.hard_gui = 6910
+            else:
+                print("없는 난이도 - change_hard")
+                quit()
+            self.load_model(True)
+        elif self.ai_library == 'tensorflow' and self.width_height == 11:
+            if hard == '상':
+                self.hard_gui = 13140
+            elif hard == '중':
+                self.hard_gui = 10260
+            elif hard == '하':
+                self.hard_gui = 6240
+            else:
+                print("없는 난이도 - change_hard")
+                quit()
+            self.load_model(True)
+        elif self.ai_library == 'tensorflow' and self.width_height == 9:
+            if hard == '상':
+                self.hard_gui = 11440
+            elif hard == '중':
+                self.hard_gui = 6680
+            elif hard == '하':
+                self.hard_gui = 3320
+            else:
+                print("없는 난이도 - change_hard")
+                quit()
+            self.load_model(True)
+        else:
+            print("없는 크기 - change_hard")
+            quit()
 
 
 if __name__ == '__main__':
