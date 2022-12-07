@@ -178,15 +178,14 @@ def get_next_open3(size, arr_list, board, stone):
 # dir 3 : 대각 우상향 (/)
 # dir 4 : 대각 우하향 (\)
 def get_colors_dir_next(size,arr_list,stone,x,y,dir):
+    list_stone = []
+    list_index = []
     if arr_list[y][x] != 0:
-        print("놓을 자리는 빈자리여야합니다")
-        quit()
+        return list_stone,list_index
     elif dir <= 0:
         print("양수 방향만 놓을 수 있습니다")
         quit()
     arr_list[y][x] = stone
-    list_stone = []
-    list_index = []
     if dir == 1:
         for i in range(0,size):
             list_stone.append(arr_list[y][i])
