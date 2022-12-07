@@ -1,5 +1,6 @@
 import player_AI
 from Human import Human
+from constant import error_const
 from player_AI import MCTSPlayer_TrainSet
 from game import Board, Game
 
@@ -87,6 +88,8 @@ stone = 1
 
 while True:
     num = game.do_next(-1, -1,stone=stone,black_white_ai=black_white_ai)
+    if num == error_const.CONST_GAME_FINISH: # 게임 끝난 경우
+        break
     stone = 2 if stone == 1 else 1
     # if num == -20:
     #     continue

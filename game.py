@@ -364,20 +364,28 @@ class Game(object):
 
         end, winner_stone = self.board.game_end()
         if end:
-            self.graphic_console(self.board, self.player1.player, self.player2.player)
-            self.graphic_gui(gui_board,self.player1.player, self.player2.player)
-            if winner_stone != -1:
-                if winner_stone == 1:
+            if self.is_gui_mode:
+                self.graphic_gui(gui_board, self.player1.player, self.player2.player)
+                if winner_stone != -1:
+                    if winner_stone == 1:
+                        Tk().wm_withdraw()  # to hide the main window
+                        messagebox.showinfo('게임 종료', '흑이 승리하였습니다')
+                    else:
+                        Tk().wm_withdraw()  # to hide the main window
+                        messagebox.showinfo('게임 종료', '백이 승리하였습니다')
+                else:  # end 값이 -1인 경우, 무승부 ( game_end() 함수에서, 오목 판에 수들이 꽉차면 -1 리턴해줌)
                     Tk().wm_withdraw()  # to hide the main window
-                    messagebox.showinfo('게임 종료', '흑이 승리하였습니다')
+                    messagebox.showinfo('게임 종료', '무승부 입니다')
+                    print("Game end. Tie")
+                self.save_csv_data(winner_stone)
+            else:
+                self.graphic_console(self.board, self.player1.player, self.player2.player)
+                if winner_stone -1:
+                    print("무승부입니다")
+                elif winner_stone == 1:
+                    print("흑이 승리하였습니다")
                 else:
-                    Tk().wm_withdraw()  # to hide the main window
-                    messagebox.showinfo('게임 종료', '백이 승리하였습니다')
-            else:  # end 값이 -1인 경우, 무승부 ( game_end() 함수에서, 오목 판에 수들이 꽉차면 -1 리턴해줌)
-                Tk().wm_withdraw()  # to hide the main window
-                messagebox.showinfo('게임 종료', '무승부 입니다')
-                print("Game end. Tie")
-            self.save_csv_data(winner_stone)
+                    print("백이 승리하였습니다")
             return error_const.CONST_GAME_FINISH
         else:
             return error_const.CONST_SUCCESS  # 다시 반복
