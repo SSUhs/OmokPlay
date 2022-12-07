@@ -15,7 +15,7 @@ print(f'활성 Device : {devices_all}\n')
 device_name = tf.test.gpu_device_name()
 # GPU를 사용하거나 TPU를 사용하지 않으면 종료 (혹시나 가속기를 안켜놓았을 상황을 방지)
 # if device_name != '/device:GPU:0':  # GPU 안쓰는 환경인 경우
-#     print("GPU를 가속하지 않으면 텐서플로우를 사용할 수 없습니다")
+#     print("GPU를 가속하지 않으면 텐서플로우를 사용할 수 없습니다") code20221207185252
 #     quit()
 
 

@@ -277,7 +277,6 @@ class MCTSPlayer(object):
             acts, probs = self.mcts.get_move_probs(board, stone, temp)
             if is_human_intervene:  # 특수상황 알고리즘 개입 (ex : 열린4, 43, 닫힌4 등등)
                 move_al = get_move_by_human_algorithm(board, acts, probs,black_white_ai)
-                asdf
                 if move_al is not None:
                     return move_al
 

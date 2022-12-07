@@ -135,7 +135,7 @@ class TreeNode(object):
         self.depth = depth
         # print(f"깊이 : {depth}")
 
-    def expand(self, action_priors, forbidden_moves, is_you_black):
+    def expand(self, action_priors, forbidden_moves, is_you_black,board):
         """Expand tree by creating new children.
         action_priors: a list of tuples of actions and their prior probability according to the policy function.
         """
@@ -152,6 +152,8 @@ class TreeNode(object):
                 continue
             if action not in self._children:  #  code20221130141219 #
                 if prob < 0.1: # 확률이 너무 낮은 부분은 확장하지 않음
+                    continue
+                if action in board.states:
                     continue
                 self._children[action] = TreeNode(self, prob,self.depth+1)
 
@@ -253,9 +255,9 @@ class MCTSTrainSet(object):
         action_probs = zip(legal_positions, legal_arr)
         # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
         end, winner_stone = state.game_end()
-        if not end: #
+        if not end: # asdf
             forbidden_moves = get_forbidden_new(state,1) # 현재 노드 상태에서의 금수 위치
-            node.expand(action_probs, forbidden_moves, state.is_you_black())
+            node.expand(action_probs, forbidden_moves, state.is_you_black(),state)
         else:
             # for end state，return the "true" leaf_value
             # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
