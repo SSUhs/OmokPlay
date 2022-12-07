@@ -1,3 +1,6 @@
+
+# numpy 형태로 MCTS
+
 import math
 
 import numpy as np

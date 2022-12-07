@@ -1,2 +1,2 @@
-model_checkpoint_path: "./model/tf_policy_13_14990_model"
-all_model_checkpoint_paths: "/model/tf_policy_13_14990_model"
+model_checkpoint_path: "./model/tf_policy_13_18670_model"
+all_model_checkpoint_paths: "/model/tf_policy_13_18670_model"

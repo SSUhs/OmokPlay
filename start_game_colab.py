@@ -48,9 +48,7 @@ while True:
 board_size = 15
 n_in_row = 5
 
-board_arr = Board(width=board_size, height=board_size, n_in_row=5,
-                  is_train_set_mode=is_train_set_mode)
-game = Game(board_arr, is_gui_mode=False, is_human_intervene=is_human_intervene,game_mode='ai_vs_player')
+
 
 
 order = None
@@ -82,6 +80,9 @@ human = Human()
 player_AI._play_on_colab = True
 player_AI._test_mode = False
 renju_helper._test_mode = False
+board_arr = Board(width=board_size, height=board_size, n_in_row=5,
+                  is_train_set_mode=is_train_set_mode)
+game = Game(board_arr, is_gui_mode=False, is_human_intervene=is_human_intervene,game_mode='ai_vs_player')
 game.board.init_board(start_player=order)
 game.init_play(gui_board=None,player1=human,player2=computer_player)
 stone = 1

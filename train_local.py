@@ -1,21 +1,17 @@
 
 import train_dataset
 from datetime import datetime
-from pandas import DataFrame, Series
 import pickle
 import re  # 정규표현식
 import sys
 
 from TrainingPipeline import TrainPipeline
-from time import time
-from time import gmtime
-
 
 sys.setrecursionlimit(10 ** 8)
 
 
 if __name__ == '__main__':
-    print("\"라이브러리 종류 / 사이즈 / 이어서 할 횟수\" 순서로 입력해주세요")
+    print("\"라이브러리 종류 / 사이즈 / 이어서 할 횟수\" 순서로 입력")
     print("라이브러리 : tensorflow / keras / tfkeras / theano")
     print("예시 : \'tensorflow 13 500\'(=텐서플로우 라이브러리로 13x13 500번 부터)")
     param_list = re.split(r'[ ]+', input())  # 예시) {'tensorflow','13','500'}
@@ -72,9 +68,9 @@ if __name__ == '__main__':
         if not (ai_lib == 'tensorflow' or ai_lib == 'theano'):
             print("new MCTS는 현재 tensorflow 1.0에서만 사용가능")
             quit()
-        print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
-        print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
-        print("\n\n!!!! New MCTS 환경으로 학습합니다!!!!\n\n")
+        print("\n\n!!!! New MCTS 환경으로 학습!!!!\n\n")
+        print("\n\n!!!! New MCTS 환경으로 학습!!!!\n\n")
+        print("\n\n!!!! New MCTS 환경으로 학습!!!!\n\n")
 
     if ai_lib == 'theano':
         if train_environment == 1:  # colab + google drive
@@ -123,7 +119,7 @@ if __name__ == '__main__':
             model_file = f'/content/drive/MyDrive/keras_policy_{size}_{init_num}_model'
             keras_lr_data = f'/content/drive/MyDrive/keras_train_{size}_{init_num}.pickle'
         else:
-            print("학습이 불가능한 환경입니다")
+            print(f"잘못된 라이브러리 : {ai_lib}")
             quit()
         training_pipeline = TrainPipeline(size, size, train_environment, ai_lib, model_file=model_file,
                                           start_num=init_num, keras_lr_data=keras_lr_data, is_test_mode=is_test_mode,

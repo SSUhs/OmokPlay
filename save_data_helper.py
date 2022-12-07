@@ -1,6 +1,6 @@
 import pickle
 
-# lr_mulitplier과 deque를 저장
+# lr_mulitplier과 deque를 저장 (텐서플로우 버전 1.x)
 class save_data_helper():
     def __init__(self,train_num,board_width,learn_rate,lr_multiplier,data_buffer):
         self.is_loaded = True
@@ -10,7 +10,7 @@ class save_data_helper():
         self.lr_multiplier = lr_multiplier
         self.data_buffer = data_buffer
 
-    def save_model_data(self):
+    def save_model_data(self): # Colab 학습
         if not self.is_loaded:
             print("learning_rate_multiplier 저장에 실패하였습니다")
             return

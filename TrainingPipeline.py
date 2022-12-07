@@ -162,8 +162,7 @@ class TrainPipeline():
             play_data = self.get_equi_data(play_data)  # 데이터를 뒤집어서 경우의 수를 더 확대
             self.data_buffer.extend(play_data)  # deque의 오른쪽(마지막)에 삽입
 
-    # 자가 훈련을 통해 정책 업데이트 하는 부분
-    # 플레이어와 대결 할 때는 이 함수가 호출 되지 않는다 >> 따라서 플레이어와 AI가 대결할 때는 정책 업데이트 X
+    # 자가 훈련을 통해 정책 업데이트 하는 부분 (플레이어와 AI가 대결할 때는 정책 업데이트 X)
     def policy_update(self):
         """update the policy-value net"""
         # data_buffer에 들어 있는

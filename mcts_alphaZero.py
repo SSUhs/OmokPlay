@@ -2,6 +2,8 @@ import numpy as np
 import copy
 from time import time
 
+from rule.renju_rule import renju_helper
+
 
 def softmax(x):
     probs = np.exp(x - np.max(x))
@@ -9,7 +11,8 @@ def softmax(x):
     return probs
 
 
-def get_move_by_human_algorithm(board, acts, probs):
+def get_move_by_human_algorithm(board, acts, probs,black_white_ai):
+    renju_helper.get_human_intervene_move(probs,board,black_white_ai,board.width)
     print(board, acts, probs)
     print("구현 X")
     quit()
@@ -273,7 +276,8 @@ class MCTSPlayer(object):
             time_get_probs = time()  # probs를 얻는데까지 걸리는 시간
             acts, probs = self.mcts.get_move_probs(board, stone, temp)
             if is_human_intervene:  # 특수상황 알고리즘 개입 (ex : 열린4, 43, 닫힌4 등등)
-                move_al = get_move_by_human_algorithm(board, acts, probs)
+                move_al = get_move_by_human_algorithm(board, acts, probs,black_white_ai)
+                asdf
                 if move_al is not None:
                     return move_al
 

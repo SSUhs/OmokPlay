@@ -530,11 +530,11 @@ class Gui:
             self.load_model(True)
         elif self.ai_library == 'tensorflow' and self.width_height == 13:
             if hard == '상':
-                self.hard_gui = 14990
+                self.hard_gui = 18670
             elif hard == '중':
-                self.hard_gui = 12010
+                self.hard_gui = 14990
             elif hard == '하':
-                self.hard_gui = 6910
+                self.hard_gui = 12010
             else:
                 print("없는 난이도 - change_hard")
                 quit()

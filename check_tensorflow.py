@@ -13,7 +13,7 @@ def check_tf(compile_env):
         devices_all = tf.config.list_physical_devices()
         print(f'활성 Device : {devices_all}\n')
         device_name = tf.test.gpu_device_name()
-        # GPU를 사용하거나 TPU를 사용하지 않으면 종료 (혹시나 가속기를 안켜놓았을 상황을 방지)
+        # GPU를 사용하거나 TPU를 사용하지 않으면 종료
         if device_name != '/device:GPU:0': # GPU 안쓰는 환경인 경우
             mode = int(input("현재 GPU 가속이 미사용 상태입니다. CPU 환경으로만 진행하려면 0, 종료할려면 1"))
             if mode != 0:
@@ -21,7 +21,7 @@ def check_tf(compile_env):
                 quit()
         else:
             print('Found GPU at: {}'.format(device_name))
-    elif compile_env == 'colab-1.15gpu':
+    elif compile_env == 'colab-1.15gpu': # Colab에서 버전 낮춘 경우
         import tensorflow as tf
         print("\n\n---------------------------------------------------")
         print(f'텐서 플로우 버전 : {tf.__version__}\n')

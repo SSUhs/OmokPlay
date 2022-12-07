@@ -355,10 +355,9 @@ class Game(object):
 
         self.board.do_move(move,stone)
 
-        if self.is_gui_mode:  # gui_mode의 경우 콘솔 출력은 이동 후에 출력
-            # 현재 이 위치는 이미 돌을 AI or 사람이 돌을 놓은 상태에서 진행되는 부분
-            # 한턴 끝나면 흑의 금수 설정
-            self.record_move(move)
+        if self.is_gui_mode: 
+            # 한턴 끝나면 흑의 금수 설정 (이미 돌을 AI or 사람이 돌을 놓은 상태에서 진행되는 부분)
+            self.record_move(move) 
             self.board.set_forbidden_new(1)
             self.graphic_gui(gui_board,self.player1.player, self.player2.player)
 
@@ -376,7 +375,6 @@ class Game(object):
                 else:  # end 값이 -1인 경우, 무승부 ( game_end() 함수에서, 오목 판에 수들이 꽉차면 -1 리턴해줌)
                     Tk().wm_withdraw()  # to hide the main window
                     messagebox.showinfo('게임 종료', '무승부 입니다')
-                    print("Game end. Tie")
                 self.save_csv_data(winner_stone)
             else:
                 self.graphic_console(self.board, self.player1.player, self.player2.player)
@@ -392,12 +390,14 @@ class Game(object):
 
 
 
+    # csv로 기록
     def record_move(self, move):
         if move < 0: # 오류는 기록 X
             return
         self.record_list.append(move)
         return
 
+    # 기록한 기보를 CSV 형태로 저장
     def save_csv_data(self,winner_stone):
         if self.game_mode == 'replay':
             return
