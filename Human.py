@@ -37,8 +37,13 @@ class Human(object):
         try:
             print("돌을 둘 좌표를 입력하세요 (쉼표로 구분)")
             location = input()
-            if isinstance(location, str):
-                location = [int(n, board.width+1) for n in location.split(",")]
+            location = location.split(",")
+            if len(location) != 2:
+                raise Exception
+            location[0] = int(location[0])
+            location[1] = int(location[1])
+            # if isinstance(location, str):
+            #     location = [int(n, board.width+1) for n in location.split(",")]
             print(f"테스트 location : {location}")
             move = board.location_to_move(location)
         except Exception as e:
