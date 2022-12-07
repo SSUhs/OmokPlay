@@ -7,6 +7,8 @@ from game import Board, Game
 
 import tensorflow as tf
 
+from rule.renju_rule import renju_helper
+
 devices_all = tf.config.list_physical_devices()
 print(f'활성 Device : {devices_all}\n')
 device_name = tf.test.gpu_device_name()
@@ -78,6 +80,7 @@ human = Human()
 
 player_AI._play_on_colab = True
 player_AI._test_mode = False
+renju_helper._test_mode = False
 game.board.init_board(start_player=order)
 game.init_play(gui_board=None,player1=human,player2=computer_player)
 stone = 1
