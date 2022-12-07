@@ -245,8 +245,8 @@ class MCTSTrainSet(object):
         legal_positions = list(set_all - set_state_keys)
         np_states = state.get_states_by_numpy()
         inputs = reshape_to_15_15_1(np_states)  # 현재 상태. 이 상태를 기반으로 예측
-        act_probs = self.policy_net.predict(inputs)
-        leaf_value = self.value_net.predict(inputs)[0][0]
+        act_probs = self.policy_net.predict(inputs,verbose=0)
+        leaf_value = self.value_net.predict(inputs,verbose=0)[0][0]
         if black_white_ai == 'white': # 가치망은 흑을 기준으로 나와 있으므로 뒤집어야함
             leaf_value = -leaf_value
         legal_arr = act_probs[0][legal_positions]  # 얘는 수를 놓을 때마다 사이즈가 줄어 듦  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼

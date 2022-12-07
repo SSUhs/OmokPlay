@@ -7,7 +7,7 @@ from constant import error_const
 
 
 _play_on_colab = False
-_test_mode = True
+_test_mode = False
 
 def get_stone_color(black_white_ai):
     if black_white_ai == 'black':
