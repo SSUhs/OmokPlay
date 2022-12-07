@@ -63,6 +63,9 @@ while True:
 
 policy_net = player_AI.load_model_train_set_github(model_type='policy', size=board_size)
 value_net = player_AI.load_model_train_set_github(model_type='value', size=board_size)
+
+policy_net.summary()
+value_net.summary()
 black_white_ai = None
 if order == 0:
     black_white_ai = 'white'

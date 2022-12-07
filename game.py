@@ -266,8 +266,6 @@ class Game(object):
                 p = board.states.get(loc, -1)
                 if p == player1:
                     print('●' if board.order == 0 else '○', end='')
-                    # if is_gui_mode:
-                    #     self.gui_board.do_blit(i,j,"black" if board.order == 0 else "white")
                 elif p == player2:
                     print('○' if board.order == 0 else '●', end='')
                 elif board.is_you_black() and (i, j) in board.forbidden_locations:

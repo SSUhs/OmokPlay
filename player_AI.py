@@ -324,6 +324,7 @@ class MCTSPlayer_TrainSet(object):
             move, value = self.get_move_mcts(board, black_white_ai)  # mcts를 사용해서 추가 예측
         else:
             inputs = reshape_to_15_15_1(state)  # 현재 상태. 이 상태를 기반으로 예측
+
             move, value = self.get_move_not_mcts(board, inputs,black_white_ai)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
         x, y = convert_to_2nd_loc(board.width, move)
         if self.is_test_mode:
