@@ -135,7 +135,7 @@ class TreeNode(object):
         self.depth = depth
         # print(f"깊이 : {depth}")
 
-    def expand(self, action_priors, forbidden_moves, is_you_black,board):
+    def expand(self, action_priors, forbidden_moves, is_you_black):
         """Expand tree by creating new children.
         action_priors: a list of tuples of actions and their prior probability according to the policy function.
         """
@@ -152,8 +152,6 @@ class TreeNode(object):
                 continue
             if action not in self._children:  #  code20221130141219 #
                 if prob < 0.1: # 확률이 너무 낮은 부분은 확장하지 않음
-                    continue
-                if action in board.states:
                     continue
                 self._children[action] = TreeNode(self, prob,self.depth+1)
 
@@ -247,17 +245,19 @@ class MCTSTrainSet(object):
         legal_positions = list(set_all - set_state_keys)
         np_states = state.get_states_by_numpy()
         inputs = reshape_to_15_15_1(np_states)  # 현재 상태. 이 상태를 기반으로 예측
-        act_probs = self.policy_net.predict(inputs,verbose=0)
-        leaf_value = self.value_net.predict(inputs,verbose=0)[0][0]
+        act_probs = self.policy_net.predict(inputs,verbose=0,steps=1)
+        leaf_value = self.value_net.predict(inputs,verbose=0,steps=1)[0][0]
         if black_white_ai == 'white': # 가치망은 흑을 기준으로 나와 있으므로 뒤집어야함
             leaf_value = -leaf_value
+        #         legal_arr = act_probs[0][legal_positions] # 얘는 수를 놓을 때마다 사이즈가 줄어 듦  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
+        #         act_probs = zip(legal_positions, legal_arr)
         legal_arr = act_probs[0][legal_positions]  # 얘는 수를 놓을 때마다 사이즈가 줄어 듦  # 왜 0번이냐면 애초에 act_probs가 [1][225] 이런형태라 그럼
         action_probs = zip(legal_positions, legal_arr)
         # end (bool 타입) : 게임이 단순히 끝났는지 안끝났는지 (승,패 또는 화면 꽉찬 경우에도 end = True)
         end, winner_stone = state.game_end()
-        if not end: # asdf
+        if not end:
             forbidden_moves = get_forbidden_new(state,1) # 현재 노드 상태에서의 금수 위치
-            node.expand(action_probs, forbidden_moves, state.is_you_black(),state)
+            node.expand(action_probs, forbidden_moves, state.is_you_black())
         else:
             # for end state，return the "true" leaf_value
             # winner은 무승부의 경우 -1이고, 우승자가 존재하면 우승자 int (0,1이였나 1,2였나)
@@ -324,6 +324,12 @@ class MCTSPlayer_TrainSet(object):
         state = board.get_states_by_numpy()
         if self.use_mcts:
             move, value = self.get_move_mcts(board, black_white_ai)  # mcts를 사용해서 추가 예측
+            if move in board.states:
+                x,y = convert_to_2nd_loc(board.width,move)
+                print(f"이미 돌이 놓인 좌표 선택 : {move} / (y,x) : ({y},{x})")
+                inputs = reshape_to_15_15_1(state)  # 현재 상태. 이 상태를 기반으로 예측
+                move, value = self.get_move_not_mcts(board, inputs, black_white_ai)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
+                print(f"재선택 조정 : move : {move} / (y,x) ({y},{x})")
         else:
             inputs = reshape_to_15_15_1(state)  # 현재 상태. 이 상태를 기반으로 예측
             move, value = self.get_move_not_mcts(board, inputs,black_white_ai)  # mcts 없이 단순히 확률이 가장 높은 경우를 선택
@@ -336,8 +342,7 @@ class MCTSPlayer_TrainSet(object):
 
 
     def get_move_not_mcts(self, board, input,black_white_ai):
-        # print(f"code20221207145614 : {type(input)} / {len(input)}")
-        probs = self.policy_net.predict(input)
+        probs = self.policy_net.predict(input,steps=1)
         value = self.value_net.predict(input,steps=1)
         size = board.width
 
@@ -399,14 +404,14 @@ class MCTSPlayer_TrainSet(object):
         if board.width * board.height - len(board.states) > 0:  # 보드판이 꽉 안찬 경우
             move = None
             inputs = reshape_to_15_15_1(board.get_states_by_numpy())  # 현재 상태. 이 상태를 기반으로 예측
-            value_current = self.value_net.predict(inputs)[0]
+            value_current = self.value_net.predict(inputs,steps=1)[0]
             if black_white_ai == 'white':  # 백이면 가치망 뒤집는다
                 value_current = -value_current
                 
             # 인간의 알고리즘 개입
             if self.is_human_intervene:
                 # 먼저, 놓자마자 바로 이길 수 있는 좌표가 있으면 해당 좌표를 선택하면 된다
-                probs_tmp = self.policy_net.predict(inputs)
+                probs_tmp = self.policy_net.predict(inputs,steps=1)
                 move_intervene = get_human_intervene_move(probs_tmp,board,black_white_ai,size)
                 if move_intervene is not None:
                     return move_intervene,value_current
@@ -435,7 +440,7 @@ class MCTSPlayer_TrainSet(object):
                     if not is_my_open4:  # 만약 내가 주도권을 가질 상황이 아닌데 상대한테 현재 열린 3이 존재하면
                         enemy_open_3_list = get_next_open4(size, arr_list, board, enemy_stone)  # 열린 3은 하나 놓으면 열린4
                         if len(enemy_open_3_list) >= 1:  # 존재한다면 이건 강제로 막지 않으면 패배
-                            probs_new = self.policy_net.predict(inputs) # 확률 배열
+                            probs_new = self.policy_net.predict(inputs,steps=1) # 확률 배열
                             while True:
                                 arr_tmp = probs_new[0][enemy_open_3_list]  # 여러개라면 확률이 제일 높은 걸 고른다
                                 new_best_choice = np.argmax(arr_tmp)
